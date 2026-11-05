@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  SUPERVISOR
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique
+  name         String
+  role         Role
+  passwordHash String
+  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
+  memberships  TeamMember[]
+  supervises   Team[]       @relation("TeamSupervisor")
+  milestones   Milestone[]  @relation("MilestoneCreator")
+  submissions  Submission[] @relation("SubmissionAuthor")
+  feedbacks    Feedback[]   @relation("FeedbackAuthor")
+}
+
+model Team {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @unique
+  supervisorId String       @db.Uuid
+  supervisor   User         @relation("TeamSupervisor", fields: [supervisorId], references: [id])
+  members      TeamMember[]
+  milestones   Milestone[]
+}
+
+model TeamMember {
+  teamId String @db.Uuid
+  userId String @unique @db.Uuid
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+}
+
+model Milestone {
+  id          String      @id @default(uuid()) @db.Uuid
+  teamId      String      @db.Uuid
+  title       String
+  description String      @default("")
+  dueAt       DateTime    @db.Timestamptz(3)
+  createdById String      @db.Uuid
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User        @relation("MilestoneCreator", fields: [createdById], references: [id])
+  submission  Submission?
+
+  @@index([teamId])
+}
+
+model Submission {
+  id            String    @id @default(uuid()) @db.Uuid
+  milestoneId   String    @unique @db.Uuid
+  title         String
+  description   String    @default("")
+  link          String
+  submittedById String    @db.Uuid
+  submittedAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+  milestone     Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  submittedBy   User      @relation("SubmissionAuthor", fields: [submittedById], references: [id])
+  feedback      Feedback?
+}
+
+model Feedback {
+  id           String     @id @default(uuid()) @db.Uuid
+  submissionId String     @unique @db.Uuid
+  authorId     String     @db.Uuid
+  comment      String
+  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  author       User       @relation("FeedbackAuthor", fields: [authorId], references: [id])
+}
+
+// Session store used by connect-pg-simple (express-session).
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
+}
