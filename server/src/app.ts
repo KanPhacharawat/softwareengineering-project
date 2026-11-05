@@ -9,6 +9,7 @@ import { AppError, notFound } from './lib/errors.js';
 import { requireAuth } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
 import { teamsRouter } from './routes/teams.js';
+import { milestoneRoutes } from './routes/milestones.js';
 
 export type AppOptions = {
   prisma: PrismaClient;
@@ -53,6 +54,7 @@ export function createApp(opts: AppOptions) {
   app.use('/api/auth', authRouter(prisma));
   app.use('/api', requireAuth(prisma));
   app.use('/api/teams', teamsRouter(prisma));
+  app.use('/api', milestoneRoutes(prisma, opts.now ?? (() => new Date())));
   app.use('/api', (_req, _res, next) => next(notFound()));
 
   if (opts.webDist && fs.existsSync(opts.webDist)) {

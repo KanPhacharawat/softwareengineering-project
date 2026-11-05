@@ -1,0 +1,441 @@
+
+ RUN  v3.2.4 /home/claude/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5432"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+ ❯ tests/api/submissions.test.ts (9 tests | 8 failed) 2510ms
+   × F-04 team submission > TEST-13 AC-11 student submits and teammates and supervisor retrieve the persisted submission 372ms
+     → expected 404 to be 201 // Object.is equality
+   × F-04 team submission > TEST-14 AC-12 a second submission for the same milestone is rejected 246ms
+     → expected 201 "Created", got 404 "Not Found"
+   × F-04 team submission > TEST-15 AC-12 concurrent submissions store exactly one row (NFR-09) 374ms
+     → expected [ 404, 404 ] to deeply equal [ 201, 409 ]
+   × F-04 team submission > TEST-16 AC-13 submit and edit after the due date are rejected and data is unchanged 236ms
+     → expected 404 to be 422 // Object.is equality
+   × F-04 team submission > TEST-17 AC-14 invalid link or title is rejected with field errors 241ms
+     → ftp://x: expected 404 to be 400 // Object.is equality
+   × F-04 team submission > TEST-18 AC-15 a student of another team gets 404 without data 238ms
+     → expected 201 "Created", got 404 "Not Found"
+   × F-04 team submission > TEST-19 AC-16 a teammate edits the submission before the deadline 345ms
+     → expected 404 to be 200 // Object.is equality
+   ✓ F-04 team submission > PUT without an existing submission returns 404 232ms
+   × F-04 team submission > TEST-20 AC-09 a supervisor cannot submit work 225ms
+     → expected 404 to be 403 // Object.is equality
+ ✓ tests/api/auth.test.ts (10 tests) 1493ms
+   ✓ F-02 team scope > TEST-11 AC-10 students see only their team and supervisors only assigned teams  337ms
+ ❯ tests/api/milestones.test.ts (6 tests | 4 failed) 1721ms
+   × F-03 milestone creation > TEST-07 AC-06 assigned supervisor creates a milestone that team members see as OPEN 444ms
+     → expected 404 to be 201 // Object.is equality
+   × F-03 milestone creation > TEST-08 AC-07 invalid title or past due date is rejected with field errors and nothing stored 247ms
+     → expected 404 to be 400 // Object.is equality
+   ✓ F-03 milestone creation > TEST-09 AC-08 supervisor cannot create a milestone for an unassigned team 251ms
+   × F-03 milestone creation > TEST-10 AC-09 student cannot create a milestone 269ms
+     → expected 404 to be 403 // Object.is equality
+   ✓ F-03 milestone creation > TEST-12 AC-10 a student cannot list another team's milestones 260ms
+   × F-03 milestone creation > milestone status reflects submission, feedback and missed deadlines 248ms
+     → Cannot read properties of undefined (reading 'map')
+ ❯ tests/api/feedback.test.ts (5 tests | 5 failed) 1363ms
+   × F-05 supervisor feedback > TEST-21 AC-17 assigned supervisor records feedback that the team sees linked to the submission 406ms
+     → Cannot read properties of undefined (reading 'id')
+   × F-05 supervisor feedback > TEST-22 AC-19 a student cannot record feedback 250ms
+     → Cannot read properties of undefined (reading 'id')
+   × F-05 supervisor feedback > TEST-23 AC-19 an unassigned supervisor gets 404 and nothing is stored 248ms
+     → Cannot read properties of undefined (reading 'id')
+   × F-05 supervisor feedback > TEST-24 AC-18 feedback locks the submission even before the deadline 233ms
+     → Cannot read properties of undefined (reading 'id')
+   × F-05 supervisor feedback > TEST-25 AC-20 empty feedback is rejected and feedback can be given only once 224ms
+     → Cannot read properties of undefined (reading 'id')
+ ❯ tests/unit/rules.test.ts (18 tests | 18 failed) 13ms
+   × TEST-U01 AC-07 validateMilestone (BR-04) > title "ab" valid=false 5ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > title "abc" valid=true 1ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=true 0ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=false 0ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > title "   ab   " valid=false 0ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > rejects a due date in the past or equal to now, accepts the future 0ms
+     → not implemented
+   × TEST-U01 AC-07 validateMilestone (BR-04) > rejects an invalid date string and a description over 2000 chars 0ms
+     → not implemented
+   × TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > allows changes only strictly before the due time 2ms
+     → not implemented
+   × TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > locks a submission once it has feedback, even before the deadline 1ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "http://example.com/doc" valid=true 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "https://github.com/team/repo" valid=true 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "ftp://example.com/file" valid=false 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "/relative/path" valid=false 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "not a url" valid=false 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "javascript:alert(1)" valid=false 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=true 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=false 0ms
+     → not implemented
+   × TEST-U03 AC-14 validateSubmission (BR-09) > requires a 3..120 char title 0ms
+     → not implemented
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 35 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-21 AC-17 assigned supervisor records feedback that the team sees linked to the submission
+ FAIL  tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-22 AC-19 a student cannot record feedback
+ FAIL  tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-23 AC-19 an unassigned supervisor gets 404 and nothing is stored
+ FAIL  tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-24 AC-18 feedback locks the submission even before the deadline
+ FAIL  tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-25 AC-20 empty feedback is rejected and feedback can be given only once
+TypeError: Cannot read properties of undefined (reading 'id')
+ ❯ tests/api/feedback.test.ts:15:38
+     13|   milestoneId = m.id;
+     14|   const res = await (await loginAs('s1')).post(`/api/milestones/${m.id…
+     15|   submissionId = res.body.submission.id;
+       |                                      ^
+     16| });
+     17| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/35]⎯
+
+ FAIL  tests/api/milestones.test.ts > F-03 milestone creation > TEST-07 AC-06 assigned supervisor creates a milestone that team members see as OPEN
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/api/milestones.test.ts:18:24
+     16|       .post(`/api/teams/${seed.teams.alpha.id}/milestones`)
+     17|       .send({ title: 'Requirements draft', description: 'SRS link', du…
+     18|     expect(res.status).toBe(201);
+       |                        ^
+     19|     expect(res.body.milestone).toMatchObject({ title: 'Requirements dr…
+     20|     expect(await prisma.milestone.count({ where: { teamId: seed.teams.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/35]⎯
+
+ FAIL  tests/api/milestones.test.ts > F-03 milestone creation > TEST-08 AC-07 invalid title or past due date is rejected with field errors and nothing stored
+AssertionError: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ tests/api/milestones.test.ts:33:25
+     31|     const url = `/api/teams/${seed.teams.alpha.id}/milestones`;
+     32|     const past = await sup1.post(url).send({ title: 'Valid title', due…
+     33|     expect(past.status).toBe(400);
+       |                         ^
+     34|     expect(past.body.error.code).toBe('VALIDATION_ERROR');
+     35|     expect(past.body.error.fields).toHaveProperty('dueAt');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/35]⎯
+
+ FAIL  tests/api/milestones.test.ts > F-03 milestone creation > TEST-10 AC-09 student cannot create a milestone
+AssertionError: expected 404 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 404
+
+ ❯ tests/api/milestones.test.ts:56:24
+     54|     const s1 = await loginAs('s1');
+     55|     const res = await s1.post(`/api/teams/${seed.teams.alpha.id}/miles…
+     56|     expect(res.status).toBe(403);
+       |                        ^
+     57|     expect(res.body.error.code).toBe('FORBIDDEN');
+     58|     expect(await prisma.milestone.count()).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/35]⎯
+
+ FAIL  tests/api/milestones.test.ts > F-03 milestone creation > milestone status reflects submission, feedback and missed deadlines
+TypeError: Cannot read properties of undefined (reading 'map')
+ ❯ tests/api/milestones.test.ts:75:60
+     73|     await s1.post(`/api/milestones/${open.id}/submission`).send({ titl…
+     74|     const list = await s1.get(`/api/teams/${seed.teams.alpha.id}/miles…
+     75|     const status = Object.fromEntries(list.body.milestones.map((m: { i…
+       |                                                            ^
+     76|     expect(status).toEqual({ [open.id]: 'SUBMITTED', [missed.id]: 'MIS…
+     77|     // sorted by due date ascending
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-13 AC-11 student submits and teammates and supervisor retrieve the persisted submission
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/api/submissions.test.ts:17:24
+     15|     const s1 = await loginAs('s1');
+     16|     const res = await s1.post(`/api/milestones/${m.id}/submission`).se…
+     17|     expect(res.status).toBe(201);
+       |                        ^
+     18|     expect(res.body.submission).toMatchObject({ ...work, submittedBy: …
+     19| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-14 AC-12 a second submission for the same milestone is rejected
+Error: expected 201 "Created", got 404 "Not Found"
+ ❯ tests/api/submissions.test.ts:33:87
+     31|   it('TEST-14 AC-12 a second submission for the same milestone is reje…
+     32|     const m = await createMilestone(seed, 'alpha');
+     33|     await (await loginAs('s1')).post(`/api/milestones/${m.id}/submissi…
+       |                                                                                       ^
+     34|     const again = await (await loginAs('s2')).post(`/api/milestones/${…
+     35|     expect(again.status).toBe(409);
+ ❯ Test._assertStatus ../node_modules/supertest/lib/test.js:267:14
+ ❯ ../node_modules/supertest/lib/test.js:323:13
+ ❯ Test._assertFunction ../node_modules/supertest/lib/test.js:300:13
+ ❯ Test.assert ../node_modules/supertest/lib/test.js:179:23
+ ❯ Server.localAssert ../node_modules/supertest/lib/test.js:135:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-15 AC-12 concurrent submissions store exactly one row (NFR-09)
+AssertionError: expected [ 404, 404 ] to deeply equal [ 201, 409 ]
+
+- Expected
++ Received
+
+  [
+-   201,
+-   409,
++   404,
++   404,
+  ]
+
+ ❯ tests/api/submissions.test.ts:47:49
+     45|       s2.post(`/api/milestones/${m.id}/submission`).send({ ...work, ti…
+     46|     ]);
+     47|     expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+       |                                                 ^
+     48|     expect(await prisma.submission.count({ where: { milestoneId: m.id …
+     49|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-16 AC-13 submit and edit after the due date are rejected and data is unchanged
+AssertionError: expected 404 to be 422 // Object.is equality
+
+- Expected
++ Received
+
+- 422
++ 404
+
+ ❯ tests/api/submissions.test.ts:55:25
+     53|     const s1 = await loginAs('s1');
+     54|     const post = await s1.post(`/api/milestones/${pastDue.id}/submissi…
+     55|     expect(post.status).toBe(422);
+       |                         ^
+     56|     expect(post.body.error.code).toBe('DEADLINE_PASSED');
+     57|     expect(await prisma.submission.count()).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-17 AC-14 invalid link or title is rejected with field errors
+AssertionError: ftp://x: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ tests/api/submissions.test.ts:72:32
+     70|     for (const link of ['ftp://x', 'not a url']) {
+     71|       const res = await s1.post(`/api/milestones/${m.id}/submission`).…
+     72|       expect(res.status, link).toBe(400);
+       |                                ^
+     73|       expect(res.body.error.fields).toHaveProperty('link');
+     74|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-18 AC-15 a student of another team gets 404 without data
+Error: expected 201 "Created", got 404 "Not Found"
+ ❯ tests/api/submissions.test.ts:83:87
+     81|   it('TEST-18 AC-15 a student of another team gets 404 without data', …
+     82|     const m = await createMilestone(seed, 'alpha');
+     83|     await (await loginAs('s1')).post(`/api/milestones/${m.id}/submissi…
+       |                                                                                       ^
+     84|     const s3 = await loginAs('s3');
+     85|     const get = await s3.get(`/api/milestones/${m.id}`);
+ ❯ Test._assertStatus ../node_modules/supertest/lib/test.js:267:14
+ ❯ ../node_modules/supertest/lib/test.js:323:13
+ ❯ Test._assertFunction ../node_modules/supertest/lib/test.js:300:13
+ ❯ Test.assert ../node_modules/supertest/lib/test.js:179:23
+ ❯ Server.localAssert ../node_modules/supertest/lib/test.js:135:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-19 AC-16 a teammate edits the submission before the deadline
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/api/submissions.test.ts:99:24
+     97|     const edit = { title: 'Sprint 1 demo v2', description: 'Updated', …
+     98|     const res = await s2.put(`/api/milestones/${m.id}/submission`).sen…
+     99|     expect(res.status).toBe(200);
+       |                        ^
+    100|     expect(res.body.submission).toMatchObject({ ...edit, submittedBy: …
+    101|     const row = await prisma.submission.findUniqueOrThrow({ where: { m…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/35]⎯
+
+ FAIL  tests/api/submissions.test.ts > F-04 team submission > TEST-20 AC-09 a supervisor cannot submit work
+AssertionError: expected 404 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 404
+
+ ❯ tests/api/submissions.test.ts:114:24
+    112|     const m = await createMilestone(seed, 'alpha');
+    113|     const res = await (await loginAs('sup1')).post(`/api/milestones/${…
+    114|     expect(res.status).toBe(403);
+       |                        ^
+    115|     expect(await prisma.submission.count()).toBe(0);
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "ab" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "abc" valid=true
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=true
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "   ab   " valid=false
+Error: not implemented
+ ❯ validateMilestone src/domain/rules.ts:8:9
+      6| 
+      7| export function validateMilestone(_input: MilestoneInput, _now: Date):…
+      8|   throw new Error('not implemented');
+       |         ^
+      9| }
+     10| 
+ ❯ tests/unit/rules.test.ts:15:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > rejects a due date in the past or equal to now, accepts the future
+Error: not implemented
+ ❯ validateMilestone src/domain/rules.ts:8:9
+      6| 
+      7| export function validateMilestone(_input: MilestoneInput, _now: Date):…
+      8|   throw new Error('not implemented');
+       |         ^
+      9| }
+     10| 
+ ❯ tests/unit/rules.test.ts:19:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > rejects an invalid date string and a description over 2000 chars
+Error: not implemented
+ ❯ validateMilestone src/domain/rules.ts:8:9
+      6| 
+      7| export function validateMilestone(_input: MilestoneInput, _now: Date):…
+      8|   throw new Error('not implemented');
+       |         ^
+      9| }
+     10| 
+ ❯ tests/unit/rules.test.ts:26:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > allows changes only strictly before the due time
+Error: not implemented
+ ❯ canChangeSubmission src/domain/rules.ts:20:9
+     18|   _now: Date,
+     19| ): Result<'DEADLINE_PASSED' | 'SUBMISSION_LOCKED'> {
+     20|   throw new Error('not implemented');
+       |         ^
+     21| }
+     22| 
+ ❯ tests/unit/rules.test.ts:35:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > locks a submission once it has feedback, even before the deadline
+Error: not implemented
+ ❯ canChangeSubmission src/domain/rules.ts:20:9
+     18|   _now: Date,
+     19| ): Result<'DEADLINE_PASSED' | 'SUBMISSION_LOCKED'> {
+     20|   throw new Error('not implemented');
+       |         ^
+     21| }
+     22| 
+ ❯ tests/unit/rules.test.ts:42:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "http://example.com/doc" valid=true
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://github.com/team/repo" valid=true
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "ftp://example.com/file" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "/relative/path" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "not a url" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "javascript:alert(1)" valid=false
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=true
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=false
+Error: not implemented
+ ❯ validateSubmission src/domain/rules.ts:12:9
+     10| 
+     11| export function validateSubmission(_input: SubmissionInput): Result<'V…
+     12|   throw new Error('not implemented');
+       |         ^
+     13| }
+     14| 
+ ❯ tests/unit/rules.test.ts:59:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/35]⎯
+
+ FAIL  tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > requires a 3..120 char title
+Error: not implemented
+ ❯ validateSubmission src/domain/rules.ts:12:9
+     10| 
+     11| export function validateSubmission(_input: SubmissionInput): Result<'V…
+     12|   throw new Error('not implemented');
+       |         ^
+     13| }
+     14| 
+ ❯ tests/unit/rules.test.ts:65:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/35]⎯
+
+
+ Test Files  4 failed | 1 passed (5)
+      Tests  35 failed | 13 passed (48)
+   Start at  08:03:29
+   Duration  10.86s (transform 216ms, setup 0ms, collect 1.38s, tests 7.10s, environment 1ms, prepare 322ms)
+
