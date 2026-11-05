@@ -19,22 +19,27 @@ npm workspaces: run every command below from the repository root.
 ## Prerequisites
 
 - Node.js 22 or newer (npm 10+)
-- PostgreSQL 16 running locally, with a user that can create databases. Example (psql as superuser):
+- Docker with Docker Compose (Docker Desktop on macOS/Windows). PostgreSQL itself runs in a container, so no local
+  install is needed.
 
-  ```sql
-  CREATE USER app WITH PASSWORD 'app' CREATEDB;
-  CREATE DATABASE cpms_dev OWNER app;
-  CREATE DATABASE cpms_test OWNER app;
-  ```
+## Database (Docker)
 
-  Or with Docker: `docker run -d --name cpms-db -e POSTGRES_USER=app -e POSTGRES_PASSWORD=app -e POSTGRES_DB=cpms_dev -p 5432:5432 postgres:16`
-  then `docker exec cpms-db createdb -U app cpms_test`.
+[`docker-compose.yml`](docker-compose.yml) runs PostgreSQL 16 on host port **5433** with user `app` / password `app`
+and two databases: `cpms_dev` (development) and `cpms_test` (used by `npm test`). Data is kept in the Docker volume
+`cpms-db-data`.
+
+```bash
+npm run db:up      # start the database and wait until it is healthy
+npm run db:down    # stop it (data is kept)
+docker compose down -v   # stop and delete all database data
+```
 
 ## Setup
 
 ```bash
 npm install
-cp server/.env.example server/.env     # then set SESSION_SECRET (and DATABASE_URL if yours differs)
+npm run db:up                           # start PostgreSQL in Docker
+cp server/.env.example server/.env     # then set SESSION_SECRET
 npm run db:migrate                      # apply Prisma migrations to cpms_dev
 npm run db:seed                         # load demo data (2 supervisors, 3 teams, 6 students)
 npx playwright install chromium         # once, only for E2E tests
@@ -46,6 +51,7 @@ Configuration is only through environment variables in `server/.env` (git-ignore
 ## Run
 
 ```bash
+npm run db:up   # if the database is not running yet
 npm run dev
 ```
 

@@ -5,6 +5,7 @@ Version history
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-11-05 | First version, written in F-00 before any screen is built |
+| 1.1 | 2026-11-05 | UI language rule: English only, no Thai in the UI |
 
 This document sets the visual and interaction rules for every CPMS screen. Every feature that adds UI
 (F-01 onward) follows it. When a screen needs something not covered here, extend this document in the same PR.
@@ -152,8 +153,9 @@ Every page that loads data handles three states:
 
 ## 9. Writing in the UI
 
-- Language: English labels in Sprint 1 (the docs and tests use English strings); the font already supports Thai,
-  so user content in Thai renders correctly.
+- Language: English only. Every UI string (labels, buttons, messages, placeholders, page titles, empty states,
+  errors) is written in English, and `<html lang="en">`. No Thai text in the UI or its source. Noto Sans Thai is
+  kept only so that Thai text typed by users (e.g. a submission title) still renders correctly.
 - Sentence case for titles and buttons ("New milestone", not "New Milestone").
 - Buttons say the action: "Create milestone", "Save submission", "Send feedback".
 - Dates: `5 Nov 2026, 23:59` in Asia/Bangkok, with the relative time in muted text where helpful ("in 3 days").

@@ -25,7 +25,7 @@ export default function App() {
       <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">Course Project Management System</h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ระบบจัดการโครงงานรายวิชา: milestones, submissions and feedback.
+          Milestones, submissions and feedback for course project teams.
         </p>
         <p className="mt-6 flex items-center gap-2 text-sm" data-testid="api-status">
           {health === 'loading' && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
