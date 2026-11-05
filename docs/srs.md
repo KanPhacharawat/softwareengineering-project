@@ -131,5 +131,5 @@ Explicit exclusions:
 | D-05 | What does a student see for another team's resource? | 404 Not Found, so the existence of other teams' data is not revealed. A wrong-role operation returns 403. | 2026-11-05 |
 | D-06 | Session or token? | Server-side session stored in PostgreSQL with an httpOnly cookie, so logout truly revokes access. | 2026-11-05 |
 | D-07 | What does the submission contain? | Title, description and link. File upload is excluded. | 2026-11-05 |
-| D-09 | Where does Sprint 1 start? | From an empty repository: F-00 Project setup is the first Sprint 1 feature, then F-01 to F-05. | 2026-11-05 |
 | D-08 | Can a supervisor see feedback/grades of other teams? | No; only assigned teams (BR-02). Students see feedback and grades of their own team only. | 2026-11-05 |
+| D-09 | Where does Sprint 1 start? | From an empty repository: F-00 Project setup is the first Sprint 1 feature, then F-01 to F-05. | 2026-11-05 |
