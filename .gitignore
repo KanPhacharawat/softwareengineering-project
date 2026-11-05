@@ -8,3 +8,6 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+docs/deliverable-1/deliverable-1.pdf
+docs/deliverable-1/report.config.json
+docs/deliverable-1/_report.html

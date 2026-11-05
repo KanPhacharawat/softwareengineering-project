@@ -1,0 +1,56 @@
+ RUN  v3.2.4 /home/claude/softwareengineering-project/server
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+Environment variables loaded from .env
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-13 AC-11 student submits and teammates and supervisor retrieve the persisted submission 643ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-14 AC-12 a second submission for the same milestone is rejected 373ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-15 AC-12 concurrent submissions store exactly one row (NFR-09) 370ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-16 AC-13 submit and edit after the due date are rejected and data is unchanged 267ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-17 AC-14 invalid link or title is rejected with field errors 261ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-18 AC-15 a student of another team gets 404 without data 405ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-19 AC-16 a teammate edits the submission before the deadline 366ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > PUT without an existing submission returns 404 256ms
+ ✓ tests/api/submissions.test.ts > F-04 team submission > TEST-20 AC-09 a supervisor cannot submit work 261ms
+ ✓ tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-21 AC-17 assigned supervisor records feedback that the team sees linked to the submission 700ms
+ ✓ tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-22 AC-19 a student cannot record feedback 382ms
+ ✓ tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-23 AC-19 an unassigned supervisor gets 404 and nothing is stored 380ms
+ ✓ tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-24 AC-18 feedback locks the submission even before the deadline 460ms
+ ✓ tests/api/feedback.test.ts > F-05 supervisor feedback > TEST-25 AC-20 empty feedback is rejected and feedback can be given only once 375ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > TEST-07 AC-06 assigned supervisor creates a milestone that team members see as OPEN 527ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > TEST-08 AC-07 invalid title or past due date is rejected with field errors and nothing stored 286ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > TEST-09 AC-08 supervisor cannot create a milestone for an unassigned team 243ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > TEST-10 AC-09 student cannot create a milestone 234ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > TEST-12 AC-10 a student cannot list another team's milestones 233ms
+ ✓ tests/api/milestones.test.ts > F-03 milestone creation > milestone status reflects submission, feedback and missed deadlines 245ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-01 AC-01 valid login returns the user without hash and /me returns the same user 179ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-02 AC-02 wrong password returns 401 INVALID_CREDENTIALS without a cookie 97ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-03 AC-02 unknown email gives the same response as a wrong password 186ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > login with an empty body is rejected with 400 4ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-04 AC-03 protected endpoints reject unauthenticated requests without data 15ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-05 AC-04 after logout the old session cookie is rejected 214ms
+ ✓ tests/api/auth.test.ts > F-01 authentication > TEST-06 AC-05 passwords are stored only as bcrypt hashes with cost >= 10 3ms
+ ✓ tests/api/auth.test.ts > F-02 team scope > TEST-11 AC-10 students see only their team and supervisors only assigned teams 328ms
+ ✓ tests/api/auth.test.ts > F-02 team scope > TEST-12 AC-10 a student gets 404 without data for another team 114ms
+ ✓ tests/api/auth.test.ts > F-02 team scope > a malformed team id returns 404, not 500 118ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "ab" valid=false 3ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "abc" valid=true 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=true 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > title "   ab   " valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > rejects a due date in the past or equal to now, accepts the future 2ms
+ ✓ tests/unit/rules.test.ts > TEST-U01 AC-07 validateMilestone (BR-04) > rejects an invalid date string and a description over 2000 chars 1ms
+ ✓ tests/unit/rules.test.ts > TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > allows changes only strictly before the due time 1ms
+ ✓ tests/unit/rules.test.ts > TEST-U02 AC-13 AC-18 canChangeSubmission (BR-06, BR-07) > locks a submission once it has feedback, even before the deadline 1ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "http://example.com/doc" valid=true 1ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://github.com/team/repo" valid=true 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "ftp://example.com/file" valid=false 1ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "/relative/path" valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "not a url" valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "javascript:alert(1)" valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=true 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > link "https://e.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" valid=false 0ms
+ ✓ tests/unit/rules.test.ts > TEST-U03 AC-14 validateSubmission (BR-09) > requires a 3..120 char title 0ms
+ Test Files  5 passed (5)
+      Tests  48 passed (48)
+   Start at  08:11:19
+   Duration  12.87s (transform 292ms, setup 0ms, collect 1.51s, tests 8.77s, environment 1ms, prepare 368ms)

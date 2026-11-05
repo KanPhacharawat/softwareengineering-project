@@ -1,0 +1,41 @@
+# API demonstration against local release (server on :3100, cpms_e2e seeded)
+
+$ curl -s -i http://localhost:3100/api/teams | sed -n '1p;$p'
+HTTP/1.1 401 Unauthorized
+{"error":{"code":"UNAUTHENTICATED","message":"Please log in"}}
+
+$ curl -s -c cookies-s1 -o /dev/null -w '%{http_code}\n' -H 'Content-Type: application/json' -d '{"email":"s1@cpms.test","password":"Passw0rd!"}' http://localhost:3100/api/auth/login
+200
+
+
+$ curl -s -b cookies-s1 http://localhost:3100/api/auth/me
+{"user":{"id":"210a748a-bfaa-4c0d-a424-2ea71a86ce10","email":"s1@cpms.test","name":"Chai Student","role":"STUDENT"}}
+
+$ curl -s -i -b cookies-s1 -H 'Content-Type: application/json' -d '{"title":"Late work","link":"https://e.com"}' http://localhost:3100/api/milestones/2d627ec9-82b6-4fb7-ae02-1fb7acf6db3d/submission | sed -n '1p;$p'
+HTTP/1.1 422 Unprocessable Entity
+{"error":{"code":"DEADLINE_PASSED","message":"The milestone due date has passed"}}
+
+$ curl -s -i -b cookies-s1 -H 'Content-Type: application/json' -d '{"title":"Edit","link":"https://e.com"}' -X PUT http://localhost:3100/api/milestones/cc5bf827-c188-43d5-b433-ad6d0c0160a9/submission | sed -n '1p;$p'
+HTTP/1.1 409 Conflict
+{"error":{"code":"SUBMISSION_LOCKED","message":"The submission is locked after feedback"}}
+
+$ curl -s -i -b cookies-s1 -H 'Content-Type: application/json' -d '{"title":"Student milestone","dueAt":"2030-01-01T00:00:00Z"}' http://localhost:3100/api/teams/d0e5f56c-8c2d-4410-a158-11c2db009a1f/milestones | sed -n '1p;$p'
+HTTP/1.1 403 Forbidden
+{"error":{"code":"FORBIDDEN","message":"Your role cannot perform this operation"}}
+
+$ curl -s -c cookies-s3 -o /dev/null -w '%{http_code}\n' -H 'Content-Type: application/json' -d '{"email":"s3@cpms.test","password":"Passw0rd!"}' http://localhost:3100/api/auth/login
+200
+
+
+$ curl -s -i -b cookies-s3 http://localhost:3100/api/milestones/cc5bf827-c188-43d5-b433-ad6d0c0160a9 | sed -n '1p;$p'
+HTTP/1.1 404 Not Found
+{"error":{"code":"NOT_FOUND","message":"Not found or you do not have access"}}
+
+$ curl -s -o /dev/null -w '%{http_code}\n' -b cookies-s1 -X POST http://localhost:3100/api/auth/logout
+204
+
+
+$ curl -s -i -b cookies-s1 http://localhost:3100/api/auth/me | sed -n '1p;$p'
+HTTP/1.1 401 Unauthorized
+{"error":{"code":"UNAUTHENTICATED","message":"Please log in"}}
+
