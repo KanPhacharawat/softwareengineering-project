@@ -2,6 +2,7 @@ import express from 'express';
 import { errorHandler, notFoundHandler } from './errors.js';
 import { requireAuth } from './middleware/require-auth.js';
 import { authRouter } from './routes/auth.js';
+import { teamsRouter } from './routes/teams.js';
 import { sessionMiddleware } from './session.js';
 
 export function createApp() {
@@ -21,7 +22,8 @@ export function createApp() {
   // Everything else under /api needs a session (AC-03, NFR-02). Unknown paths still answer 401 before 404,
   // so an anonymous caller learns nothing about which routes or records exist.
   app.use('/api', requireAuth);
-  // Feature routers (teams, milestones, ...) are mounted here from F-02 on.
+  // Feature routers. Role checks (requireRole) and team scope checks (loadTeamInScope) live inside them.
+  app.use('/api/teams', teamsRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);

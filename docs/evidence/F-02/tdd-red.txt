@@ -1,0 +1,247 @@
+# F-02 TDD red run. Command: npx vitest run --reporter=verbose (server). Date: 2026-11-06T08:17:12Z. Base: sprint-1 deeaf69 + F-02 tests and stubs.
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user 479ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > accepts the email in any letter case 312ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > rejects an empty body with 400 VALIDATION_ERROR and field messages 5ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > wrong password gives 401 INVALID_CREDENTIALS and no session cookie 315ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > unknown email gives the same 401 response as a wrong password 630ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/auth/me returns 401 UNAUTHENTICATED with only an error body 5ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams returns 401 UNAUTHENTICATED with only an error body 5ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams/00000000-0000-4000-8000-0000000000a1/milestones returns 401 UNAUTHENTICATED with only an error body 3ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/milestones/00000000-0000-4000-8000-00000000f001 returns 401 UNAUTHENTICATED with only an error body 3ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > rejects a forged session cookie 3ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > returns 204, clears the cookie, and the old cookie is rejected afterwards 337ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > deletes the session row from the database 354ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > is idempotent: logout without a session returns 204 7ms
+ ✓ tests/auth.test.ts > TEST-06 (AC-05, NFR-01) stored password hashes > every passwordHash is bcrypt with cost >= 10 and is not the plain password 2405ms
+ × tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > a student gets only their own team, with supervisor and members 15ms
+   → expected 404 to be 200 // Object.is equality
+ × tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > another student gets only their own team (Beta) 6ms
+   → Cannot read properties of undefined (reading 'map')
+ × tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup2 gets only Gamma 6ms
+   → expected 404 to be 200 // Object.is equality
+ × tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup1 gets Alpha and Beta, ordered by name 7ms
+   → Cannot read properties of undefined (reading 'map')
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > never returns password hashes 8ms
+ × tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student gets their own team 7ms
+   → expected 404 to be 200 // Object.is equality
+ × tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a supervisor gets an assigned team 6ms
+   → expected 404 to be 200 // Object.is equality
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Beta returns 404 NOT_FOUND without the team data 7ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Gamma returns 404 NOT_FOUND without the team data 7ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup2 -> Alpha returns 404 NOT_FOUND without the team data 8ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup1 -> Gamma returns 404 NOT_FOUND without the team data 5ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student asking for another team milestones gets 404 without data (scope checked for every /teams/:teamId/* path) 6ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > an unknown or malformed team id gives the same 404 as another team 19ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > lets the right role through 2ms
+ × tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a student on a supervisor-only operation with 403 FORBIDDEN 4ms
+   → expected undefined to be an instance of AppError
+ × tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a supervisor on a student-only operation with 403 FORBIDDEN 1ms
+   → Cannot read properties of undefined (reading 'status')
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > returns the team to a member student and to its supervisor 1ms
+   → not implemented
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > student, other team -> 404 NOT_FOUND 5ms
+   → expected Error: not implemented to match object { status: 404, code: 'NOT_FOUND' }
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > supervisor, unassigned team -> 404 NOT_FOUND 1ms
+   → expected Error: not implemented to match object { status: 404, code: 'NOT_FOUND' }
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > unknown id -> 404 NOT_FOUND 1ms
+   → expected Error: not implemented to match object { status: 404, code: 'NOT_FOUND' }
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > malformed id -> 404 NOT_FOUND 1ms
+   → expected Error: not implemented to match object { status: 404, code: 'NOT_FOUND' }
+ × tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > Sup1 cannot reach Gamma either 1ms
+   → expected Error: not implemented to match object { status: 404 }
+ ✓ tests/seed.test.ts > seed data > has 8 users: 2 supervisors and 6 students 66ms
+ ✓ tests/seed.test.ts > seed data > has 3 teams, each with a supervisor 5ms
+ ✓ tests/seed.test.ts > seed data > puts every student in exactly one team 4ms
+ ✓ tests/health.test.ts > GET /api/health > returns 200 { ok: true } 24ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a student on a supervisor-only operation with 403 FORBIDDEN
+AssertionError: expected undefined to be an instance of AppError
+ ❯ tests/authorization.test.ts:34:17
+     32|     const next = runMiddleware('SUPERVISOR', asUser(S1));
+     33|     const err = next.mock.calls[0][0] as AppError;
+     34|     expect(err).toBeInstanceOf(AppError);
+       |                 ^
+     35|     expect(err.status).toBe(403);
+     36|     expect(err.code).toBe('FORBIDDEN');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a supervisor on a student-only operation with 403 FORBIDDEN
+TypeError: Cannot read properties of undefined (reading 'status')
+ ❯ tests/authorization.test.ts:41:48
+     39|   it('rejects a supervisor on a student-only operation with 403 FORBID…
+     40|     const next = runMiddleware('STUDENT', asUser(SUP1));
+     41|     expect((next.mock.calls[0][0] as AppError).status).toBe(403);
+       |                                                ^
+     42|   });
+     43| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > returns the team to a member student and to its supervisor
+Error: not implemented
+ ❯ loadTeamInScope src/services/team-service.ts:5:9
+      3| // TDD red stub: replaced by the real check in the F-02 implementation…
+      4| export async function loadTeamInScope(_user: PublicUser, _teamId: stri…
+      5|   throw new Error('not implemented');
+       |         ^
+      6| }
+      7| 
+ ❯ tests/authorization.test.ts:47:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > student, other team -> 404 NOT_FOUND
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > supervisor, unassigned team -> 404 NOT_FOUND
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > unknown id -> 404 NOT_FOUND
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > malformed id -> 404 NOT_FOUND
+AssertionError: expected Error: not implemented to match object { status: 404, code: 'NOT_FOUND' }
+
+- Expected
++ Received
+
+- {
+-   "code": "NOT_FOUND",
+-   "status": 404,
++ Error {
++   "message": "not implemented",
+  }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > Sup1 cannot reach Gamma either
+AssertionError: expected Error: not implemented to match object { status: 404 }
+
+- Expected
++ Received
+
+- {
+-   "status": 404,
++ Error {
++   "message": "not implemented",
+  }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > a student gets only their own team, with supervisor and members
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/teams.test.ts:32:24
+     30|   it('a student gets only their own team, with supervisor and members'…
+     31|     const res = await get('/api/teams', s1);
+     32|     expect(res.status).toBe(200);
+       |                        ^
+     33|     expect(res.body).toEqual({
+     34|       teams: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > another student gets only their own team (Beta)
+TypeError: Cannot read properties of undefined (reading 'map')
+ ❯ tests/teams.test.ts:50:27
+     48|   it('another student gets only their own team (Beta)', async () => {
+     49|     const res = await get('/api/teams', s3);
+     50|     expect(res.body.teams.map((t: { name: string }) => t.name)).toEqua…
+       |                           ^
+     51|   });
+     52| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup2 gets only Gamma
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/teams.test.ts:55:24
+     53|   it('Sup2 gets only Gamma', async () => {
+     54|     const res = await get('/api/teams', sup2);
+     55|     expect(res.status).toBe(200);
+       |                        ^
+     56|     expect(res.body.teams.map((t: { id: string }) => t.id)).toEqual([G…
+     57|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup1 gets Alpha and Beta, ordered by name
+TypeError: Cannot read properties of undefined (reading 'map')
+ ❯ tests/teams.test.ts:61:27
+     59|   it('Sup1 gets Alpha and Beta, ordered by name', async () => {
+     60|     const res = await get('/api/teams', sup1);
+     61|     expect(res.body.teams.map((t: { name: string }) => t.name)).toEqua…
+       |                           ^
+     62|   });
+     63| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student gets their own team
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/teams.test.ts:73:24
+     71|   it('a student gets their own team', async () => {
+     72|     const res = await get(`/api/teams/${ALPHA.id}`, s1);
+     73|     expect(res.status).toBe(200);
+       |                        ^
+     74|     expect(res.body.team.id).toBe(ALPHA.id);
+     75|     expect(res.body.team.members).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a supervisor gets an assigned team
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/teams.test.ts:80:24
+     78|   it('a supervisor gets an assigned team', async () => {
+     79|     const res = await get(`/api/teams/${BETA.id}`, sup1);
+     80|     expect(res.status).toBe(200);
+       |                        ^
+     81|     expect(res.body.team.name).toBe('Beta');
+     82|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  14 failed | 26 passed (40)
+   Start at  08:17:13
+   Duration  12.10s (transform 229ms, setup 79ms, import 1.30s, tests 6.48s, environment 1ms)
+
