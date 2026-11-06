@@ -61,6 +61,8 @@ npm run dev
 - Auth API (F-01): `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Sessions are stored in the
   `session` table of PostgreSQL and sent as the httpOnly cookie `cpms.sid` (8 hours of inactivity). Every other
   `/api` route needs a session and answers 401 without one.
+- Teams API (F-02): `GET /api/teams` (student: own team, supervisor: assigned teams), `GET /api/teams/:teamId`
+  (404 for a team outside the user's scope). Wrong-role operations answer 403.
 
 ## Test
 

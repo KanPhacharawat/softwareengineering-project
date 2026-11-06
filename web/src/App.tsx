@@ -3,6 +3,7 @@ import { AuthProvider } from '@/auth/auth-context';
 import { RequireAuth } from '@/auth/require-auth';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
+import { TeamPage } from '@/pages/team-page';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RequireAuth />}>
             <Route index element={<HomePage />} />
+            <Route path="teams/:teamId" element={<TeamPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

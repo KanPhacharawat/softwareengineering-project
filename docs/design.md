@@ -7,6 +7,7 @@ Version history
 | 1.0 | 2026-11-05 | First version, written in F-00 before any screen is built |
 | 1.1 | 2026-11-05 | UI language rule: English only, no Thai in the UI |
 | 1.2 | 2026-11-06 | F-01: login page layout and session behaviour in the UI (section 5.1) |
+| 1.3 | 2026-11-06 | F-02: My teams and team page (section 5.2), `ArrowLeft` icon for back links |
 
 This document sets the visual and interaction rules for every CPMS screen. Every feature that adds UI
 (F-01 onward) follows it. When a screen needs something not covered here, extend this document in the same PR.
@@ -122,6 +123,20 @@ on Thai paragraphs. Do not use weights below 400.
   returns to the page they asked for, or `/`. A logged-in user who opens `/login` goes to `/`.
 - "Log out" in the top bar shows `Loader2` while it runs, then goes to `/login`.
 
+### 5.2 My teams and team page (F-02)
+
+- `/` title is "My team" for a student (always one team) and "My teams" for a supervisor. Teams are cards in
+  `grid gap-4 md:grid-cols-2`. Each card is a link to the team page: card title (`Users` icon, team name,
+  `ChevronRight` on the right), `CardDescription` "Supervisor: <name>", a small label "N members" and the member
+  names. Hover `bg-muted/50`, keyboard focus ring on the card.
+- Empty state: `Users` icon, "No teams assigned to you yet" (supervisor) or "You are not in a team yet" (student).
+- `/teams/:teamId`: breadcrumb "My team(s) / <team>", page title = team name, secondary line "Supervisor: <name>",
+  then the "Members" section: a `Table` (Name, Email) inside a `Card`, header `bg-muted/50`. F-03 adds the
+  Milestones section below it.
+- A team outside the user's scope gives the API 404: the page shows the destructive `Alert` "Not found or you do not
+  have access" and an outline "Back to my team(s)" button with `ArrowLeft`. The page never says whether the team
+  exists.
+
 ## 6. Components (shadcn/ui)
 
 | Need | Component | Rule |
@@ -154,6 +169,7 @@ default (2). Icons inherit text colour (`text-muted-foreground` when decorative)
 | Create | `Plus` |
 | Edit | `Pencil` |
 | Log out | `LogOut` |
+| Back / open | `ArrowLeft`, `ChevronRight` |
 | Loading | `Loader2` with `animate-spin` |
 | Error / info | `CircleAlert`, `Info` |
 

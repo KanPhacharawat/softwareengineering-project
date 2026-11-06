@@ -51,3 +51,11 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
 }
 
 export const roleLabel: Record<Role, string> = { STUDENT: 'Student', SUPERVISOR: 'Supervisor' };
+
+export type TeamMember = { id: string; name: string; email: string };
+export type Team = {
+  id: string;
+  name: string;
+  supervisor: { id: string; name: string };
+  members: TeamMember[];
+};
