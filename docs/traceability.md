@@ -1,14 +1,14 @@
 # Requirements Traceability Matrix
 
-Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 Sprint 1 AC and TEST IDs are defined in [sprints/sprint-1/](sprints/sprint-1/). Later sprints have feature and
 sprint allocation now; their AC/tests are elaborated in their own contracts.
 
 | Requirement | Feature / responsibility | Sprint | Acceptance criteria | Tests | Status |
 |---|---|---|---|---|---|
-| FR-01 | F-01 | 1 | AC-01, AC-02 | TEST-01, TEST-02, TEST-03 | Planned |
-| FR-02 | F-01 | 1 | AC-04, AC-22 | TEST-05, TEST-E2E-02 | Planned |
-| FR-03 | F-01 | 1 | AC-01 | TEST-01 | Planned |
+| FR-01 | F-01 | 1 | AC-01, AC-02 | TEST-01, TEST-02, TEST-03 | Implemented (F-01, tests pass) |
+| FR-02 | F-01 | 1 | AC-04, AC-22 | TEST-05, TEST-E2E-02 | Implemented (F-01, tests pass) |
+| FR-03 | F-01 | 1 | AC-01 | TEST-01 | Implemented (F-01, tests pass) |
 | FR-04 | F-02 | 1 | AC-10 | TEST-11, TEST-12 | Planned |
 | FR-05 | F-03 | 1 | AC-06, AC-07 | TEST-07, TEST-08, TEST-U01 | Planned |
 | FR-06 | F-03 | 1 | AC-10 | TEST-11, TEST-12 | Planned |
@@ -38,10 +38,10 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-11 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | BR-12 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | BR-13 | F-07 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
-| NFR-01 | F-01 | 1 | AC-05 | TEST-06 | Planned |
-| NFR-02 | F-01, F-02 | 1 | AC-03 | TEST-04 | Planned |
+| NFR-01 | F-01 | 1 | AC-05 | TEST-06 | Implemented (F-01, tests pass) |
+| NFR-02 | F-01, F-02 | 1 | AC-03 | TEST-04 | F-01 part implemented (401 on all /api routes); F-02 adds routes |
 | NFR-03 | F-02 | 1 | AC-08, AC-09, AC-15, AC-19 | TEST-09, TEST-10, TEST-18, TEST-20, TEST-22, TEST-23 | Planned |
-| NFR-04 | F-01 | 1 | AC-04 | TEST-05 | Planned |
+| NFR-04 | F-01 | 1 | AC-04 | TEST-05 | Implemented (F-01, tests pass) |
 | NFR-05 | F-00, R-01 | 1 (local), 2 (deployed restart, Lab 5) | AC-11 | TEST-13 (persistence); Lab 5 restart check | Planned |
 | NFR-06 | F-11 | 3 | Sprint 3 contract | Load test, Sprint 3 | Allocated |
 | NFR-07 | F-11 (core screens in F-03 to F-05) | 1 (core), 3 (all) | AC-21, AC-22 | TEST-E2E-01, TEST-E2E-02 | Planned |

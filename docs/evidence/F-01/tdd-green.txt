@@ -1,0 +1,39 @@
+# F-01 TDD green run. Command: npm test (server). Date: 2026-11-06T07:53:50Z. Code at commit 9408a6c + stricter 8-hour cookie assertion in the next commit.
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user 411ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > accepts the email in any letter case 340ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > rejects an empty body with 400 VALIDATION_ERROR and field messages 5ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > wrong password gives 401 INVALID_CREDENTIALS and no session cookie 326ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > unknown email gives the same 401 response as a wrong password 625ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/auth/me returns 401 UNAUTHENTICATED with only an error body 3ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams returns 401 UNAUTHENTICATED with only an error body 3ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams/00000000-0000-4000-8000-0000000000a1/milestones returns 401 UNAUTHENTICATED with only an error body 2ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/milestones/00000000-0000-4000-8000-00000000f001 returns 401 UNAUTHENTICATED with only an error body 2ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > rejects a forged session cookie 2ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > returns 204, clears the cookie, and the old cookie is rejected afterwards 322ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > deletes the session row from the database 318ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > is idempotent: logout without a session returns 204 3ms
+ ✓ tests/auth.test.ts > TEST-06 (AC-05, NFR-01) stored password hashes > every passwordHash is bcrypt with cost >= 10 and is not the plain password 2455ms
+ ✓ tests/seed.test.ts > seed data > has 8 users: 2 supervisors and 6 students 64ms
+ ✓ tests/seed.test.ts > seed data > has 3 teams, each with a supervisor 3ms
+ ✓ tests/seed.test.ts > seed data > puts every student in exactly one team 3ms
+ ✓ tests/health.test.ts > GET /api/health > returns 200 { ok: true } 23ms
+
+ Test Files  3 passed (3)
+      Tests  18 passed (18)
+   Start at  07:53:50
+   Duration  7.70s (transform 192ms, setup 80ms, import 633ms, tests 4.92s, environment 0ms)
+

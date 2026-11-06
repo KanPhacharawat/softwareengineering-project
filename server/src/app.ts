@@ -1,13 +1,29 @@
 import express from 'express';
+import { errorHandler, notFoundHandler } from './errors.js';
+import { requireAuth } from './middleware/require-auth.js';
+import { authRouter } from './routes/auth.js';
+import { sessionMiddleware } from './session.js';
 
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  app.set('trust proxy', 1); // Cloud Run terminates TLS; needed for Secure cookies in production.
   app.use(express.json());
 
+  // Public routes
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true });
   });
 
+  app.use('/api', sessionMiddleware());
+  app.use('/api/auth', authRouter);
+
+  // Everything else under /api needs a session (AC-03, NFR-02). Unknown paths still answer 401 before 404,
+  // so an anonymous caller learns nothing about which routes or records exist.
+  app.use('/api', requireAuth);
+  // Feature routers (teams, milestones, ...) are mounted here from F-02 on.
+
+  app.use('/api', notFoundHandler);
+  app.use(errorHandler);
   return app;
 }

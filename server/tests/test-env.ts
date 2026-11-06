@@ -9,5 +9,7 @@ export function useTestDatabase(): string {
   }
   process.env.DATABASE_URL = url;
   process.env.NODE_ENV = 'test';
+  // Tests need a session secret even without a .env file (e.g. in CI). Not a real secret.
+  process.env.SESSION_SECRET ??= 'test-only-session-secret-not-used-anywhere-else';
   return url;
 }
