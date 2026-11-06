@@ -6,6 +6,7 @@ Version history
 |---|---|---|
 | 1.0 | 2026-11-05 | First version, written in F-00 before any screen is built |
 | 1.1 | 2026-11-05 | UI language rule: English only, no Thai in the UI |
+| 1.2 | 2026-11-06 | F-01: login page layout and session behaviour in the UI (section 5.1) |
 
 This document sets the visual and interaction rules for every CPMS screen. Every feature that adds UI
 (F-01 onward) follows it. When a screen needs something not covered here, extend this document in the same PR.
@@ -104,7 +105,22 @@ on Thai paragraphs. Do not use weights below 400.
 - Radius: `--radius: 0.5rem`; cards `rounded-xl`, buttons and inputs `rounded-md`, badges `rounded-md`.
 - Shadow: `shadow-sm` on cards only. No large shadows.
 - Responsive: mobile first. Tables scroll horizontally inside `overflow-x-auto` below `md`; two-column detail pages
-  stack to one column below `md`.
+  stack to one column below `md`. Below `sm` the top bar hides the user's name and keeps the role badge and
+  "Log out", so it never wraps.
+
+### 5.1 Login page and session (F-01)
+
+- `/login` has no top bar. It is a single centred column (`min-h-svh flex flex-col items-center justify-center
+  gap-6 px-4`): the logo row (`GraduationCap size-5` + "CPMS"), then one `Card` `w-full max-w-sm` holding the page
+  title "Log in to CPMS" (page title classes), a one-line `CardDescription`, and the form.
+- Form: "Email" and "Password" fields (section 6 form rules), one full-width primary "Log in" button. Empty fields
+  are checked in the browser first ("Enter your email", "Enter your password") and focus moves to the first
+  invalid field. A failed login shows one destructive `Alert` "Invalid email or password" above the fields, clears
+  the password and focuses it. The message never says which of the two was wrong.
+- While the session check runs on first load, the page shows `Skeleton` blocks shaped like the top bar and page.
+- No session (first visit, expired session, or any API call answering 401) goes to `/login`; after login the user
+  returns to the page they asked for, or `/`. A logged-in user who opens `/login` goes to `/`.
+- "Log out" in the top bar shows `Loader2` while it runs, then goes to `/login`.
 
 ## 6. Components (shadcn/ui)
 

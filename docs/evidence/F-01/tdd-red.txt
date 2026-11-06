@@ -1,3 +1,4 @@
+# F-01 TDD red run. Command: npx vitest run --reporter=verbose (server). Recorded on commit 04f3cf1 before the implementation.
 
  RUN  v4.0.18 /home/user/softwareengineering-project/server
 

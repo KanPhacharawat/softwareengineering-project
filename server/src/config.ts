@@ -5,9 +5,16 @@ function required(name: string): string {
   return value;
 }
 
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+const sessionSecret = required('SESSION_SECRET');
+if (nodeEnv === 'production' && sessionSecret.length < 32) {
+  throw new Error('SESSION_SECRET must be at least 32 characters in production');
+}
+
 export const config = {
   port: Number(process.env.PORT ?? 3000),
-  nodeEnv: process.env.NODE_ENV ?? 'development',
+  nodeEnv,
   databaseUrl: required('DATABASE_URL'),
+  sessionSecret,
   webOrigin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
 };

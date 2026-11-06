@@ -1,0 +1,11 @@
+# F-01 TDD green run. Command: npm run test:e2e (web, Playwright). Date: 2026-11-06T07:52:12Z.
+
+Running 5 tests using 2 workers
+
+  ✓  1 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (842ms)
+  ✓  2 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (2.1s)
+  ✓  3 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (1.3s)
+  ✓  4 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (481ms)
+  ✓  5 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (1.6s)
+
+  5 passed (8.1s)

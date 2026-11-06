@@ -55,8 +55,12 @@ npm run db:up   # if the database is not running yet
 npm run dev
 ```
 
-- Web app: http://localhost:5173 (Vite proxies `/api` to the API)
+- Web app: http://localhost:5173 (Vite proxies `/api` to the API). Without a session it opens `/login`; use a demo
+  account below.
 - API: http://localhost:3000, health check `GET /api/health` returns `{ "ok": true }`
+- Auth API (F-01): `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Sessions are stored in the
+  `session` table of PostgreSQL and sent as the httpOnly cookie `cpms.sid` (8 hours of inactivity). Every other
+  `/api` route needs a session and answers 401 without one.
 
 ## Test
 

@@ -1,3 +1,4 @@
+# F-01 TDD red run. Command: npx playwright test e2e/auth.spec.ts (web). Recorded on commit 04f3cf1 before the implementation.
 
 Running 4 tests using 1 worker
 
