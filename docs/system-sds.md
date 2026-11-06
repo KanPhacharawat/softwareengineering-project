@@ -165,7 +165,7 @@ convenience only.
 
 | Variable | Example (local) | Notes |
 |---|---|---|
-| DATABASE_URL | postgresql://app:app@localhost:5432/cpms_dev | Cloud SQL connection string in production (Secret Manager) |
+| DATABASE_URL | postgresql://app:app@localhost:5433/cpms_dev | Local DB runs in Docker (`docker-compose.yml`); Cloud SQL connection string in production (Secret Manager) |
 | SESSION_SECRET | (random 32+ chars) | Secret Manager in production; never committed |
 | PORT | 3000 | Cloud Run sets it |
 | NODE_ENV | development | `production` enables secure cookies and static serving |

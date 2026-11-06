@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  SUPERVISOR
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique
+  name         String
+  role         Role
+  passwordHash String
+  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
+  supervises   Team[]       @relation("TeamSupervisor")
+  memberships  TeamMember[]
+}
+
+model Team {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @unique
+  supervisorId String       @db.Uuid
+  supervisor   User         @relation("TeamSupervisor", fields: [supervisorId], references: [id])
+  members      TeamMember[]
+}
+
+/// AS-01: a student belongs to exactly one team, so userId is unique.
+model TeamMember {
+  teamId String @db.Uuid
+  userId String @unique @db.Uuid
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+}
+
+/// Session store table used by connect-pg-simple (F-01). Shape must match that library.
+model session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+}
