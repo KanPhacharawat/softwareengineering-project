@@ -35,7 +35,9 @@ describe('TEST-01 (AC-01) login with correct credentials', () => {
     expect(setCookie).toBeDefined();
     expect(setCookie).toMatch(/HttpOnly/i);
     expect(setCookie).toMatch(/SameSite=Lax/i);
-    expect(setCookie).toMatch(/Max-Age=28800|Expires=/i);
+    // NFR-04: session cookie lives 8 hours (renewed on each request).
+    const expires = Date.parse(/Expires=([^;]+)/i.exec(setCookie!)![1]);
+    expect(Math.abs(expires - Date.now() - 8 * 60 * 60 * 1000)).toBeLessThan(60_000);
 
     const me = await request(app).get('/api/auth/me').set('Cookie', sessionCookie(res)!);
     expect(me.status).toBe(200);
