@@ -1,16 +1,10 @@
 // F-02 building blocks used by F-03..F-05: requireRole (BR-03, 403) and loadTeamInScope (BR-01, BR-02, 404).
 import type { NextFunction, Request, Response } from 'express';
-import { afterAll, describe, expect, it, vi } from 'vitest';
-import { pgPool, prisma } from '../src/db.js';
+import { describe, expect, it, vi } from 'vitest';
 import { AppError } from '../src/errors.js';
 import { requireRole } from '../src/middleware/require-role.js';
 import { loadTeamInScope } from '../src/services/team-service.js';
 import { seedTeams, seedUsers } from '../prisma/seed.js';
-
-afterAll(async () => {
-  await prisma.$disconnect();
-  await pgPool.end();
-});
 
 const [SUP1, SUP2, S1] = seedUsers;
 const [ALPHA, BETA, GAMMA] = seedTeams;

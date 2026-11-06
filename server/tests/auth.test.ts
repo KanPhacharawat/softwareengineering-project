@@ -1,19 +1,14 @@
 // F-01 Authentication and session: TEST-01..TEST-06 (AC-01..AC-05, NFR-01, NFR-02, NFR-04)
 import bcrypt from 'bcryptjs';
 import request from 'supertest';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { prisma, pgPool } from '../src/db.js';
+import { prisma } from '../src/db.js';
 import { SEED_PASSWORD, seedTeams, seedUsers } from '../prisma/seed.js';
 
 const app = createApp();
 const S1 = seedUsers[2];
 const ALPHA = seedTeams[0];
-
-afterAll(async () => {
-  await prisma.$disconnect();
-  await pgPool.end();
-});
 
 function sessionCookie(res: request.Response): string | undefined {
   const raw = res.headers['set-cookie'] as unknown as string[] | undefined;

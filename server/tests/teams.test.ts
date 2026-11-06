@@ -1,8 +1,7 @@
 // F-02 Role and team authorization: TEST-11, TEST-12 (AC-10, FR-04, BR-01, BR-02, NFR-03)
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { pgPool, prisma } from '../src/db.js';
 import { seedTeams, seedUsers } from '../prisma/seed.js';
 import { loginCookie } from './helpers.js';
 
@@ -17,11 +16,6 @@ let sup2: string;
 
 beforeAll(async () => {
   [s1, s3, sup1, sup2] = await Promise.all([S1, S3, SUP1, SUP2].map((u) => loginCookie(app, u.email)));
-});
-
-afterAll(async () => {
-  await prisma.$disconnect();
-  await pgPool.end();
 });
 
 const get = (path: string, cookie: string) => request(app).get(path).set('Cookie', cookie);

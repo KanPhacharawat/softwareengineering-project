@@ -35,7 +35,7 @@ function scopeWhere(user: PublicUser): Prisma.TeamWhereInput {
   return user.role === Role.SUPERVISOR ? { supervisorId: user.id } : { members: { some: { userId: user.id } } };
 }
 
-export const notFound = () => new AppError(404, 'NOT_FOUND', 'Not found or you do not have access');
+const notFound = () => new AppError(404, 'NOT_FOUND', 'Not found or you do not have access');
 
 // FR-04: teams visible to the user, ordered by name.
 export async function listVisibleTeams(user: PublicUser): Promise<TeamView[]> {

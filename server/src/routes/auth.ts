@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { AppError, validationError } from '../errors.js';
+import { validationError } from '../errors.js';
 import { requireAuth } from '../middleware/require-auth.js';
-import { SESSION_COOKIE } from '../session.js';
+import { cookieOptions, SESSION_COOKIE } from '../session.js';
 import { verifyCredentials } from '../services/auth-service.js';
-import { config } from '../config.js';
 
 const loginSchema = z.object({
   email: z.string({ error: 'Enter your email' }).trim().min(1, 'Enter your email').max(254, 'Email is too long'),
@@ -22,18 +21,15 @@ authRouter.post('/login', async (req, res) => {
 
   // New session id on login prevents session fixation.
   await new Promise<void>((resolve, reject) => req.session.regenerate((err) => (err ? reject(err) : resolve())));
-  req.session.userId = user.id;
-  await new Promise<void>((resolve, reject) => req.session.save((err) => (err ? reject(err) : resolve())));
+  req.session.userId = user.id; // saved by express-session when the response ends
 
   res.json({ user });
 });
 
 // POST /api/auth/logout (FR-02, AC-04): destroys the server session; 204 even without one (idempotent).
 authRouter.post('/logout', async (req, res) => {
-  await new Promise<void>((resolve, reject) =>
-    req.session.destroy((err) => (err ? reject(new AppError(500, 'INTERNAL_ERROR', 'Could not log out')) : resolve())),
-  );
-  res.clearCookie(SESSION_COOKIE, { httpOnly: true, sameSite: 'lax', secure: config.nodeEnv === 'production' });
+  await new Promise<void>((resolve, reject) => req.session.destroy((err) => (err ? reject(err) : resolve())));
+  res.clearCookie(SESSION_COOKIE, cookieOptions);
   res.status(204).end();
 });
 

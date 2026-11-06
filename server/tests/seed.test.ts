@@ -1,9 +1,7 @@
 // TEST-00b (AC-00b): seed loaded into cpms_test
 import { Role } from '@prisma/client';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { prisma } from '../src/db.js';
-
-afterAll(() => prisma.$disconnect());
 
 describe('seed data', () => {
   it('has 8 users: 2 supervisors and 6 students', async () => {

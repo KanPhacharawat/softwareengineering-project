@@ -11,6 +11,7 @@ declare module 'express-session' {
 
 export const SESSION_COOKIE = 'cpms.sid';
 const EIGHT_HOURS_MS = 8 * 60 * 60 * 1000;
+export const cookieOptions = { httpOnly: true, sameSite: 'lax', secure: config.nodeEnv === 'production' } as const;
 
 // Server-side session in PostgreSQL (SDS section 6, NFR-04). The `session` table is created by a Prisma
 // migration, so the store must not create it.
@@ -23,11 +24,6 @@ export function sessionMiddleware() {
     resave: false,
     saveUninitialized: false,
     rolling: true, // 8 hours of inactivity, renewed on each request
-    cookie: {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: config.nodeEnv === 'production',
-      maxAge: EIGHT_HOURS_MS,
-    },
+    cookie: { ...cookieOptions, maxAge: EIGHT_HOURS_MS },
   });
 }
