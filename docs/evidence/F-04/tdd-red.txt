@@ -1,0 +1,35 @@
+# F-04 TDD red run. Command: npx vitest run --reporter=verbose (server). Date: 2026-11-07T09:24:09Z. Base: feature/F-04-submission + F-04 tests and stubs.
+
+ RUN  v4.0.18 C:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project
+
+ × server/tests/submissions.test.ts > TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests > allows submission when now < dueAt and no feedback 9ms
+   → expected false to be true // Object.is equality
+ ✓ server/tests/submissions.test.ts > TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests > rejects with DEADLINE_PASSED when now >= dueAt 1ms
+ × server/tests/submissions.test.ts > TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests > rejects with SUBMISSION_LOCKED when submission has feedback, even before due 2ms
+   → expected 'DEADLINE_PASSED' to be 'SUBMISSION_LOCKED' // Object.is equality
+ × server/tests/submissions.test.ts > TEST-U03 (AC-14, BR-09) validateSubmissionInput unit tests > validates title: rejects < 3 chars, accepts 3..120, rejects > 120 1ms
+   → expected undefined to be defined
+ × server/tests/submissions.test.ts > TEST-U03 (AC-14, BR-09) validateSubmissionInput unit tests > validates description: optional, allows empty, allows up to 2000 chars, rejects > 2000 1ms
+   → expected false to be true // Object.is equality
+ × server/tests/submissions.test.ts > TEST-U03 (AC-14, BR-09) validateSubmissionInput unit tests > validates link: accepts absolute http/https up to 500 chars, rejects ftp, relative, and > 500 chars 1ms
+   → expected false to be true // Object.is equality
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-13 (AC-11) S1 submits to Alpha milestone; S2 and Sup1 GET milestone returning submission 27ms
+   → expected 404 to be 201 // Object.is equality
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-14 (AC-12, BR-05) S2 submits again to milestone with existing submission -> 409 SUBMISSION_EXISTS 19ms
+   → expected 404 to be 201 // Object.is equality
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-15 (AC-12, NFR-09) simultaneous POST submissions: exactly one succeeds and one gets 409 17ms
+   → expected [ 404, 404 ] to deeply equal [ 201, 409 ]
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-16 (AC-13, BR-06) past dueAt returns 422 DEADLINE_PASSED on POST and PUT 14ms
+   → expected 404 to be 422 // Object.is equality
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-17 (AC-14, BR-09) rejects invalid inputs (ftp, not a url, short title) with 400 VALIDATION_ERROR 12ms
+   → expected 404 to be 400 // Object.is equality
+ ✓ server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-18 (AC-15, BR-01) student S3 of Team Beta accessing Team Alpha milestone gets 404 30ms
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-19 (AC-16) S2 PUT updates existing submission before due date 19ms
+   → expected 404 to be 200 // Object.is equality
+ × server/tests/submissions.test.ts > TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests > TEST-20 (AC-09, BR-03) supervisor cannot create a submission (403 FORBIDDEN) 12ms
+   → expected 404 to be 403 // Object.is equality
+
+Test Files  1 failed (1)
+     Tests  12 failed | 2 passed (14)
+  Duration  2.84s
+

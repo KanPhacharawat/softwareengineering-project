@@ -9,6 +9,7 @@ Version history
 | 1.2 | 2026-11-06 | F-01: login page layout and session behaviour in the UI (section 5.1) |
 | 1.3 | 2026-11-06 | F-02: My teams and team page (section 5.2), `ArrowLeft` icon for back links |
 | 1.4 | 2026-11-06 | F-03: Responsive milestones (section 5.3), mobile stacked list with status below |
+| 1.5 | 2026-11-07 | F-04: Milestone detail and submission (section 5.4) |
 
 This document sets the visual and interaction rules for every CPMS screen. Every feature that adds UI
 (F-01 onward) follows it. When a screen needs something not covered here, extend this document in the same PR.
@@ -144,6 +145,19 @@ on Thai paragraphs. Do not use weights below 400.
 - Mobile (below `md`): Stacked list inside the `Card` with divider lines. Title is at the top, description below, and
   the bottom row contains the formatted due date on the left and the status badge on the right. This keeps all
   milestone details and badges fully visible without horizontal table scrolling.
+
+### 5.4 Milestone detail and submission (F-04)
+
+- `/milestones/:milestoneId`: breadcrumb `My team(s) / <team name> / <milestone title>`.
+- Header card: milestone title, due date in Asia/Bangkok with `CalendarClock`, `MilestoneStatusBadge`, and optional description.
+- Submissions section:
+  - If no submission exists and user is a student: "Submit work" card with Title (3..120 chars), Deliverable link (http/https, max 500 chars), and optional Description (max 2000 chars). Submitting transitions milestone to `SUBMITTED`.
+  - If no submission exists and deadline passed: info notice `Alert` "Submission closed: deadline passed".
+  - If no submission exists and user is supervisor: `EmptyState` "No submission yet" with `FileText` icon.
+  - If submission exists: card displaying submission title, deliverable link with `ExternalLink` icon (opens in new tab with `rel="noreferrer"`), optional description, and submitter name + formatted Bangkok timestamp.
+  - If user is student and milestone is not locked/feedback not given and deadline has not passed: "Edit submission" button toggles in-place edit form with initial values and "Cancel" button.
+  - Supervisors have read-only access (no edit button, no submit form).
+- Form errors render under inputs using `text-sm text-destructive`. Non-field errors render inside a destructive `Alert` with `CircleAlert`.
 
 ## 6. Components (shadcn/ui)
 
