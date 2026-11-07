@@ -16,3 +16,4 @@ Running 2 tests using 1 worker
   1 failed
     [chromium] › web/e2e/submissions.spec.ts:18:1 › student submits to an open milestone and sees the saved submission card 
   1 passed (25.7s)
+

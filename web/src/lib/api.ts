@@ -70,6 +70,24 @@ export type Milestone = {
   status: MilestoneStatus;
 };
 
+export type Submission = {
+  id: string;
+  milestoneId: string;
+  title: string;
+  description: string | null;
+  link: string;
+  submittedBy: { id: string; name: string };
+  submittedAt: string;
+  updatedAt: string;
+  feedback: null | unknown;
+};
+
+export type MilestoneDetail = {
+  milestone: Milestone;
+  team: { id: string; name: string };
+  submission: Submission | null;
+};
+
 export function formatBangkokDateTime(isoString: string): string {
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return isoString;

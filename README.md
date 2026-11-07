@@ -65,6 +65,7 @@ npm run dev
   (404 for a team outside the user's scope). Wrong-role operations answer 403.
 - Milestones API (F-03): `GET /api/teams/:teamId/milestones` (sorted by due date with status `OPEN`, `SUBMITTED`,
   `FEEDBACK_GIVEN`, `MISSED`), `POST /api/teams/:teamId/milestones` (supervisor only, validated with BR-04).
+- Submissions API (F-04): `GET /api/milestones/:milestoneId` (milestone detail with submission), `POST /api/milestones/:milestoneId/submission` (student only, single submission, BR-05, BR-06, BR-09), `PUT /api/milestones/:milestoneId/submission` (edit before deadline while no feedback, BR-06, BR-07, BR-09).
 
 ## Test
 

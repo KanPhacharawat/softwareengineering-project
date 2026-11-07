@@ -40,7 +40,7 @@ test('opening a team card shows the team page with its members', async ({ page }
   await expect(page).toHaveURL(/\/teams\/00000000-0000-4000-8000-0000000000a1$/);
   await expect(page.getByRole('heading', { name: 'Alpha', level: 1 })).toBeVisible();
   await expect(page.getByRole('link', { name: 'My team' })).toBeVisible();
-  await expect(page.getByRole('table')).toContainText('s2@cpms.test');
+  await expect(page.getByRole('table').first()).toContainText('s2@cpms.test');
 });
 
 test("a student opening another team's page sees the not-found state", async ({ page }) => {

@@ -2,6 +2,7 @@ import express from 'express';
 import { errorHandler, notFoundHandler } from './errors.js';
 import { requireAuth } from './middleware/require-auth.js';
 import { authRouter } from './routes/auth.js';
+import { milestonesRouter } from './routes/milestones.js';
 import { teamsRouter } from './routes/teams.js';
 import { sessionMiddleware } from './session.js';
 
@@ -24,6 +25,7 @@ export function createApp() {
   app.use('/api', requireAuth);
   // Feature routers. Role checks (requireRole) and team scope checks (loadTeamInScope) live inside them.
   app.use('/api/teams', teamsRouter);
+  app.use('/api/milestones', milestonesRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);

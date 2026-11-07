@@ -1,0 +1,27 @@
+# F-04 TDD green run. Command: npm run test:e2e -w web. Date: 2026-11-07T10:10:23Z.
+
+> test:e2e
+> playwright test
+
+[WebServer] You are using Node.js 20.16.0. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
+
+Running 16 tests using 4 workers
+
+  ✓   4 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (1.6s)
+  ✓   5 [chromium] › e2e/teams.spec.ts:14:1 › a student sees only their own team with supervisor and members (3.5s)
+  ✓   2 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (6.3s)
+  ✓   1 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (7.1s)
+  ✓   7 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (3.4s)
+  ✓   6 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (5.0s)
+  ✓   9 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (1.1s)
+  ✓   8 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (4.9s)
+  ✓  10 [chromium] › e2e/teams.spec.ts:37:1 › opening a team card shows the team page with its members (4.4s)
+  ✓  11 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (5.6s)
+  ✓   3 [chromium] › e2e/submissions.spec.ts:18:1 › student submits to an open milestone and sees the saved submission card (17.0s)
+  ✓  12 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (6.5s)
+  ✓  13 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (5.1s)
+  ✓  14 [chromium] › e2e/submissions.spec.ts:57:1 › supervisor sees submission read-only without edit button or submission form (3.4s)
+  ✓  16 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (2.0s)
+  ✓  15 [chromium] › e2e/milestones.spec.ts:54:1 › validation errors appear under form inputs when submitting invalid milestone (3.7s)
+
+  16 passed (28.4s)
