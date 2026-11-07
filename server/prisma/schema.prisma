@@ -21,6 +21,7 @@ model User {
   createdAt    DateTime     @default(now()) @db.Timestamptz(3)
   supervises   Team[]       @relation("TeamSupervisor")
   memberships  TeamMember[]
+  milestones   Milestone[]
 }
 
 model Team {
@@ -29,6 +30,7 @@ model Team {
   supervisorId String       @db.Uuid
   supervisor   User         @relation("TeamSupervisor", fields: [supervisorId], references: [id])
   members      TeamMember[]
+  milestones   Milestone[]
 }
 
 /// AS-01: a student belongs to exactly one team, so userId is unique.
@@ -39,6 +41,20 @@ model TeamMember {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([teamId, userId])
+}
+
+model Milestone {
+  id          String   @id @default(uuid()) @db.Uuid
+  teamId      String   @db.Uuid
+  title       String
+  description String?
+  dueAt       DateTime @db.Timestamptz(3)
+  createdById String   @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([teamId])
 }
 
 /// Session store table used by connect-pg-simple (F-01). Shape must match that library.

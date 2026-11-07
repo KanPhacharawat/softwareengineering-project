@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 Sprint 1 AC and TEST IDs are defined in [sprints/sprint-1/](sprints/sprint-1/). Later sprints have feature and
 sprint allocation now; their AC/tests are elaborated in their own contracts.
 
@@ -10,8 +10,8 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | FR-02 | F-01 | 1 | AC-04, AC-22 | TEST-05, TEST-E2E-02 | Implemented (F-01, tests pass) |
 | FR-03 | F-01 | 1 | AC-01 | TEST-01 | Implemented (F-01, tests pass) |
 | FR-04 | F-02 | 1 | AC-10 | TEST-11, TEST-12 | Implemented (F-02, tests pass) |
-| FR-05 | F-03 | 1 | AC-06, AC-07 | TEST-07, TEST-08, TEST-U01 | Planned |
-| FR-06 | F-03 | 1 | AC-10 | TEST-11, TEST-12 | Planned |
+| FR-05 | F-03 | 1 | AC-06, AC-07 | TEST-07, TEST-08, TEST-U01 | Implemented (F-03, tests pass) |
+| FR-06 | F-03 | 1 | AC-06, AC-10 | TEST-07, TEST-11, TEST-12 | Implemented (F-03, tests pass) |
 | FR-07 | F-04 | 1 | AC-11, AC-12 | TEST-13, TEST-14, TEST-15 | Planned |
 | FR-08 | F-04 | 1 | AC-16 | TEST-19 | Planned |
 | FR-09 | F-04, F-05 | 1 | AC-11, AC-17 | TEST-13, TEST-21 | Planned |
@@ -28,7 +28,7 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-01 | F-02 | 1 | AC-10, AC-15 | TEST-11, TEST-12, TEST-18 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
 | BR-02 | F-02, F-03, F-05 | 1 | AC-08, AC-19 | TEST-09, TEST-23 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
 | BR-03 | F-02, F-03, F-04, F-05 | 1 | AC-09, AC-19 | TEST-10, TEST-20, TEST-22 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
-| BR-04 | F-03 | 1 | AC-07 | TEST-08, TEST-U01 | Planned |
+| BR-04 | F-03 | 1 | AC-07 | TEST-08, TEST-U01 | Implemented (F-03, tests pass) |
 | BR-05 | F-04 | 1 | AC-12 | TEST-14, TEST-15 | Planned |
 | BR-06 | F-04 | 1 | AC-13 | TEST-16, TEST-U02 | Planned |
 | BR-07 | F-05 | 1 | AC-18 | TEST-24, TEST-U02 | Planned |

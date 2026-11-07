@@ -63,6 +63,8 @@ npm run dev
   `/api` route needs a session and answers 401 without one.
 - Teams API (F-02): `GET /api/teams` (student: own team, supervisor: assigned teams), `GET /api/teams/:teamId`
   (404 for a team outside the user's scope). Wrong-role operations answer 403.
+- Milestones API (F-03): `GET /api/teams/:teamId/milestones` (sorted by due date with status `OPEN`, `SUBMITTED`,
+  `FEEDBACK_GIVEN`, `MISSED`), `POST /api/teams/:teamId/milestones` (supervisor only, validated with BR-04).
 
 ## Test
 

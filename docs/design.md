@@ -8,6 +8,7 @@ Version history
 | 1.1 | 2026-11-05 | UI language rule: English only, no Thai in the UI |
 | 1.2 | 2026-11-06 | F-01: login page layout and session behaviour in the UI (section 5.1) |
 | 1.3 | 2026-11-06 | F-02: My teams and team page (section 5.2), `ArrowLeft` icon for back links |
+| 1.4 | 2026-11-06 | F-03: Responsive milestones (section 5.3), mobile stacked list with status below |
 
 This document sets the visual and interaction rules for every CPMS screen. Every feature that adds UI
 (F-01 onward) follows it. When a screen needs something not covered here, extend this document in the same PR.
@@ -136,6 +137,13 @@ on Thai paragraphs. Do not use weights below 400.
 - A team outside the user's scope gives the API 404: the page shows the destructive `Alert` "Not found or you do not
   have access" and an outline "Back to my team(s)" button with `ArrowLeft`. The page never says whether the team
   exists.
+
+### 5.3 Milestones on team page (F-03)
+
+- Desktop (`md` and wider): 3-column `Table` (Title, Due date, Status badge) inside a `Card`.
+- Mobile (below `md`): Stacked list inside the `Card` with divider lines. Title is at the top, description below, and
+  the bottom row contains the formatted due date on the left and the status badge on the right. This keeps all
+  milestone details and badges fully visible without horizontal table scrolling.
 
 ## 6. Components (shadcn/ui)
 
