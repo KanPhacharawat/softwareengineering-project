@@ -1,0 +1,18 @@
+# F-04 TDD red E2E run. Command: npx playwright test submissions.spec.ts -c web/playwright.config.ts. Date: 2026-11-07T09:24:49Z.
+
+Running 2 tests using 1 worker
+
+  x  1 [chromium] › web/e2e/submissions.spec.ts:18:1 › student submits to an open milestone and sees the saved submission card (15.9s)
+  ok 2 [chromium] › web/e2e/submissions.spec.ts:55:1 › supervisor sees submission read-only without edit button or submission form (2.1s)
+
+  1) [chromium] › web/e2e/submissions.spec.ts:18:1 › student submits to an open milestone and sees the saved submission card 
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/milestones\/.+/
+    Received string:  "http://localhost:5173/"
+    Timeout: 5000ms
+
+  1 failed
+    [chromium] › web/e2e/submissions.spec.ts:18:1 › student submits to an open milestone and sees the saved submission card 
+  1 passed (25.7s)
