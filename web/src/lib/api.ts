@@ -59,3 +59,30 @@ export type Team = {
   supervisor: { id: string; name: string };
   members: TeamMember[];
 };
+
+export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'MISSED';
+
+export type Milestone = {
+  id: string;
+  title: string;
+  description: string | null;
+  dueAt: string;
+  status: MilestoneStatus;
+};
+
+export function formatBangkokDateTime(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return isoString;
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Bangkok',
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')}`;
+}

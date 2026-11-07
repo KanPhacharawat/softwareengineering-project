@@ -1,0 +1,78 @@
+# F-03 TDD green run. Command: npx vitest run --reporter=verbose (server). Date: 2026-11-06T17:21:43Z. Code at the F-03 implementation.
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+2 migrations found in prisma/migrations
+
+Applying migration `20261106171857_milestone`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261106171857_milestone/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+ ✓ tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates title lengths: rejects 2 chars, accepts 3..120, rejects 121 2ms
+ ✓ tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates dueAt: rejects past and equal date, accepts future date 1ms
+ ✓ tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates description: optional, allows empty, allows up to 2000 chars, rejects >2000 0ms
+ ✓ tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > computes milestone status: OPEN, MISSED, SUBMITTED, FEEDBACK_GIVEN 0ms
+ ✓ tests/milestones.test.ts > TEST-07 (AC-06, FR-05, FR-06) POST and GET milestones for an assigned team > Sup1 creates a milestone for Team Alpha with future dueAt; returns 201; S1 sees it with status OPEN 47ms
+ ✓ tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects past due date with 400 VALIDATION_ERROR and does not store it 18ms
+ ✓ tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too short (2 chars) with 400 VALIDATION_ERROR and does not store it 15ms
+ ✓ tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too long (121 chars) with 400 VALIDATION_ERROR and does not store it 16ms
+ ✓ tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects description > 2000 chars with 400 VALIDATION_ERROR and does not store it 18ms
+ ✓ tests/milestones.test.ts > TEST-09 (AC-08, BR-02) POST milestone to an unassigned team returns 404 > Sup1 cannot create a milestone for Team Gamma 13ms
+ ✓ tests/milestones.test.ts > TEST-10 (AC-09, BR-03) student cannot create a milestone > S1 posting a milestone to Alpha returns 403 FORBIDDEN 17ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user 526ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > accepts the email in any letter case 401ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > rejects an empty body with 400 VALIDATION_ERROR and field messages 10ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > wrong password gives 401 INVALID_CREDENTIALS and no session cookie 389ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > unknown email gives the same 401 response as a wrong password 804ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/auth/me returns 401 UNAUTHENTICATED with only an error body 7ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams returns 401 UNAUTHENTICATED with only an error body 10ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams/00000000-0000-4000-8000-0000000000a1/milestones returns 401 UNAUTHENTICATED with only an error body 6ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/milestones/00000000-0000-4000-8000-00000000f001 returns 401 UNAUTHENTICATED with only an error body 6ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > rejects a forged session cookie 4ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > returns 204, clears the cookie, and the old cookie is rejected afterwards 409ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > deletes the session row from the database 356ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > is idempotent: logout without a session returns 204 5ms
+ ✓ tests/auth.test.ts > TEST-06 (AC-05, NFR-01) stored password hashes > every passwordHash is bcrypt with cost >= 10 and is not the plain password 2930ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > a student gets only their own team, with supervisor and members 25ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > another student gets only their own team (Beta) 15ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup2 gets only Gamma 15ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup1 gets Alpha and Beta, ordered by name 14ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > never returns password hashes 14ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student gets their own team 15ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a supervisor gets an assigned team 13ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Beta returns 404 NOT_FOUND without the team data 13ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Gamma returns 404 NOT_FOUND without the team data 10ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup2 -> Alpha returns 404 NOT_FOUND without the team data 10ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup1 -> Gamma returns 404 NOT_FOUND without the team data 10ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student asking for another team milestones gets 404 without data (scope checked for every /teams/:teamId/* path) 11ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > an unknown or malformed team id gives the same 404 as another team 29ms
+ ✓ tests/seed.test.ts > seed data > has 8 users: 2 supervisors and 6 students 30ms
+ ✓ tests/seed.test.ts > seed data > has 3 teams, each with a supervisor 13ms
+ ✓ tests/seed.test.ts > seed data > puts every student in exactly one team 7ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > lets the right role through 3ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a student on a supervisor-only operation with 403 FORBIDDEN 1ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a supervisor on a student-only operation with 403 FORBIDDEN 0ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > returns the team to a member student and to its supervisor 42ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > student, other team -> 404 NOT_FOUND 7ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > supervisor, unassigned team -> 404 NOT_FOUND 2ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > unknown id -> 404 NOT_FOUND 3ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > malformed id -> 404 NOT_FOUND 1ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > Sup1 cannot reach Gamma either 2ms
+ ✓ tests/health.test.ts > GET /api/health > returns 200 { ok: true } 23ms
+
+ Test Files  6 passed (6)
+      Tests  51 passed (51)
+   Start at  00:21:25
+   Duration  17.45s (transform 355ms, setup 179ms, import 2.92s, tests 8.85s, environment 1ms)
