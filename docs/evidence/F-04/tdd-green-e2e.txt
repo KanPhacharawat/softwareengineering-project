@@ -1,0 +1,28 @@
+# F-04 TDD green run. Command: npm run test:e2e -w web. Date: 2026-11-08T13:09:05Z.
+
+> test:e2e
+> playwright test
+
+[WebServer] You are using Node.js 20.16.0. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
+
+Running 17 tests using 4 workers
+
+  ✓   2 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (2.4s)
+  ✓   5 [chromium] › e2e/teams.spec.ts:14:1 › a student sees only their own team with supervisor and members (4.5s)
+  ✓   1 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (8.2s)
+  ✓   4 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (8.6s)
+  ✓   7 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (5.3s)
+  ✓   6 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (6.6s)
+  ✓   8 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (6.5s)
+  ✓   9 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (2.1s)
+  ✓  10 [chromium] › e2e/teams.spec.ts:37:1 › opening a team card shows the team page with its members (6.0s)
+  ✓  12 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (4.6s)
+  ✓  11 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (5.7s)
+  ✓   3 [chromium] › e2e/submissions.spec.ts:24:1 › student submits to an open milestone, sees the saved submission card, and can edit it (20.9s)
+  ✓  13 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (4.4s)
+  ✓  14 [chromium] › e2e/milestones.spec.ts:54:1 › validation errors appear under form inputs when submitting invalid milestone (4.1s)
+  ✓  16 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (2.9s)
+  ✓  15 [chromium] › e2e/submissions.spec.ts:65:1 › supervisor sees submission read-only without edit button or submission form (8.9s)
+  ✓  17 [chromium] › e2e/submissions.spec.ts:105:1 › validation errors appear under form inputs and prevent submission on invalid data (4.7s)
+
+  17 passed (42.3s)
