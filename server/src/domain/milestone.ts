@@ -72,7 +72,7 @@ export function validateMilestoneInput(input: unknown, now: Date = new Date()): 
 // - MISSED past due date with no submission
 export function computeMilestoneStatus(
   milestone: { dueAt: Date | string },
-  submission?: { feedback?: unknown; [key: string]: unknown } | null,
+  submission?: { feedback?: unknown } | null,
   now: Date = new Date(),
 ): MilestoneStatus {
   if (submission) {

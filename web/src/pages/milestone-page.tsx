@@ -82,7 +82,8 @@ function MilestoneDetailContent({
   const [isEditing, setIsEditing] = useState(false);
 
   const isStudent = user?.role === 'STUDENT';
-  const isExpired = milestone.status === 'MISSED';
+  const deadlinePassed = Date.now() >= new Date(milestone.dueAt).getTime();
+  const canEdit = isStudent && !deadlinePassed;
 
   return (
     <div className="space-y-8">
@@ -115,6 +116,14 @@ function MilestoneDetailContent({
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Submission</h2>
 
+        {/* Deadline passed notice */}
+        {deadlinePassed && (
+          <Alert>
+            <Info className="size-4" />
+            <AlertDescription>Submission closed: deadline passed</AlertDescription>
+          </Alert>
+        )}
+
         {/* Existing Submission */}
         {submission && !isEditing && (
           <Card>
@@ -123,12 +132,10 @@ function MilestoneDetailContent({
                 <div>
                   <CardTitle className="text-lg font-medium">{submission.title}</CardTitle>
                   <CardDescription className="mt-1">
-                    Submitted by {submission.submittedBy.name} on {formatBangkokDateTime(submission.submittedAt)}
-                    {submission.updatedAt !== submission.submittedAt &&
-                      ` (updated ${formatBangkokDateTime(submission.updatedAt)})`}
+                    Last updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
                   </CardDescription>
                 </div>
-                {isStudent && !isExpired && (
+                {canEdit && (
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                     <Pencil className="size-4" />
                     Edit submission
@@ -178,21 +185,14 @@ function MilestoneDetailContent({
         {/* No Submission yet */}
         {!submission && (
           <>
-            {isStudent && !isExpired && (
+            {canEdit && (
               <SubmissionForm
                 milestoneId={milestone.id}
                 onSaved={onReload}
               />
             )}
 
-            {isExpired && (
-              <Alert>
-                <Info className="size-4" />
-                <AlertDescription>Submission closed: deadline passed</AlertDescription>
-              </Alert>
-            )}
-
-            {!isStudent && !isExpired && (
+            {!isStudent && (
               <EmptyState icon={FileText} message="No submission yet" />
             )}
           </>

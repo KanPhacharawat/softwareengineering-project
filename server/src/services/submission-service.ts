@@ -2,9 +2,9 @@ import { Role } from '@prisma/client';
 import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
 import { computeMilestoneStatus, type MilestoneStatus } from '../domain/milestone.js';
-import { canChangeSubmission } from '../domain/submission.js';
-
-type UserSession = { id: string; role: Role };
+import { canChangeSubmission, validateSubmissionInput } from '../domain/submission.js';
+import { UUID } from './team-service.js';
+import type { PublicUser } from './auth-service.js';
 
 export type SubmissionView = {
   id: string;
@@ -33,7 +33,34 @@ export type MilestoneDetailView = {
   submission: SubmissionView | null;
 };
 
-async function loadMilestoneInScope(user: UserSession, milestoneId: string) {
+function toSubmissionView(sub: {
+  id: string;
+  milestoneId: string;
+  title: string;
+  description: string | null;
+  link: string;
+  submittedBy: { id: string; name: string };
+  submittedAt: Date;
+  updatedAt: Date;
+}): SubmissionView {
+  return {
+    id: sub.id,
+    milestoneId: sub.milestoneId,
+    title: sub.title,
+    description: sub.description,
+    link: sub.link,
+    submittedBy: sub.submittedBy,
+    submittedAt: sub.submittedAt.toISOString(),
+    updatedAt: sub.updatedAt.toISOString(),
+    feedback: null,
+  };
+}
+
+async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
+  if (!UUID.test(milestoneId)) {
+    throw new AppError(404, 'NOT_FOUND', 'Not found or you do not have access');
+  }
+
   const milestone = await prisma.milestone.findUnique({
     where: { id: milestoneId },
     include: {
@@ -74,7 +101,7 @@ async function loadMilestoneInScope(user: UserSession, milestoneId: string) {
 
 // GET /api/milestones/:milestoneId (FR-08, AC-11, AC-15)
 export async function getMilestoneDetail(
-  user: UserSession,
+  user: PublicUser,
   milestoneId: string,
   now: Date = new Date(),
 ): Promise<MilestoneDetailView> {
@@ -86,36 +113,30 @@ export async function getMilestoneDetail(
       title: milestone.title,
       description: milestone.description,
       dueAt: milestone.dueAt.toISOString(),
-      status: computeMilestoneStatus(milestone, milestone.submission, now),
+      status: computeMilestoneStatus(milestone, milestone.submission ? { feedback: undefined } : null, now),
     },
     team: {
       id: milestone.team.id,
       name: milestone.team.name,
     },
-    submission: milestone.submission
-      ? {
-          id: milestone.submission.id,
-          milestoneId: milestone.submission.milestoneId,
-          title: milestone.submission.title,
-          description: milestone.submission.description,
-          link: milestone.submission.link,
-          submittedBy: milestone.submission.submittedBy,
-          submittedAt: milestone.submission.submittedAt.toISOString(),
-          updatedAt: milestone.submission.updatedAt.toISOString(),
-          feedback: null,
-        }
-      : null,
+    submission: milestone.submission ? toSubmissionView(milestone.submission) : null,
   };
 }
 
-// POST /api/milestones/:milestoneId/submission (FR-07, BR-05, BR-06, BR-07, AC-11..AC-14, NFR-09)
+// POST /api/milestones/:milestoneId/submission (FR-07, BR-05, BR-06, BR-07, BR-09, AC-11..AC-14, NFR-09)
 export async function createSubmission(
-  user: UserSession,
+  user: PublicUser,
   milestoneId: string,
-  data: { title: string; description?: string; link: string },
+  input: unknown,
   now: Date = new Date(),
 ): Promise<SubmissionView> {
   const milestone = await loadMilestoneInScope(user, milestoneId);
+
+  const validation = validateSubmissionInput(input);
+  if (!validation.success) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid', validation.fields);
+  }
+  const data = validation.data;
 
   // BR-05: duplicate submission check
   if (milestone.submission) {
@@ -145,17 +166,7 @@ export async function createSubmission(
       },
     });
 
-    return {
-      id: sub.id,
-      milestoneId: sub.milestoneId,
-      title: sub.title,
-      description: sub.description,
-      link: sub.link,
-      submittedBy: sub.submittedBy,
-      submittedAt: sub.submittedAt.toISOString(),
-      updatedAt: sub.updatedAt.toISOString(),
-      feedback: null,
-    };
+    return toSubmissionView(sub);
   } catch (err: unknown) {
     // P2002: unique constraint violation on milestoneId under concurrent requests (NFR-09)
     if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
@@ -165,14 +176,20 @@ export async function createSubmission(
   }
 }
 
-// PUT /api/milestones/:milestoneId/submission (FR-09, BR-06, BR-07, AC-16)
+// PUT /api/milestones/:milestoneId/submission (FR-09, BR-06, BR-07, BR-09, AC-16)
 export async function updateSubmission(
-  user: UserSession,
+  user: PublicUser,
   milestoneId: string,
-  data: { title: string; description?: string; link: string },
+  input: unknown,
   now: Date = new Date(),
 ): Promise<SubmissionView> {
   const milestone = await loadMilestoneInScope(user, milestoneId);
+
+  const validation = validateSubmissionInput(input);
+  if (!validation.success) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid', validation.fields);
+  }
+  const data = validation.data;
 
   if (!milestone.submission) {
     throw new AppError(404, 'NOT_FOUND', 'No submission exists for this milestone');
@@ -199,16 +216,5 @@ export async function updateSubmission(
     },
   });
 
-  return {
-    id: sub.id,
-    milestoneId: sub.milestoneId,
-    title: sub.title,
-    description: sub.description,
-    link: sub.link,
-    submittedBy: sub.submittedBy,
-    submittedAt: sub.submittedAt.toISOString(),
-    updatedAt: sub.updatedAt.toISOString(),
-    feedback: null,
-  };
+  return toSubmissionView(sub);
 }
-

@@ -33,7 +33,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     title: m.title,
     description: m.description,
     dueAt: m.dueAt.toISOString(),
-    status: computeMilestoneStatus(m, m.submission, now),
+    status: computeMilestoneStatus(m, m.submission ? { feedback: undefined } : null, now),
   }));
 }
 

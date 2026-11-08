@@ -36,10 +36,11 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
   // Description: optional, max 2000
   let description: string | undefined;
   if (typeof raw.description === 'string') {
-    if (raw.description.length > 2000) {
+    const trimmedDesc = raw.description.trim();
+    if (trimmedDesc.length > 2000) {
       fields.description = 'Description cannot exceed 2000 characters';
     } else {
-      description = raw.description.trim() || undefined;
+      description = trimmedDesc || undefined;
     }
   }
 

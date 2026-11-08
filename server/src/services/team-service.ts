@@ -3,7 +3,7 @@ import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
 import type { PublicUser } from './auth-service.js';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Only these fields leave the API: no password hashes, no membership internals.
 const teamSelect = {

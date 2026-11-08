@@ -188,7 +188,7 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     expect(secondRes.body.error.code).toBe('SUBMISSION_EXISTS');
 
     // Only one row in DB
-    const count = await (prisma as any).submission.count({ where: { milestoneId: milestone.id } });
+    const count = await prisma.submission.count({ where: { milestoneId: milestone.id } });
     expect(count).toBe(1);
   });
 
@@ -204,7 +204,7 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     const statuses = [resA.status, resB.status].sort();
     expect(statuses).toEqual([201, 409]);
 
-    const count = await (prisma as any).submission.count({ where: { milestoneId: milestone.id } });
+    const count = await prisma.submission.count({ where: { milestoneId: milestone.id } });
     expect(count).toBe(1);
   });
 
@@ -219,6 +219,9 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     });
     expect(postRes.status).toBe(422);
     expect(postRes.body.error.code).toBe('DEADLINE_PASSED');
+
+    // DB check: no row created after rejected late POST
+    expect(await prisma.submission.count({ where: { milestoneId: milestone.id } })).toBe(0);
 
     // PUT on milestone moved past due
     const future = new Date(Date.now() + 3600000);
@@ -240,6 +243,11 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     });
     expect(putRes.status).toBe(422);
     expect(putRes.body.error.code).toBe('DEADLINE_PASSED');
+
+    // DB check: row still has old title and link after rejected late PUT
+    const rowInDb = await prisma.submission.findUnique({ where: { milestoneId: milestoneForPut.id } });
+    expect(rowInDb?.title).toBe('On-time Submission');
+    expect(rowInDb?.link).toBe('https://github.com/example/ontime');
   });
 
   it('TEST-17 (AC-14, BR-09) rejects invalid inputs (ftp, not a url, short title) with 400 VALIDATION_ERROR', async () => {
@@ -267,14 +275,24 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     });
     expect(badTitle.status).toBe(400);
     expect(badTitle.body.error.fields.title).toBeDefined();
+
+    // DB check: no submission row exists after rejected invalid submissions
+    expect(await prisma.submission.count({ where: { milestoneId: milestone.id } })).toBe(0);
   });
 
-  it('TEST-18 (AC-15, BR-01) student S3 of Team Beta accessing Team Alpha milestone gets 404', async () => {
+  it('TEST-18 (AC-15, BR-01) student S3 of Team Beta accessing Team Alpha milestone with submission gets 404', async () => {
     const future = new Date(Date.now() + 7 * 86400000);
     const milestone = await createMilestone(ALPHA.id, future);
 
+    // Precondition: milestone has an existing submission by S1
+    await post(`/api/milestones/${milestone.id}/submission`, s1, {
+      title: 'Alpha Team Submission',
+      link: 'https://example.com/alpha',
+    });
+
     const getRes = await get(`/api/milestones/${milestone.id}`, s3);
     expect(getRes.status).toBe(404);
+    expect(getRes.body.submission).toBeUndefined();
 
     const postRes = await post(`/api/milestones/${milestone.id}/submission`, s3, {
       title: 'Cross-team Post',
@@ -300,6 +318,9 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
       link: 'https://example.com/v1',
     });
 
+    const beforeRow = await prisma.submission.findUniqueOrThrow({ where: { milestoneId: milestone.id } });
+    await new Promise((r) => setTimeout(r, 20));
+
     // Update by S2
     const putRes = await put(`/api/milestones/${milestone.id}/submission`, s2, {
       title: 'Version 2 Updated',
@@ -312,9 +333,14 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     expect(putRes.body.submission.description).toBe('Second draft with fixes');
     expect(putRes.body.submission.link).toBe('https://example.com/v2');
     expect(putRes.body.submission.submittedBy.id).toBe(S2.id);
+
+    // DB check: row updatedAt is strictly greater than before the PUT
+    const afterRow = await prisma.submission.findUniqueOrThrow({ where: { milestoneId: milestone.id } });
+    expect(afterRow.updatedAt.getTime()).toBeGreaterThan(beforeRow.updatedAt.getTime());
+    expect(afterRow.submittedById).toBe(S2.id);
   });
 
-  it('TEST-20 (AC-09, BR-03) supervisor cannot create a submission (403 FORBIDDEN)', async () => {
+  it('TEST-20 (AC-09, BR-03) supervisor cannot create or edit a submission (403 FORBIDDEN)', async () => {
     const future = new Date(Date.now() + 7 * 86400000);
     const milestone = await createMilestone(ALPHA.id, future);
 
@@ -324,6 +350,36 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     });
     expect(supPost.status).toBe(403);
     expect(supPost.body.error.code).toBe('FORBIDDEN');
+
+    // DB check: no row created after supervisor attempt
+    expect(await prisma.submission.count({ where: { milestoneId: milestone.id } })).toBe(0);
+
+    const supPut = await put(`/api/milestones/${milestone.id}/submission`, sup1, {
+      title: 'Supervisor editing',
+      link: 'https://example.com',
+    });
+    expect(supPut.status).toBe(403);
+    expect(supPut.body.error.code).toBe('FORBIDDEN');
+  });
+
+  it('rejects malformed milestoneId with 404 NOT_FOUND on GET, POST and PUT (BR-01, D-05)', async () => {
+    const getRes = await get('/api/milestones/not-a-uuid', s1);
+    expect(getRes.status).toBe(404);
+    expect(getRes.body.error.code).toBe('NOT_FOUND');
+
+    const postRes = await post('/api/milestones/not-a-uuid/submission', s1, {
+      title: 'Malformed ID',
+      link: 'https://example.com',
+    });
+    expect(postRes.status).toBe(404);
+    expect(postRes.body.error.code).toBe('NOT_FOUND');
+
+    const putRes = await put('/api/milestones/not-a-uuid/submission', s1, {
+      title: 'Malformed ID',
+      link: 'https://example.com',
+    });
+    expect(putRes.status).toBe(404);
+    expect(putRes.body.error.code).toBe('NOT_FOUND');
   });
 });
 
