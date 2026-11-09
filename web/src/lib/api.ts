@@ -70,6 +70,13 @@ export type Milestone = {
   status: MilestoneStatus;
 };
 
+export type Feedback = {
+  id: string;
+  comment: string;
+  createdAt: string;
+  author: { id: string; name: string };
+};
+
 export type Submission = {
   id: string;
   milestoneId: string;
@@ -79,7 +86,7 @@ export type Submission = {
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;
-  feedback: null | unknown;
+  feedback: Feedback | null;
 };
 
 export type MilestoneDetail = {

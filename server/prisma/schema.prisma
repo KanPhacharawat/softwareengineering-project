@@ -23,6 +23,7 @@ model User {
   memberships  TeamMember[]
   milestones   Milestone[]
   submissions  Submission[]
+  feedbacks    Feedback[]
 }
 
 model Team {
@@ -70,6 +71,19 @@ model Submission {
   updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
   milestone     Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
   submittedBy   User      @relation(fields: [submittedById], references: [id])
+  feedback      Feedback?
+}
+
+model Feedback {
+  id           String     @id @default(uuid()) @db.Uuid
+  submissionId String     @unique @db.Uuid
+  authorId     String     @db.Uuid
+  comment      String
+  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  author       User       @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
 }
 
 /// Session store table used by connect-pg-simple (F-01). Shape must match that library.

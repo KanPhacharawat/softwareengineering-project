@@ -117,7 +117,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(getRes.body.submission.feedback.author).toEqual({ id: SUP1.id, name: SUP1.name });
 
     // DB verification (STS Expected)
-    const feedbackInDb = await (prisma as any).feedback?.findUnique({
+    const feedbackInDb = await prisma.feedback.findUnique({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeDefined();
@@ -137,7 +137,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('FORBIDDEN');
 
     // DB verification
-    const feedbackInDb = await (prisma as any).feedback?.findUnique({
+    const feedbackInDb = await prisma.feedback.findUnique({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -155,7 +155,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('NOT_FOUND');
 
     // DB verification
-    const feedbackInDb = await (prisma as any).feedback?.findUnique({
+    const feedbackInDb = await prisma.feedback.findUnique({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -199,7 +199,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(resWhitespace.status).toBe(400);
     expect(resWhitespace.body.error?.code).toBe('VALIDATION_ERROR');
 
-    const noFbInDb = await (prisma as any).feedback?.findUnique({
+    const noFbInDb = await prisma.feedback.findUnique({
       where: { submissionId: submission.id },
     });
     expect(noFbInDb).toBeFalsy();
@@ -219,7 +219,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(resDuplicate.body.error?.code).toBe('FEEDBACK_EXISTS');
 
     // DB verification: exactly one feedback exists
-    const count = await (prisma as any).feedback?.count({
+    const count = await prisma.feedback.count({
       where: { submissionId: submission.id },
     });
     expect(count).toBe(1);

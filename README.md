@@ -66,6 +66,7 @@ npm run dev
 - Milestones API (F-03): `GET /api/teams/:teamId/milestones` (sorted by due date with status `OPEN`, `SUBMITTED`,
   `FEEDBACK_GIVEN`, `MISSED`), `POST /api/teams/:teamId/milestones` (supervisor only, validated with BR-04).
 - Submissions API (F-04): `GET /api/milestones/:milestoneId` (milestone detail with submission), `POST /api/milestones/:milestoneId/submission` (student only, single submission, BR-05, BR-06, BR-09), `PUT /api/milestones/:milestoneId/submission` (edit before deadline while no feedback, BR-06, BR-07, BR-09).
+- Feedback API (F-05): `POST /api/submissions/:submissionId/feedback` (supervisor only, single feedback per submission, locks submission from student edits, BR-02, BR-03, BR-07, BR-08).
 
 ## Test
 

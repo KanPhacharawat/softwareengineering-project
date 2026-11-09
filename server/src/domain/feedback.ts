@@ -4,7 +4,27 @@ export type FeedbackValidationResult =
   | { success: false; fields: Record<string, string> };
 
 // BR-08: comment 1..2000 chars after trim
-export function validateFeedbackInput(_input: unknown): FeedbackValidationResult {
-  return { success: false, fields: { comment: 'Not implemented' } };
-}
+export function validateFeedbackInput(input: unknown): FeedbackValidationResult {
+  const fields: Record<string, string> = {};
 
+  if (!input || typeof input !== 'object') {
+    return { success: false, fields: { comment: 'Invalid feedback data' } };
+  }
+
+  const raw = input as Record<string, unknown>;
+
+  if (typeof raw.comment !== 'string') {
+    fields.comment = 'Comment is required';
+  } else {
+    const trimmed = raw.comment.trim();
+    if (!trimmed) {
+      fields.comment = 'Comment cannot be empty';
+    } else if (trimmed.length > 2000) {
+      fields.comment = 'Comment cannot exceed 2000 characters';
+    } else {
+      return { success: true, data: { comment: trimmed } };
+    }
+  }
+
+  return { success: false, fields };
+}
