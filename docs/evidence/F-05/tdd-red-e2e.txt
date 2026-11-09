@@ -1,0 +1,32 @@
+# F-05 TDD red E2E run. Command: npx playwright test feedback.spec.ts -c web/playwright.config.ts. Date: 2026-11-09T21:33:51+07:00.
+
+Running 1 test using 1 worker
+
+  x  1 [chromium] › web\e2e\feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice (19.4s)
+
+
+  1) [chromium] › web\e2e\feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByLabel('Feedback')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByLabel('Feedback') with timeout 5000ms
+      - waiting for getByLabel('Feedback')
+
+
+      57 |   await expect(page.getByText('Initial Delivery Report')).toBeVisible();
+      58 |   const feedbackInput = page.getByLabel('Feedback');
+    > 59 |   await expect(feedbackInput).toBeVisible();
+         |                               ^
+      60 |   await feedbackInput.fill('Well structured deliverable. All core requirements satisfied.');
+      61 |   await page.getByRole('button', { name: 'Save feedback' }).click();
+      62 |
+        at C:\Users\CPE KMUTT\Documents\GitHub\softwareengineering-project\web\e2e\feedback.spec.ts:59:31
+
+  1 failed
+    [chromium] › web\e2e\feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice 
