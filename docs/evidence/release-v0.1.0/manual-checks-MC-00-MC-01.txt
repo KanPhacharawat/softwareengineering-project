@@ -1,0 +1,62 @@
+MC-00 / MC-01 manual checks for release v0.1.0 (STS manual checks, NFR-08, AC-00c, DoD #7)
+Run 2026-11-10T13:22:40Z on sprint-1 commit 45193c4.
+
+== MC-00: env files tracked in the setup commit e8e4ad3
+$ git ls-tree -r --name-only e8e4ad3 | grep -E '(^|/)\.env'
+server/.env.example
+$ git ls-files | grep -E '(^|/)\.env'   (release commit)
+server/.env.example
+$ git log --all --oneline -- '*.env'   (any .env ever committed?)
+(no output = never committed)
+$ git check-ignore -v server/.env
+.gitignore:3:.env	server/.env
+Result: PASS. Only server/.env.example is tracked; .env is ignored and was never committed.
+
+== MC-01: secret/password grep on release commit
+$ git grep -n -i -E 'secret|password' 45193c4 -- . ':!package-lock.json' ':!docs' ':!*.test.ts' ':!web/e2e' ':!web/src/pages/login-page.tsx' ':!web/src/auth'
+README.md:27:[`docker-compose.yml`](docker-compose.yml) runs PostgreSQL 16 on host port **5433** with user `app` / password `app`
+README.md:42:cp server/.env.example server/.env     # then set SESSION_SECRET
+README.md:84:All accounts use the password `password123`.
+docker-compose.yml:3:# Creates cpms_dev (dev) and cpms_test (used by `npm test`), user app / password app.
+docker-compose.yml:12:      POSTGRES_PASSWORD: app
+server/.env.example:6:SESSION_SECRET=change-me-to-a-random-32-plus-character-string
+server/prisma/migrations/20261105180947_init/migration.sql:10:    "passwordHash" TEXT NOT NULL,
+server/prisma/schema.prisma:20:  passwordHash String
+server/prisma/seed.ts:2:// All demo accounts share one demo password; it is synthetic data, not a secret.
+server/prisma/seed.ts:6:export const SEED_PASSWORD = 'password123';
+server/prisma/seed.ts:27:  const passwordHash = await bcrypt.hash(SEED_PASSWORD, BCRYPT_COST);
+server/prisma/seed.ts:34:    await tx.user.createMany({ data: seedUsers.map((u) => ({ ...u, passwordHash })) });
+server/src/config.ts:9:const sessionSecret = required('SESSION_SECRET');
+server/src/config.ts:10:if (nodeEnv === 'production' && sessionSecret.length < 32) {
+server/src/config.ts:11:  throw new Error('SESSION_SECRET must be at least 32 characters in production');
+server/src/config.ts:18:  sessionSecret,
+server/src/routes/auth.ts:10:  password: z.string({ error: 'Enter your password' }).min(1, 'Enter your password').max(200, 'Password is too long'),
+server/src/routes/auth.ts:20:  const user = await verifyCredentials(parsed.data.email, parsed.data.password);
+server/src/services/auth-service.ts:8:// passwordHash is never selected into anything that leaves the service (NFR-01).
+server/src/services/auth-service.ts:15:export async function verifyCredentials(email: string, password: string): Promise<PublicUser> {
+server/src/services/auth-service.ts:17:  const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
+server/src/services/auth-service.ts:19:    // Same response for unknown email and wrong password (AC-02).
+server/src/services/auth-service.ts:20:    throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid email or password');
+server/src/services/team-service.ts:8:// Only these fields leave the API: no password hashes, no membership internals.
+server/src/session.ts:22:    secret: config.sessionSecret,
+server/tests/helpers.ts:3:import { SEED_PASSWORD } from '../prisma/seed.js';
+server/tests/helpers.ts:7:  const res = await request(app).post('/api/auth/login').send({ email, password: SEED_PASSWORD });
+server/tests/test-env.ts:12:  // Tests need a session secret even without a .env file (e.g. in CI). Not a real secret.
+server/tests/test-env.ts:13:  process.env.SESSION_SECRET ??= 'test-only-session-secret-not-used-anywhere-else';
+(login-page.tsx, auth-context.tsx, tests and e2e are excluded above only because they use 'password' as a form
+field name or the seed-password helper; checked by hand: no secret values.)
+Review: hits are the SESSION_SECRET placeholder in .env.example, the env-variable read in config.ts, the
+synthetic seed password 'password123' (documented in README as demo data), the local Docker DB user app/app,
+and a test-only fallback secret in tests/test-env.ts. No real credential.
+
+$ npm run build -w web && grep -rlE 'SESSION_SECRET|<real secret value from server/.env>|DATABASE_URL|password123' web/dist
+(no match) web bundle contains no secret, DB URL or seed password
+Result: PASS.
+
+== Extra: npm audit --omit=dev
+deepmerge-ts  <8.0.0
+Severity: high
+Will install prisma@7.10.1, which is a breaking change
+3 high severity vulnerabilities
+Known limitation: deepmerge-ts (via the prisma CLI config loader) has GHSA-ggr8-5vv4-36mx. It runs only at
+build/migrate time on trusted config, never on request data. The fix is the Prisma 7 major upgrade, planned with Lab 5.
