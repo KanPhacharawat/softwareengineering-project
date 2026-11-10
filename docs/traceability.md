@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 Sprint 1 AC and TEST IDs are defined in [sprints/sprint-1/](sprints/sprint-1/). Later sprints have feature and
 sprint allocation now; their AC/tests are elaborated in their own contracts.
 
@@ -25,9 +25,9 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | FR-17 | F-09 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
 | FR-18 | F-10 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
 | FR-19 | F-09 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
-| BR-01 | F-02 | 1 | AC-10, AC-15 | TEST-11, TEST-12, TEST-18 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
-| BR-02 | F-02, F-03, F-05 | 1 | AC-08, AC-19 | TEST-09, TEST-23 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
-| BR-03 | F-02, F-03, F-04, F-05 | 1 | AC-09, AC-19 | TEST-10, TEST-20, TEST-22 | F-02 check implemented; applied to milestones/submissions/feedback in F-03..F-05 |
+| BR-01 | F-02 | 1 | AC-10, AC-15 | TEST-11, TEST-12, TEST-18 | Implemented (F-02 check, applied in F-03..F-05, tests pass) |
+| BR-02 | F-02, F-03, F-05 | 1 | AC-08, AC-19 | TEST-09, TEST-23 | Implemented (F-02 check, applied in F-03..F-05, tests pass) |
+| BR-03 | F-02, F-03, F-04, F-05 | 1 | AC-09, AC-19 | TEST-10, TEST-20, TEST-22 | Implemented (F-02 check, applied in F-03..F-05, tests pass) |
 | BR-04 | F-03 | 1 | AC-07 | TEST-08, TEST-U01 | Implemented (F-03, tests pass) |
 | BR-05 | F-04 | 1 | AC-12 | TEST-14, TEST-15 | Implemented (F-04, tests pass) |
 | BR-06 | F-04 | 1 | AC-13 | TEST-16, TEST-U02 | Implemented (F-04, tests pass) |
@@ -39,13 +39,13 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-12 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | BR-13 | F-07 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | NFR-01 | F-01 | 1 | AC-05 | TEST-06 | Implemented (F-01, tests pass) |
-| NFR-02 | F-01, F-02 | 1 | AC-03 | TEST-04 | F-01 part implemented (401 on all /api routes); F-02 adds routes |
-| NFR-03 | F-02 | 1 | AC-08, AC-09, AC-15, AC-19 | TEST-09, TEST-10, TEST-18, TEST-20, TEST-22, TEST-23 | F-02 requireRole (403) + loadTeamInScope (404) implemented; used by F-03..F-05 |
+| NFR-02 | F-01, F-02 | 1 | AC-03 | TEST-04 | Implemented (401 on every non-public /api route, tests pass) |
+| NFR-03 | F-02 | 1 | AC-08, AC-09, AC-15, AC-19 | TEST-09, TEST-10, TEST-18, TEST-20, TEST-22, TEST-23 | Implemented (requireRole 403 + loadTeamInScope 404 in F-02..F-05, tests pass) |
 | NFR-04 | F-01 | 1 | AC-04 | TEST-05 | Implemented (F-01, tests pass) |
-| NFR-05 | F-00, R-01 | 1 (local), 2 (deployed restart, Lab 5) | AC-11 | TEST-13 (persistence); Lab 5 restart check | Planned |
+| NFR-05 | F-00, R-01 | 1 (local), 2 (deployed restart, Lab 5) | AC-11 | TEST-13 (persistence); Lab 5 restart check | Sprint 1 part verified (TEST-13); deployed restart in Lab 5 |
 | NFR-06 | F-11 | 3 | Sprint 3 contract | Load test, Sprint 3 | Allocated |
-| NFR-07 | F-11 (core screens in F-03 to F-05) | 1 (core), 3 (all) | AC-21, AC-22 | TEST-E2E-01, TEST-E2E-02 | Planned |
-| NFR-08 | F-00, R-01 | 1 | Review checklist in DoD | Secret scan (manual check MC-01) | Planned |
+| NFR-07 | F-11 (core screens in F-03 to F-05) | 1 (core), 3 (all) | AC-21, AC-22 | TEST-E2E-01, TEST-E2E-02 | Sprint 1 core screens verified (E2E pass); all screens in Sprint 3 |
+| NFR-08 | F-00, R-01 | 1 | Review checklist in DoD | Secret scan (manual check MC-01) | Verified for v0.1.0 (MC-00, MC-01 pass, docs/evidence/release-v0.1.0/) |
 | NFR-09 | F-04 | 1 | AC-12 | TEST-15 | Implemented (F-04, tests pass) |
 
 ## Coverage gaps

@@ -2,6 +2,7 @@
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
+import { prisma } from '../src/db.js';
 import { seedTeams, seedUsers } from '../prisma/seed.js';
 import { loginCookie } from './helpers.js';
 
@@ -88,10 +89,20 @@ describe('TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped', () =>
   });
 
   it('a student asking for another team milestones gets 404 without data (scope checked for every /teams/:teamId/* path)', async () => {
-    const res = await get(`/api/teams/${BETA.id}/milestones`, s1);
-    expect(res.status).toBe(404);
-    expect(Object.keys(res.body)).toEqual(['error']);
-    expect(JSON.stringify(res.body)).not.toContain('Beta');
+    // STS precondition: Beta has a milestone, so a leak would be visible in the body.
+    const betaMilestone = await prisma.milestone.create({
+      data: { teamId: BETA.id, title: 'Beta private milestone', dueAt: new Date(Date.now() + 7 * 864e5), createdById: SUP1.id },
+    });
+    try {
+      for (const path of [`/api/teams/${BETA.id}`, `/api/teams/${BETA.id}/milestones`]) {
+        const res = await get(path, s1);
+        expect(res.status).toBe(404);
+        expect(Object.keys(res.body)).toEqual(['error']);
+        expect(JSON.stringify(res.body)).not.toContain('Beta');
+      }
+    } finally {
+      await prisma.milestone.delete({ where: { id: betaMilestone.id } });
+    }
   });
 
   it('an unknown or malformed team id gives the same 404 as another team', async () => {

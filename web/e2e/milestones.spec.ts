@@ -39,8 +39,9 @@ test('a supervisor sees the "New milestone" form and can create a milestone', as
   // Fill in the form
   await page.getByLabel('Title').fill('E2E Test Milestone');
   await page.getByLabel('Description').fill('Created by Playwright E2E');
-  // Set future due date (e.g. 2026-12-01T23:59)
-  await page.getByLabel('Due date').fill('2026-12-01T23:59');
+  // Due date 30 days from today (datetime-local format), so the test never goes stale.
+  const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  await page.getByLabel('Due date').fill(`${due}T23:59`);
 
   await page.getByRole('button', { name: 'Create milestone' }).click();
 
