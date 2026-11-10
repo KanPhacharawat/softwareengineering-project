@@ -41,7 +41,7 @@ describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
     const res = canChangeSubmission({ dueAt: futureDue }, null, fixedNow);
     expect(res.allowed).toBe(true);
 
-    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue }, { hasFeedback: false }, fixedNow);
+    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: null }, fixedNow);
     expect(resWithSubNoFeedback.allowed).toBe(true);
   });
 
@@ -56,7 +56,7 @@ describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
   });
 
   it('rejects with SUBMISSION_LOCKED when submission has feedback, even before due', () => {
-    const resFeedback = canChangeSubmission({ dueAt: futureDue }, { hasFeedback: true }, fixedNow);
+    const resFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: { id: 'x' } }, fixedNow);
     expect(resFeedback.allowed).toBe(false);
     if (!resFeedback.allowed) expect(resFeedback.reason).toBe('SUBMISSION_LOCKED');
   });

@@ -18,7 +18,7 @@ export function validateFeedbackInput(input: unknown): FeedbackValidationResult 
   } else {
     const trimmed = raw.comment.trim();
     if (!trimmed) {
-      fields.comment = 'Comment cannot be empty';
+      fields.comment = 'Comment is required';
     } else if (trimmed.length > 2000) {
       fields.comment = 'Comment cannot exceed 2000 characters';
     } else {

@@ -60,9 +60,10 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
   await feedbackInput.fill('Well structured deliverable. All core requirements satisfied.');
   await page.getByRole('button', { name: 'Save feedback' }).click();
 
-  // Supervisor sees feedback card and updated status
+  // Supervisor sees feedback card and updated status, but no student locked notice
   await expect(page.getByText('FEEDBACK_GIVEN', { exact: true })).toBeVisible();
   await expect(page.getByText('Well structured deliverable. All core requirements satisfied.')).toBeVisible();
+  await expect(page.getByText('Locked after feedback')).toHaveCount(0);
 
   // 4. S1 logs in, reloads and sees feedback card and locked notice
   await page.getByRole('button', { name: 'Log out' }).click();

@@ -117,7 +117,7 @@ function MilestoneDetailContent({
         <h2 className="text-lg font-semibold">Submission</h2>
 
         {/* Status Notices (F-04 / F-05) */}
-        {submission?.feedback ? (
+        {isStudent && submission?.feedback ? (
           <Alert>
             <Lock className="size-4" />
             <AlertDescription>Locked after feedback</AlertDescription>

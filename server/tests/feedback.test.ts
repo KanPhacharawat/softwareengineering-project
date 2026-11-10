@@ -120,7 +120,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     const feedbackInDb = await prisma.feedback.findUnique({
       where: { submissionId: submission.id },
     });
-    expect(feedbackInDb).toBeDefined();
+    expect(feedbackInDb).not.toBeNull();
     expect(feedbackInDb?.comment).toBe('Excellent work on the deliverable.');
     expect(feedbackInDb?.authorId).toBe(SUP1.id);
   });
@@ -223,6 +223,63 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
       where: { submissionId: submission.id },
     });
     expect(count).toBe(1);
+  });
+
+  it('unauthenticated POST /api/submissions/:submissionId/feedback returns 401', async () => {
+    const future = new Date(Date.now() + 7 * 86400000);
+    const { submission } = await createMilestoneWithSubmission(ALPHA.id, future);
+    const res = await request(app)
+      .post(`/api/submissions/${submission.id}/feedback`)
+      .send({ comment: 'No session' });
+    expect(res.status).toBe(401);
+  });
+
+  it('feedback may be given after the deadline (contract step 4) returning 201 and FEEDBACK_GIVEN', async () => {
+    const past = new Date(Date.now() - 7 * 86400000);
+    const { milestone, submission } = await createMilestoneWithSubmission(ALPHA.id, past);
+
+    const res = await post(`/api/submissions/${submission.id}/feedback`, sup1, {
+      comment: 'Feedback given after the due date',
+    });
+    expect(res.status).toBe(201);
+
+    const getRes = await get(`/api/milestones/${milestone.id}`, s1);
+    expect(getRes.status).toBe(200);
+    expect(getRes.body.milestone.status).toBe('FEEDBACK_GIVEN');
+    expect(getRes.body.submission.feedback.comment).toBe('Feedback given after the due date');
+  });
+
+  it('concurrent student PUT and supervisor feedback serialize via row lock (BR-07, AC-18)', async () => {
+    const future = new Date(Date.now() + 7 * 86400000);
+    const { milestone, submission } = await createMilestoneWithSubmission(ALPHA.id, future);
+
+    // Fire PUT and feedback concurrently
+    const [putRes, fbRes] = await Promise.all([
+      put(`/api/milestones/${milestone.id}/submission`, s1, {
+        title: 'Concurrent Updated Title',
+        link: 'https://example.com/concurrent',
+      }),
+      post(`/api/submissions/${submission.id}/feedback`, sup1, {
+        comment: 'Concurrent feedback comment',
+      }),
+    ]);
+
+    expect(fbRes.status).toBe(201);
+    expect([200, 409]).toContain(putRes.status);
+
+    const fbInDb = await prisma.feedback.findUnique({
+      where: { submissionId: submission.id },
+    });
+    expect(fbInDb).not.toBeNull();
+
+    const subInDb = await prisma.submission.findUnique({
+      where: { id: submission.id },
+    });
+    if (putRes.status === 409) {
+      expect(subInDb?.title).toBe('Initial Submission');
+    } else {
+      expect(subInDb?.title).toBe('Concurrent Updated Title');
+    }
   });
 
   it('D-05 malformed submission ID returns 404 NOT_FOUND before database query', async () => {

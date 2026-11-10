@@ -228,17 +228,26 @@ export async function updateSubmission(
     throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
   }
 
-  const sub = await prisma.submission.update({
-    where: { milestoneId },
-    data: {
-      title: data.title,
-      description: data.description ?? null,
-      link: data.link,
-      submittedById: user.id,
-    },
-    include: {
-      submittedBy: { select: { id: true, name: true } },
-    },
+  const submissionId = milestone.submission.id;
+  const sub = await prisma.$transaction(async (tx) => {
+    // BR-07: lock the row so a concurrent feedback insert cannot slip in between the check and the update
+    await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+    const existingFeedback = await tx.feedback.findUnique({ where: { submissionId } });
+    if (existingFeedback) {
+      throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
+    }
+    return tx.submission.update({
+      where: { milestoneId },
+      data: {
+        title: data.title,
+        description: data.description ?? null,
+        link: data.link,
+        submittedById: user.id,
+      },
+      include: {
+        submittedBy: { select: { id: true, name: true } },
+      },
+    });
   });
 
   return toSubmissionView(sub);

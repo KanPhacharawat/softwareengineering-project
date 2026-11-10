@@ -51,15 +51,23 @@ export async function createFeedback(
   }
 
   try {
-    const feedback = await prisma.feedback.create({
-      data: {
-        submissionId,
-        authorId: user.id,
-        comment: validation.data.comment,
-      },
-      include: {
-        author: { select: { id: true, name: true } },
-      },
+    const feedback = await prisma.$transaction(async (tx) => {
+      // BR-07: serialize feedback creation with concurrent student edits via row lock on Submission
+      await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+      const existing = await tx.feedback.findUnique({ where: { submissionId } });
+      if (existing) {
+        throw new AppError(409, 'FEEDBACK_EXISTS', 'Feedback already exists for this submission');
+      }
+      return tx.feedback.create({
+        data: {
+          submissionId,
+          authorId: user.id,
+          comment: validation.data.comment,
+        },
+        include: {
+          author: { select: { id: true, name: true } },
+        },
+      });
     });
 
     return {

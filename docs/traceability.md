@@ -60,3 +60,4 @@ NFR-08 is verified by a manual check in Sprint 1 and becomes an automated CI che
 |---|---|---|
 | 2026-11-05 | Baseline created | all |
 | 2026-11-07 | F-04 Team submission implemented | FR-07, FR-08, FR-09, BR-05, BR-06, BR-09, NFR-09 |
+| 2026-11-09 | F-05 Supervisor feedback implemented (migration 20261109145639_feedback adds Feedback table) | FR-09, FR-10, BR-07, BR-08 |
