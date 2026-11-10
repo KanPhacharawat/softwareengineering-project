@@ -80,7 +80,7 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
 // BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: submission has feedback -> SUBMISSION_LOCKED
 export function canChangeSubmission(
   milestone: { dueAt: Date | string },
-  submission?: { hasFeedback?: boolean; [key: string]: unknown } | null,
+  submission?: { feedback?: unknown } | null,
   now: Date = new Date(),
 ): ChangeSubmissionResult {
   const due = new Date(milestone.dueAt).getTime();
@@ -88,7 +88,7 @@ export function canChangeSubmission(
     return { allowed: false, reason: 'DEADLINE_PASSED' };
   }
 
-  if (submission?.hasFeedback) {
+  if (submission?.feedback) {
     return { allowed: false, reason: 'SUBMISSION_LOCKED' };
   }
 

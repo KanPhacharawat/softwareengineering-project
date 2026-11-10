@@ -159,6 +159,19 @@ on Thai paragraphs. Do not use weights below 400.
   - Supervisors have read-only access (no edit button, no submit form).
 - Form errors render under inputs using `text-sm text-destructive`. Non-field errors render inside a destructive `Alert` with `CircleAlert`.
 
+### 5.5 Supervisor feedback and submission lock (F-05)
+
+- Supervisor view on submission:
+  - If submission exists without feedback: "Record feedback" card with textarea (1..2000 chars after trim) and "Save feedback" button.
+  - Submitting feedback calls `POST /api/submissions/:submissionId/feedback` (SUPERVISOR role required, 403 for students; unassigned supervisor returns 404).
+  - Transitions milestone status to `FEEDBACK_GIVEN`.
+- Feedback display:
+  - Once feedback is recorded, both supervisor and students see the Feedback `Card` (`MessageSquare` icon, title "Feedback", author name + formatted Asia/Bangkok timestamp, and feedback comment text).
+- Submission lock:
+  - When feedback is present, students see the info notice `Alert` with `Lock` icon: "Locked after feedback".
+  - "Edit submission" button is hidden.
+  - API rejects any student PUT update on locked submission with 409 `SUBMISSION_LOCKED`, even if the due date has not passed.
+
 ## 6. Components (shadcn/ui)
 
 | Need | Component | Rule |

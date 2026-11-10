@@ -24,7 +24,14 @@ export type CreatedMilestoneView = {
 export async function listTeamMilestones(teamId: string, now: Date = new Date()): Promise<MilestoneView[]> {
   const milestones = await prisma.milestone.findMany({
     where: { teamId },
-    include: { submission: { select: { id: true } } },
+    include: {
+      submission: {
+        select: {
+          id: true,
+          feedback: { select: { id: true } },
+        },
+      },
+    },
     orderBy: { dueAt: 'asc' },
   });
 
@@ -33,7 +40,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     title: m.title,
     description: m.description,
     dueAt: m.dueAt.toISOString(),
-    status: computeMilestoneStatus(m, m.submission ? { feedback: undefined } : null, now),
+    status: computeMilestoneStatus(m, m.submission, now),
   }));
 }
 

@@ -6,6 +6,13 @@ import { canChangeSubmission, validateSubmissionInput } from '../domain/submissi
 import { UUID } from './team-service.js';
 import type { PublicUser } from './auth-service.js';
 
+export type FeedbackView = {
+  id: string;
+  comment: string;
+  author: { id: string; name: string };
+  createdAt: string;
+};
+
 export type SubmissionView = {
   id: string;
   milestoneId: string;
@@ -15,7 +22,7 @@ export type SubmissionView = {
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;
-  feedback: null | unknown;
+  feedback: FeedbackView | null;
 };
 
 export type MilestoneDetailView = {
@@ -42,6 +49,12 @@ function toSubmissionView(sub: {
   submittedBy: { id: string; name: string };
   submittedAt: Date;
   updatedAt: Date;
+  feedback?: {
+    id: string;
+    comment: string;
+    author: { id: string; name: string };
+    createdAt: Date;
+  } | null;
 }): SubmissionView {
   return {
     id: sub.id,
@@ -52,7 +65,14 @@ function toSubmissionView(sub: {
     submittedBy: sub.submittedBy,
     submittedAt: sub.submittedAt.toISOString(),
     updatedAt: sub.updatedAt.toISOString(),
-    feedback: null,
+    feedback: sub.feedback
+      ? {
+          id: sub.feedback.id,
+          comment: sub.feedback.comment,
+          author: sub.feedback.author,
+          createdAt: sub.feedback.createdAt.toISOString(),
+        }
+      : null,
   };
 }
 
@@ -75,6 +95,11 @@ async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
       submission: {
         include: {
           submittedBy: { select: { id: true, name: true } },
+          feedback: {
+            include: {
+              author: { select: { id: true, name: true } },
+            },
+          },
         },
       },
     },
@@ -113,7 +138,7 @@ export async function getMilestoneDetail(
       title: milestone.title,
       description: milestone.description,
       dueAt: milestone.dueAt.toISOString(),
-      status: computeMilestoneStatus(milestone, milestone.submission ? { feedback: undefined } : null, now),
+      status: computeMilestoneStatus(milestone, milestone.submission, now),
     },
     team: {
       id: milestone.team.id,
@@ -203,17 +228,26 @@ export async function updateSubmission(
     throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
   }
 
-  const sub = await prisma.submission.update({
-    where: { milestoneId },
-    data: {
-      title: data.title,
-      description: data.description ?? null,
-      link: data.link,
-      submittedById: user.id,
-    },
-    include: {
-      submittedBy: { select: { id: true, name: true } },
-    },
+  const submissionId = milestone.submission.id;
+  const sub = await prisma.$transaction(async (tx) => {
+    // BR-07: lock the row so a concurrent feedback insert cannot slip in between the check and the update
+    await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+    const existingFeedback = await tx.feedback.findUnique({ where: { submissionId } });
+    if (existingFeedback) {
+      throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
+    }
+    return tx.submission.update({
+      where: { milestoneId },
+      data: {
+        title: data.title,
+        description: data.description ?? null,
+        link: data.link,
+        submittedById: user.id,
+      },
+      include: {
+        submittedBy: { select: { id: true, name: true } },
+      },
+    });
   });
 
   return toSubmissionView(sub);

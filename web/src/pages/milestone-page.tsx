@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Pencil, Send } from 'lucide-react';
+import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, Send } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
 import { EmptyState, ErrorState } from '@/components/page-states';
@@ -83,7 +83,7 @@ function MilestoneDetailContent({
 
   const isStudent = user?.role === 'STUDENT';
   const deadlinePassed = Date.now() >= new Date(milestone.dueAt).getTime();
-  const canEdit = isStudent && !deadlinePassed;
+  const canEdit = isStudent && !deadlinePassed && !submission?.feedback;
 
   return (
     <div className="space-y-8">
@@ -116,13 +116,18 @@ function MilestoneDetailContent({
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Submission</h2>
 
-        {/* Deadline passed notice */}
-        {deadlinePassed && (
+        {/* Status Notices (F-04 / F-05) */}
+        {isStudent && submission?.feedback ? (
+          <Alert>
+            <Lock className="size-4" />
+            <AlertDescription>Locked after feedback</AlertDescription>
+          </Alert>
+        ) : deadlinePassed ? (
           <Alert>
             <Info className="size-4" />
             <AlertDescription>Submission closed: deadline passed</AlertDescription>
           </Alert>
-        )}
+        ) : null}
 
         {/* Existing Submission */}
         {submission && !isEditing && (
@@ -168,6 +173,32 @@ function MilestoneDetailContent({
           </Card>
         )}
 
+        {/* Feedback Section (F-05) */}
+        {submission && submission.feedback && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <MessageSquare className="size-5 text-muted-foreground" />
+                <CardTitle className="text-lg font-medium">Feedback</CardTitle>
+              </div>
+              <CardDescription className="mt-1">
+                Recorded by {submission.feedback.author.name} on {formatBangkokDateTime(submission.feedback.createdAt)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-6 whitespace-pre-wrap">{submission.feedback.comment}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Supervisor Feedback Form (F-05) */}
+        {submission && !submission.feedback && !isStudent && (
+          <FeedbackForm
+            submissionId={submission.id}
+            onSaved={onReload}
+          />
+        )}
+
         {/* Edit Submission Form */}
         {submission && isEditing && (
           <SubmissionForm
@@ -199,6 +230,94 @@ function MilestoneDetailContent({
         )}
       </section>
     </div>
+  );
+}
+
+function FeedbackForm({
+  submissionId,
+  onSaved,
+}: {
+  submissionId: string;
+  onSaved: () => void;
+}) {
+  const [comment, setComment] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = comment.trim();
+    const newErrors: Record<string, string> = {};
+
+    if (!trimmed) {
+      newErrors.comment = 'Comment is required';
+    } else if (trimmed.length > 2000) {
+      newErrors.comment = 'Comment cannot exceed 2000 characters';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      await api(`/submissions/${encodeURIComponent(submissionId)}/feedback`, {
+        method: 'POST',
+        body: { comment: trimmed },
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.fields && Object.keys(err.fields).length > 0) {
+          setErrors(err.fields);
+        } else {
+          setErrors({ form: err.message });
+        }
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not save feedback' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Record feedback</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="feedback-comment">Feedback</Label>
+            <Textarea
+              id="feedback-comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Write feedback for the team (max 2000 characters)"
+              aria-invalid={!!errors.comment}
+            />
+            {errors.comment && <p className="text-sm text-destructive">{errors.comment}</p>}
+          </div>
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="animate-spin size-4" />}
+            Save feedback
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
