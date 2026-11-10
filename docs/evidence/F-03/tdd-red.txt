@@ -1,0 +1,160 @@
+# F-03 TDD red run. Command: npx vitest run --reporter=verbose (server). Date: 2026-11-06T16:56:06Z. Base: feature/F-03-milestones + F-03 tests and stubs.
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+1 migration found in prisma/migrations
+
+No pending migrations to apply.
+ × tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates title lengths: rejects 2 chars, accepts 3..120, rejects 121 19ms
+   → expected undefined to be defined
+ × tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates dueAt: rejects past and equal date, accepts future date 2ms
+   → expected undefined to be defined
+ × tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates description: optional, allows empty, allows up to 2000 chars, rejects >2000 11ms
+   → expected false to be true // Object.is equality
+ × tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > computes milestone status: OPEN, MISSED, SUBMITTED, FEEDBACK_GIVEN 4ms
+   → expected 'OPEN' to be 'MISSED' // Object.is equality
+ × tests/milestones.test.ts > TEST-07 (AC-06, FR-05, FR-06) POST and GET milestones for an assigned team > Sup1 creates a milestone for Team Alpha with future dueAt; returns 201; S1 sees it with status OPEN 64ms
+   → expected 501 to be 201 // Object.is equality
+ × tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects past due date with 400 VALIDATION_ERROR and does not store it 42ms
+   → expected 501 to be 400 // Object.is equality
+ × tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too short (2 chars) with 400 VALIDATION_ERROR and does not store it 33ms
+   → expected 501 to be 400 // Object.is equality
+ × tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too long (121 chars) with 400 VALIDATION_ERROR and does not store it 28ms
+   → expected 501 to be 400 // Object.is equality
+ × tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects description > 2000 chars with 400 VALIDATION_ERROR and does not store it 31ms
+   → expected 501 to be 400 // Object.is equality
+ ✓ tests/milestones.test.ts > TEST-09 (AC-08, BR-02) POST milestone to an unassigned team returns 404 > Sup1 cannot create a milestone for Team Gamma 27ms
+ ✓ tests/milestones.test.ts > TEST-10 (AC-09, BR-03) student cannot create a milestone > S1 posting a milestone to Alpha returns 403 FORBIDDEN 27ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user 656ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > accepts the email in any letter case 473ms
+ ✓ tests/auth.test.ts > TEST-01 (AC-01) login with correct credentials > rejects an empty body with 400 VALIDATION_ERROR and field messages 8ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > wrong password gives 401 INVALID_CREDENTIALS and no session cookie 427ms
+ ✓ tests/auth.test.ts > TEST-02 / TEST-03 (AC-02) wrong password and unknown email > unknown email gives the same 401 response as a wrong password 1928ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/auth/me returns 401 UNAUTHENTICATED with only an error body 15ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams returns 401 UNAUTHENTICATED with only an error body 19ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/teams/00000000-0000-4000-8000-0000000000a1/milestones returns 401 UNAUTHENTICATED with only an error body 13ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > GET /api/milestones/00000000-0000-4000-8000-00000000f001 returns 401 UNAUTHENTICATED with only an error body 16ms
+ ✓ tests/auth.test.ts > TEST-04 (AC-03, NFR-02) protected endpoints without a session > rejects a forged session cookie 11ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > returns 204, clears the cookie, and the old cookie is rejected afterwards 1289ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > deletes the session row from the database 1025ms
+ ✓ tests/auth.test.ts > TEST-05 (AC-04, NFR-04) logout > is idempotent: logout without a session returns 204 14ms
+ ✓ tests/auth.test.ts > TEST-06 (AC-05, NFR-01) stored password hashes > every passwordHash is bcrypt with cost >= 10 and is not the plain password 7215ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > a student gets only their own team, with supervisor and members 23ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > another student gets only their own team (Beta) 14ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup2 gets only Gamma 15ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > Sup1 gets Alpha and Beta, ordered by name 15ms
+ ✓ tests/teams.test.ts > TEST-11 (AC-10, FR-04) GET /api/teams lists only visible teams > never returns password hashes 14ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student gets their own team 19ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a supervisor gets an assigned team 16ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Beta returns 404 NOT_FOUND without the team data 14ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > student S1 -> Gamma returns 404 NOT_FOUND without the team data 13ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup2 -> Alpha returns 404 NOT_FOUND without the team data 14ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > supervisor Sup1 -> Gamma returns 404 NOT_FOUND without the team data 13ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > a student asking for another team milestones gets 404 without data (scope checked for every /teams/:teamId/* path) 13ms
+ ✓ tests/teams.test.ts > TEST-12 (AC-10, BR-01, BR-02) GET /api/teams/:teamId is scoped > an unknown or malformed team id gives the same 404 as another team 34ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > lets the right role through 2ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a student on a supervisor-only operation with 403 FORBIDDEN 1ms
+ ✓ tests/authorization.test.ts > requireRole (BR-03, NFR-03) > rejects a supervisor on a student-only operation with 403 FORBIDDEN 0ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > returns the team to a member student and to its supervisor 50ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > student, other team -> 404 NOT_FOUND 7ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > supervisor, unassigned team -> 404 NOT_FOUND 2ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > unknown id -> 404 NOT_FOUND 3ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > malformed id -> 404 NOT_FOUND 1ms
+ ✓ tests/authorization.test.ts > loadTeamInScope (BR-01, BR-02, D-05) > Sup1 cannot reach Gamma either 3ms
+ ✓ tests/seed.test.ts > seed data > has 8 users: 2 supervisors and 6 students 78ms
+ ✓ tests/seed.test.ts > seed data > has 3 teams, each with a supervisor 9ms
+ ✓ tests/seed.test.ts > seed data > puts every student in exactly one team 10ms
+ ✓ tests/health.test.ts > GET /api/health > returns 200 { ok: true } 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates title lengths: rejects 2 chars, accepts 3..120, rejects 121
+AssertionError: expected undefined to be defined
+ ❯ tests/milestones.test.ts:40:57
+     38|     const res2 = validateMilestoneInput({ title: 'ab', dueAt: futureIso }, fixedNow);
+     39|     expect(res2.success).toBe(false);
+     40|     if (!res2.success) expect(res2.fields.title).toBeDefined();
+       |                                                         ^
+
+ FAIL  tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates dueAt: rejects past and equal date, accepts future date
+AssertionError: expected undefined to be defined
+ ❯ tests/milestones.test.ts:55:56
+     53|     const resPast = validateMilestoneInput({ title: 'Valid title', dueAt: pastIso }, fixedNow);
+     54|     expect(resPast.success).toBe(false);
+     55|     if (!resPast.success) expect(resPast.fields.dueAt).toBeDefined();
+       |                                                        ^
+
+ FAIL  tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > validates description: optional, allows empty, allows up to 2000 chars, rejects >2000
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/milestones.test.ts:71:30
+     69|   it('validates description: optional, allows empty, allows up to 2000 chars, rejects >2000', () => {
+     70|     const resEmpty = validateMilestoneInput({ title: 'Valid title', dueAt: futureIso, description: '' }, fixedNow);
+     71|     expect(resEmpty.success).toBe(true);
+       |                              ^
+
+ FAIL  tests/milestones.test.ts > TEST-U01 (AC-07, BR-04) milestone input and status unit tests > computes milestone status: OPEN, MISSED, SUBMITTED, FEEDBACK_GIVEN
+AssertionError: expected 'OPEN' to be 'MISSED' // Object.is equality
+
+Expected: "MISSED"
+Received: "OPEN"
+
+ ❯ tests/milestones.test.ts:90:72
+     88|     expect(computeMilestoneStatus({ dueAt: futureIso }, null, fixedNow)).toBe('OPEN');
+     89|     expect(computeMilestoneStatus({ dueAt: equalIso }, null, fixedNow)).toBe('OPEN');
+     90|     expect(computeMilestoneStatus({ dueAt: pastIso }, null, fixedNow)).toBe('MISSED');
+       |                                                                        ^
+
+ FAIL  tests/milestones.test.ts > TEST-07 (AC-06, FR-05, FR-06) POST and GET milestones for an assigned team > Sup1 creates a milestone for Team Alpha with future dueAt; returns 201; S1 sees it with status OPEN
+AssertionError: expected 501 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 501
+
+ ❯ tests/milestones.test.ts:106:24
+    104| 
+    105|     const res = await post(`/api/teams/${ALPHA.id}/milestones`, sup1, payload);
+    106|     expect(res.status).toBe(201);
+       |                        ^
+
+ FAIL  tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects past due date with 400 VALIDATION_ERROR and does not store it
+ FAIL  tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too short (2 chars) with 400 VALIDATION_ERROR and does not store it
+ FAIL  tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects title too long (121 chars) with 400 VALIDATION_ERROR and does not store it
+ FAIL  tests/milestones.test.ts > TEST-08 (AC-07, BR-04) POST milestone validation rejects invalid inputs > rejects description > 2000 chars with 400 VALIDATION_ERROR and does not store it
+AssertionError: expected 501 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 501
+
+ ❯ tests/milestones.test.ts:144:24
+    142|     const res = await post(`/api/teams/${ALPHA.id}/milestones`, sup1, body);
+    143| 
+    144|     expect(res.status).toBe(400);
+       |                        ^
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  9 failed | 42 passed (51)
+   Start at  23:55:23
+   Duration  42.76s (transform 693ms, setup 285ms, import 4.60s, tests 18.11s, environment 1ms)

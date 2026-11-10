@@ -1,0 +1,16 @@
+# F-02 TDD green run. Command: npx playwright test (web, all E2E). Date: 2026-11-06T08:21:24Z.
+
+Running 10 tests using 2 workers
+
+  ✓   2 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (787ms)
+  ✓   1 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (2.1s)
+  ✓   3 [chromium] › e2e/teams.spec.ts:14:1 › a student sees only their own team with supervisor and members (1.5s)
+  ✓   4 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (1.5s)
+  ✓   5 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (1.5s)
+  ✓   6 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (595ms)
+  ✓   7 [chromium] › e2e/teams.spec.ts:37:1 › opening a team card shows the team page with its members (1.7s)
+  ✓   8 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (1.9s)
+  ✓   9 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (1.8s)
+  ✓  10 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (1.4s)
+
+  10 passed (11.5s)

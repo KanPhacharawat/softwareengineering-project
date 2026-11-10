@@ -1,0 +1,67 @@
+Sprint 1 release v0.1.0: API rule and access checks (server-side enforcement, independent of the UI)
+Run 2026-11-10T13:20:48Z against the dev API, commit 94ea2f6, seeded data + demo journey.
+
+== Login / logout
+$ no session: GET /api/auth/me
+{"error":{"code":"UNAUTHENTICATED","message":"Please log in to continue"}}
+-> HTTP 401
+
+$ wrong password
+{"error":{"code":"INVALID_CREDENTIALS","message":"Invalid email or password"}}
+-> HTTP 401
+
+== Rule rejection
+$ S1 PUT submission after feedback (BR-07)
+{"error":{"code":"SUBMISSION_LOCKED","message":"Submission is locked after feedback"}}
+-> HTTP 409
+
+$ S1 POST submission again (BR-05)
+{"error":{"code":"SUBMISSION_EXISTS","message":"Submission already exists for this milestone"}}
+-> HTTP 409
+
+$ S1 POST submission to past-due milestone (BR-06)
+{"error":{"code":"DEADLINE_PASSED","message":"Submission deadline has passed"}}
+-> HTTP 422
+
+$ Sup1 POST second feedback (BR-08)
+{"error":{"code":"FEEDBACK_EXISTS","message":"Feedback already exists for this submission"}}
+-> HTTP 409
+
+$ Sup1 POST milestone with past due date and short title (BR-04)
+{"error":{"code":"VALIDATION_ERROR","message":"Some fields are invalid","fields":{"title":"Title must be between 3 and 120 characters","dueAt":"Due date must be in the future"}}}
+-> HTTP 400
+
+$ S1 POST submission with ftp link (BR-09)
+{"error":{"code":"VALIDATION_ERROR","message":"Some fields are invalid","fields":{"link":"Link must be an http or https URL"}}}
+-> HTTP 400
+
+== Forbidden access
+$ S1 (student) POST milestone (BR-03, 403)
+{"error":{"code":"FORBIDDEN","message":"You do not have permission to do this"}}
+-> HTTP 403
+
+$ S1 (student) POST feedback (BR-03, 403)
+{"error":{"code":"FORBIDDEN","message":"You do not have permission to do this"}}
+-> HTTP 403
+
+$ S3 (Beta student) GET Alpha milestone (BR-01, 404)
+{"error":{"code":"NOT_FOUND","message":"Not found or you do not have access"}}
+-> HTTP 404
+
+$ S1 GET Beta team (BR-01, 404)
+{"error":{"code":"NOT_FOUND","message":"Not found or you do not have access"}}
+-> HTTP 404
+
+$ Sup2 POST feedback on Alpha submission (BR-02, 404)
+{"error":{"code":"NOT_FOUND","message":"Not found or you do not have access"}}
+-> HTTP 404
+
+== Logout
+$ S1 logout
+
+-> HTTP 204
+
+$ S1 old cookie GET /api/auth/me
+{"error":{"code":"UNAUTHENTICATED","message":"Please log in to continue"}}
+-> HTTP 401
+

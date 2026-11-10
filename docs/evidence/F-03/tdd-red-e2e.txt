@@ -1,0 +1,96 @@
+# F-03 TDD red run. Command: npx playwright test e2e/milestones.spec.ts (web). Date: 2026-11-06T17:16:02Z. Before the implementation.
+
+Running 4 tests using 1 worker
+
+  ✘  1 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (16.7s)
+  ✘  2 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (8.2s)
+  ✘  3 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (8.2s)
+  ✘  4 [chromium] › e2e/milestones.spec.ts:54:1 › validation errors appear under form inputs when submitting invalid milestone (30.5s)
+
+
+  1) [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('No milestones yet')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('No milestones yet') with timeout 5000ms
+      - waiting for getByText('No milestones yet')
+
+
+      20 |   await login(page, 's3@cpms.test');
+      21 |   await page.goto(`/teams/${BETA_ID}`);
+    > 22 |   await expect(page.getByText('No milestones yet')).toBeVisible();
+         |                                                     ^
+      23 | });
+
+
+  2) [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'Milestones' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('heading', { name: 'Milestones' }) with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'Milestones' })
+
+
+      26 |   await login(page, 's1@cpms.test');
+      27 |   await page.goto(`/teams/${ALPHA_ID}`);
+    > 28 |   await expect(page.getByRole('heading', { name: 'Milestones' })).toBeVisible();
+         |                                                                   ^
+      29 |   await expect(page.getByRole('heading', { name: 'New milestone' })).toHaveCount(0);
+
+
+  3) [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'New milestone' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('heading', { name: 'New milestone' }) with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'New milestone' })
+
+
+      35 |   await page.goto(`/teams/${ALPHA_ID}`);
+      36 |
+    > 37 |   await expect(page.getByRole('heading', { name: 'New milestone' })).toBeVisible();
+         |                                                                      ^
+      38 |
+      39 |   // Fill in the form
+
+
+  4) [chromium] › e2e/milestones.spec.ts:54:1 › validation errors appear under form inputs when submitting invalid milestone 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Title')
+
+
+      57 |
+      58 |   // Short title (< 3 chars)
+    > 59 |   await page.getByLabel('Title').fill('ab');
+         |                                  ^
+      60 |   // Past due date
+      61 |   await page.getByLabel('Due date').fill('2020-01-01T00:00');
+
+
+  4 failed
+    [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones 
+    [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form 
+    [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone 
+    [chromium] › e2e/milestones.spec.ts:54:1 › validation errors appear under form inputs when submitting invalid milestone 
