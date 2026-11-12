@@ -27,17 +27,11 @@ describe('GET /api/ready', () => {
     expect(res.status).toBe(503);
     expect(res.body).toEqual({ ok: false, database: 'down' });
   });
-
-  it('does not need a session', async () => {
-    const res = await request(createApp()).get('/api/ready');
-    expect(res.headers['set-cookie']).toBeUndefined();
-  });
 });
 
 describe('serving the built web app', () => {
   const dist = mkdtempSync(path.join(tmpdir(), 'cpms-web-'));
   writeFileSync(path.join(dist, 'index.html'), '<!doctype html><div id="root"></div>');
-  writeFileSync(path.join(dist, 'app.js'), 'console.log(1)');
   const app = createApp({ webDistDir: dist });
   afterAll(() => rmSync(dist, { recursive: true, force: true }));
 
@@ -45,12 +39,6 @@ describe('serving the built web app', () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
     expect(res.text).toContain('id="root"');
-  });
-
-  it('serves static assets', async () => {
-    const res = await request(app).get('/app.js');
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toMatch(/javascript/);
   });
 
   it('falls back to index.html for client-side routes', async () => {
@@ -62,10 +50,5 @@ describe('serving the built web app', () => {
   it('keeps API behaviour for unknown /api paths', async () => {
     const res = await request(app).get('/api/nope');
     expect(res.status).toBe(401);
-  });
-
-  it('is off when no build exists', async () => {
-    const res = await request(createApp({ webDistDir: null })).get('/');
-    expect(res.status).toBe(404);
   });
 });

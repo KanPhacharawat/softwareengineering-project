@@ -14,8 +14,8 @@ import { sessionMiddleware } from './session.js';
 export type AppOptions = {
   // Throws when the database cannot be reached. Injectable so tests can simulate an outage.
   checkDatabase?: () => Promise<unknown>;
-  // Folder with the built React app; served only when it exists (production image). Null disables it.
-  webDistDir?: string | null;
+  // Folder with the built React app; served only when it exists (production image).
+  webDistDir?: string;
 };
 
 const pingDatabase = () => prisma.$queryRaw`SELECT 1`;
@@ -56,7 +56,7 @@ export function createApp({ checkDatabase = pingDatabase, webDistDir = config.we
 
   // Production: one container serves the React app too. Unknown non-API GETs get index.html so
   // client-side routes (e.g. /teams/123) work on reload.
-  if (webDistDir && existsSync(path.join(webDistDir, 'index.html'))) {
+  if (existsSync(path.join(webDistDir, 'index.html'))) {
     app.use(express.static(webDistDir, { index: false }));
     app.use((req, res, next) => {
       if (req.method !== 'GET' && req.method !== 'HEAD') return next();

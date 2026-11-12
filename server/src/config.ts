@@ -17,11 +17,9 @@ if (nodeEnv === 'production' && sessionSecret.length < 32) {
 export const config = {
   // Cloud Run sets PORT (8080). Default 3000 for local dev, where Vite proxies /api to it.
   port: Number(process.env.PORT ?? 3000),
-  // Listen on all interfaces so the container port is reachable; 127.0.0.1 would only accept in-container traffic.
-  host: process.env.HOST ?? '0.0.0.0',
   nodeEnv,
   databaseUrl: required('DATABASE_URL'),
   sessionSecret,
   // Built React app (npm run build -w web). Served by Express in production so UI and API share one container.
-  webDistDir: process.env.WEB_DIST_DIR ?? fileURLToPath(new URL('../../web/dist', import.meta.url)),
+  webDistDir: fileURLToPath(new URL('../../web/dist', import.meta.url)),
 };

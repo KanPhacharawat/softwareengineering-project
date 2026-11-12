@@ -169,9 +169,7 @@ convenience only.
 | SESSION_SECRET | (random 32+ chars) | Secret Manager in production; never committed |
 | PORT | 3000 | Cloud Run sets it |
 | NODE_ENV | development | `production` enables secure cookies and stricter checks |
-| HOST | 0.0.0.0 | listen on all interfaces (container) |
-| SEED_PASSWORD | (12+ chars) | demo account password; required in production, Secret Manager |
-| WEB_DIST_DIR | ../web/dist | built React app served by Express, so UI and API are same-origin in one container |
+| SEED_PASSWORD | (random) | demo account password; required in production, Secret Manager |
 
 `.env.example` documents these with placeholder values; `.env` is git-ignored. The browser bundle contains no
 secrets; it calls the API on the same origin.

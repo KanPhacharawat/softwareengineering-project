@@ -1,16 +1,7 @@
 import { createApp } from './app.js';
 import { config } from './config.js';
-import { pgPool, prisma } from './db.js';
 
-const server = createApp().listen(config.port, config.host, () => {
-  console.log(`CPMS listening on ${config.host}:${config.port} (${config.nodeEnv})`);
-});
-
-// Cloud Run sends SIGTERM before stopping an instance: finish in-flight requests, then close DB connections.
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down');
-  server.close(async () => {
-    await Promise.allSettled([prisma.$disconnect(), pgPool.end()]);
-    process.exit(0);
-  });
+// 0.0.0.0, not localhost: the container port must be reachable from outside (Cloud Run).
+createApp().listen(config.port, '0.0.0.0', () => {
+  console.log(`CPMS listening on 0.0.0.0:${config.port} (${config.nodeEnv})`);
 });

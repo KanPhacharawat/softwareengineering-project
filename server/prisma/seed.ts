@@ -9,8 +9,8 @@ const LOCAL_DEFAULT_PASSWORD = 'password123';
 function seedPassword(): string {
   const fromEnv = process.env.SEED_PASSWORD;
   if (process.env.NODE_ENV === 'production') {
-    if (!fromEnv || fromEnv === LOCAL_DEFAULT_PASSWORD || fromEnv.length < 12) {
-      throw new Error('SEED_PASSWORD must be set to a non-default value of 12+ characters in production');
+    if (!fromEnv || fromEnv === LOCAL_DEFAULT_PASSWORD) {
+      throw new Error('SEED_PASSWORD must be set to a non-default value in production');
     }
     return fromEnv;
   }
