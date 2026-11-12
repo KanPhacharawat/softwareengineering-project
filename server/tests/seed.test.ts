@@ -24,3 +24,24 @@ describe('seed data', () => {
     for (const s of students) expect(s.memberships).toHaveLength(1);
   });
 });
+
+describe('seed rerun (production-safe)', () => {
+  it('keeps app data and does not duplicate demo rows when run again without reset', async () => {
+    const { seed } = await import('../prisma/seed.js');
+    const { seedTeams } = await import('../prisma/seed.js');
+    const team = seedTeams[0];
+    const milestone = await prisma.milestone.create({
+      data: { teamId: team.id, title: 'Seed rerun check', dueAt: new Date('2030-01-01'), createdById: team.supervisorId },
+    });
+    try {
+      await seed(prisma);
+      await seed(prisma);
+      expect(await prisma.user.count()).toBe(8);
+      expect(await prisma.team.count()).toBe(3);
+      expect(await prisma.teamMember.count()).toBe(6);
+      expect(await prisma.milestone.findUnique({ where: { id: milestone.id } })).not.toBeNull();
+    } finally {
+      await prisma.milestone.delete({ where: { id: milestone.id } });
+    }
+  });
+});

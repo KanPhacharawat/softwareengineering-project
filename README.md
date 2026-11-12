@@ -81,7 +81,9 @@ before running. It never touches `cpms_dev`.
 
 ## Demo accounts (seed, synthetic)
 
-All accounts use the password `password123`.
+Locally all accounts use the password `password123` (the default when `SEED_PASSWORD` is unset).
+In production the seed refuses to run unless `SEED_PASSWORD` is set to a different value of 12+ characters,
+and it only upserts the demo rows, so rerunning it keeps app data.
 
 | Email | Role | Team |
 |---|---|---|
