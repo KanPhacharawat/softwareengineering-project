@@ -10,3 +10,4 @@ test-results/
 .DS_Store
 # Agent workspace and skill configurations
 .agents/
+__pycache__/

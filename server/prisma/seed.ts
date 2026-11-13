@@ -1,9 +1,23 @@
 // Reproducible synthetic seed data (SDS section 2, STS fixtures). Fixed IDs and emails so tests can rely on them.
-// All demo accounts share one demo password; it is synthetic data, not a secret.
+// All demo accounts share one password, read from SEED_PASSWORD. Outside production it falls back to a
+// well-known local default so `npm test` and e2e work without setup; in production it must be set (Secret Manager).
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-export const SEED_PASSWORD = 'password123';
+const LOCAL_DEFAULT_PASSWORD = 'password123';
+
+function seedPassword(): string {
+  const fromEnv = process.env.SEED_PASSWORD;
+  if (process.env.NODE_ENV === 'production') {
+    if (!fromEnv || fromEnv === LOCAL_DEFAULT_PASSWORD) {
+      throw new Error('SEED_PASSWORD must be set to a non-default value in production');
+    }
+    return fromEnv;
+  }
+  return fromEnv || LOCAL_DEFAULT_PASSWORD;
+}
+
+export const SEED_PASSWORD = seedPassword();
 const BCRYPT_COST = 12;
 
 export const seedUsers = [
@@ -23,18 +37,28 @@ export const seedTeams = [
   { id: '00000000-0000-4000-8000-0000000000c1', name: 'Gamma', supervisorId: seedUsers[1].id, memberIds: [seedUsers[6].id, seedUsers[7].id] },
 ] as const;
 
-export async function seed(prisma: PrismaClient): Promise<void> {
+// Safe to run again. By default it only upserts the demo users, teams and memberships, so data created
+// in the app (milestones, submissions, feedback) is kept. `reset: true` first deletes all teams (cascading to
+// their milestones, submissions and feedback) and users; only the test setup uses it.
+export async function seed(prisma: PrismaClient, { reset = false }: { reset?: boolean } = {}): Promise<void> {
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, BCRYPT_COST);
 
   await prisma.$transaction(async (tx) => {
-    await tx.teamMember.deleteMany();
-    await tx.team.deleteMany();
-    await tx.user.deleteMany();
+    if (reset) {
+      await tx.teamMember.deleteMany();
+      await tx.team.deleteMany();
+      await tx.user.deleteMany();
+    }
 
-    await tx.user.createMany({ data: seedUsers.map((u) => ({ ...u, passwordHash })) });
+    for (const u of seedUsers) {
+      await tx.user.upsert({ where: { id: u.id }, create: { ...u, passwordHash }, update: { ...u, passwordHash } });
+    }
     for (const { memberIds, ...team } of seedTeams) {
-      await tx.team.create({ data: team });
-      await tx.teamMember.createMany({ data: memberIds.map((userId) => ({ teamId: team.id, userId })) });
+      await tx.team.upsert({ where: { id: team.id }, create: team, update: team });
+      await tx.teamMember.createMany({
+        data: memberIds.map((userId) => ({ teamId: team.id, userId })),
+        skipDuplicates: true,
+      });
     }
   });
 }
