@@ -1,5 +1,6 @@
-# Local PostgreSQL 16 for development and tests.
-# Start: npm run db:up   Stop: npm run db:down   Wipe data: docker compose down -v
+# Local PostgreSQL 16 for development and tests, plus the production image (migrate job + app).
+# DB only: npm run db:up   Full stack: docker compose up --build (app on localhost:8080)
+# Stop: npm run db:down   Wipe data: docker compose down -v
 # Creates cpms_dev (dev) and cpms_test (used by `npm test`), user app / password app.
 # Host port 5433 so it does not clash with a PostgreSQL already installed on 5432.
 services:
@@ -21,6 +22,33 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  # One-off job, same image as app: apply migrations, then seed (seed is an upsert, safe to rerun).
+  migrate:
+    build: .
+    image: cpms-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &app-env
+      DATABASE_URL: postgresql://app:app@db:5432/cpms_dev
+      SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-not-for-production-0000}
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+      # development on purpose: plain http on localhost cannot carry the production Secure cookie,
+      # and the seed uses the README demo password. Cloud Run runs the image's NODE_ENV=production.
+      NODE_ENV: ${NODE_ENV:-development}
+    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+
+  app:
+    build: .
+    image: cpms-app
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *app-env
+    ports:
+      - "8080:8080"
 
 volumes:
   cpms-db-data:

@@ -1,12 +1,12 @@
 # Lab 5 Deployment (CPMS)
 
-Status: started in Episode 2 (cloud-ready refactor, #24). Later episodes fill in Docker, GCP and CI/CD details.
+Status: Episode 2 (cloud-ready, #24) and Episode 3 (Docker, #25) done. Later episodes fill in GCP and CI/CD details.
 
 ## Stack
 
 | Part | Choice |
 |---|---|
-| App | One Node 22 container: Express 5 API + built React app (`web/dist`) served by Express, same origin |
+| App | One Node 22 container (root `Dockerfile`): Express 5 API + built React app (`web/dist`) served by Express, same origin |
 | Runtime | Cloud Run (listens on `$PORT`, `0.0.0.0`) |
 | Database | Cloud SQL for PostgreSQL 16, accessed with Prisma 6 |
 | Sessions | PostgreSQL `session` table (connect-pg-simple), so any instance can serve any request |
@@ -59,10 +59,47 @@ NODE_ENV=production PORT=8080 DATABASE_URL=... SESSION_SECRET=$(openssl rand -he
 curl -i localhost:8080/api/ready
 ```
 
+## Docker (Episode 3)
+
+| File | What it does |
+|---|---|
+| `Dockerfile` | Stage 1 `npm ci` + `npm run build` (web: Vite, server: `prisma generate` + tsc). Stage 2 `node:22-alpine` with server production deps only, `server/dist`, `web/dist`, `server/prisma`; runs as `node` (non-root), `NODE_ENV=production`, listens on `$PORT` (default 8080). |
+| `.dockerignore` | Keeps `node_modules`, `dist`, `.env*`, `.git`, test output and docs out of the build context. |
+| `server/docker-entrypoint.sh` | Starts the server only (`exec "$@"`). Migrations and seed are a separate job. |
+| `docker-compose.yml` | `db` (PostgreSQL 16, named volume), `migrate` (same image: `prisma migrate deploy` + `prisma db seed`, exits 0), `app` (starts after `migrate` succeeds, `localhost:8080`). |
+
+`prisma` and `tsx` are server `dependencies` (not dev) because the migrate/seed job runs from the runtime image.
+
+Compose needs no `.env`: every value has a local-only default, overridable from the shell
+(`SESSION_SECRET`, `SEED_PASSWORD`, `NODE_ENV`). Compose runs `NODE_ENV=development` on purpose: production sets
+Secure cookies, which a browser does not send over plain `http://localhost`. The image itself defaults to
+`production`, which is what Cloud Run runs.
+
+```bash
+# Build and run everything (from a fresh clone, no .env needed)
+docker compose up --build -d --wait
+curl -s localhost:8080/api/ready          # {"ok":true,"database":"up"}
+# open http://localhost:8080, log in as sup1@cpms.test / password123 (README demo accounts)
+
+# Migrate + seed again (e.g. after a new migration); the seed upserts, safe to rerun
+docker compose run --rm migrate
+
+# Logs, restart (data stays in the cpms-db-data volume), stop, wipe
+docker compose logs -f app
+docker compose restart
+docker compose down        # keeps data
+docker compose down -v     # deletes the database volume
+
+# Image only (what Cloud Run runs)
+docker build -t cpms-app .
+docker run --rm -p 8080:8080 -e DATABASE_URL=... -e SESSION_SECRET=... cpms-app
+docker run --rm -e DATABASE_URL=... -e NODE_ENV=production -e SEED_PASSWORD=... cpms-app \
+  sh -c "npx prisma migrate deploy && npx prisma db seed"   # migrate/seed job
+```
+
+C-03 evidence: `docs/labs/lab-05/evidence/C-03-docker-compose.txt`.
+
 ## To do in later episodes
 
-- Dockerfile (multi-stage) and `.dockerignore`; run `prisma migrate deploy` before start.
-  Note: `prisma`, `tsx` and `dotenv-cli` are dev dependencies, so the migrate/seed step needs them in the image
-  or a separate job.
 - GCP project, Cloud SQL, Artifact Registry, Secret Manager, Cloud Run service URL.
 - GitHub Actions: CI quality gate, release pipeline from `main`.
