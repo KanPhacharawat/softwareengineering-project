@@ -103,3 +103,18 @@ C-03 evidence: `docs/labs/lab-05/evidence/C-03-docker-compose.txt`.
 
 - GCP project, Cloud SQL, Artifact Registry, Secret Manager, Cloud Run service URL.
 - GitHub Actions: CI quality gate, release pipeline from `main`.
+
+## CI on pull requests (Episode 4)
+
+`.github/workflows/ci-docker.yml`, job `test-and-docker`, runs on every PR to `staging` and `main` (also manual and
+`workflow_call` for the later deploy workflow): offline deploy-script tests, `npm ci`, `prisma generate` +
+`migrate deploy` + `db seed` against a PostgreSQL 16 service container, server tests (Vitest), typecheck,
+`npm run build` (server + web), `docker build` (not pushed). Actions are pinned to full commit SHAs;
+`.github/dependabot.yml` updates them weekly.
+
+`deploy/` comes from the starter kit, renamed `toktickit-*` -> `cpms-*`. CPMS differences: secrets are
+`cpms-database-url`, `cpms-seed-password` (`SEED_PASSWORD`, migrate job) and `cpms-session-secret`
+(`SESSION_SECRET`, service); no `--demo` flag (the seed always creates the demo accounts); port 8080;
+`smoke_test.py` checks `/api/health`, `/api/ready`, `/` and an optional cookie-session login.
+
+Run the deploy-script tests locally: `bash deploy/tests/test_deploy_stub.sh && bash deploy/tests/test_release_stub.sh && python3 -m unittest discover -s deploy/tests -p 'test_smoke.py'`
