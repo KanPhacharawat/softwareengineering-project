@@ -1,6 +1,7 @@
 import { createApp } from './app.js';
 import { config } from './config.js';
 
-createApp().listen(config.port, () => {
-  console.log(`CPMS API listening on http://localhost:${config.port} (${config.nodeEnv})`);
+// 0.0.0.0, not localhost: the container port must be reachable from outside (Cloud Run).
+createApp().listen(config.port, '0.0.0.0', () => {
+  console.log(`CPMS listening on 0.0.0.0:${config.port} (${config.nodeEnv})`);
 });

@@ -10,7 +10,7 @@ export default async function setup() {
   execSync('npx prisma migrate deploy', { stdio: 'inherit', env: process.env });
   const prisma = new PrismaClient();
   try {
-    await seed(prisma);
+    await seed(prisma, { reset: true });
   } finally {
     await prisma.$disconnect();
   }
