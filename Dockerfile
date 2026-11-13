@@ -3,7 +3,6 @@
 
 # Stage 1: build web + server (prisma generate + tsc) with all dev dependencies.
 FROM node:22-alpine AS build
-RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json server/
@@ -15,7 +14,6 @@ RUN npm run build
 
 # Stage 2: slim runtime, server production deps only (prisma + tsx are deps: the migrate/seed job needs them).
 FROM node:22-alpine
-RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json server/
