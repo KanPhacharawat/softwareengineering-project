@@ -1,0 +1,113 @@
+# C-03 evidence: fresh clone, no .env, docker compose up --build
+# 2026-11-13T04:01:18Z  commit 051ffa7  Docker 29.9.2
+# Note: run in a sandbox whose network goes through a TLS proxy, so the image was built with a copy of
+# the Dockerfile that only adds the proxy CA (no other change), then `docker compose up -d --wait`.
+# On a normal machine `docker compose up --build` builds the repo Dockerfile directly.
+
+$ git clone -b build/25-docker <repo> && cd <repo>   # no .env created; compose defaults only
+$ ls -a server | grep env
+.env.example
+
+$ docker compose up --build -d --wait
+[image built from ./Dockerfile]
+ Network fresh_default Creating 
+ Network fresh_default Creating 
+ Volume fresh_cpms-db-data Creating 
+ Volume fresh_cpms-db-data Creating 
+ Volume fresh_cpms-db-data Created 
+ Volume fresh_cpms-db-data Created 
+ Network fresh_default Created 
+ Network fresh_default Created 
+ Container cpms-db Creating 
+ Container cpms-db Created 
+ Container fresh-migrate-1 Creating 
+ Container fresh-migrate-1 Created 
+ Container fresh-app-1 Creating 
+ Container fresh-app-1 Created 
+ Container cpms-db Starting 
+ Container cpms-db Started 
+ Container cpms-db Waiting 
+ Container cpms-db Healthy 
+ Container fresh-migrate-1 Starting 
+ Container fresh-migrate-1 Started 
+ Container fresh-migrate-1 Waiting 
+ Container fresh-migrate-1 Exited 
+ Container fresh-app-1 Starting 
+ Container fresh-app-1 Started 
+ Container fresh-migrate-1 Waiting 
+ Container fresh-app-1 Waiting 
+ Container cpms-db Waiting 
+ Container fresh-app-1 Healthy 
+ Container fresh-migrate-1 Exited 
+ Container cpms-db Healthy 
+
+$ docker compose ps -a
+NAME              IMAGE                COMMAND                  SERVICE   CREATED         STATUS                              PORTS
+cpms-db           postgres:16-alpine   "docker-entrypoint.s…"   db        8 seconds ago   Up 7 seconds (healthy)              0.0.0.0:5433->5432/tcp
+fresh-app-1       cpms-app             "./docker-entrypoint…"   app       8 seconds ago   Up Less than a second               0.0.0.0:8080->8080/tcp
+fresh-migrate-1   cpms-app             "./docker-entrypoint…"   migrate   8 seconds ago   Exited (0) Less than a second ago   
+
+$ docker compose logs migrate
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_dev", schema "public" at "db:5432"
+
+4 migrations found in prisma/migrations
+
+Applying migration `20261105180947_init`
+Applying migration `20261106171857_milestone`
+Applying migration `20261107092737_submission`
+Applying migration `20261109145639_feedback`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261105180947_init/
+    └─ migration.sql
+  └─ 20261106171857_milestone/
+    └─ migration.sql
+  └─ 20261107092737_submission/
+    └─ migration.sql
+  └─ 20261109145639_feedback/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Running seed command `tsx prisma/seed.ts` ...
+Seeded 8 users and 3 teams.
+
+🌱  The seed command has been executed.
+
+$ docker compose logs app
+CPMS listening on 0.0.0.0:8080 (development)
+
+$ curl -s localhost:8080/api/ready
+{"ok":true,"database":"up"}
+
+$ curl -s -o /dev/null -w "%{http_code} %{content_type}\n" localhost:8080/
+200 text/html; charset=utf-8
+
+$ curl -s -c cookies.txt -H "content-type: application/json" -d '{"email":"sup1@cpms.test","password":"password123"}' localhost:8080/api/auth/login
+{"user":{"id":"00000000-0000-4000-8000-000000000001","email":"sup1@cpms.test","name":"Supervisor One","role":"SUPERVISOR"}}
+
+$ docker compose exec app id   # non-root
+uid=1000(node) gid=1000(node) groups=1000(node)
+
+# Recommended: data survives restart
+$ docker compose exec db psql -U app -d cpms_dev -tAc 'select count(*) from "User"'
+8
+$ docker compose restart
+ Container fresh-migrate-1 Restarting 
+ Container fresh-app-1 Restarting 
+ Container cpms-db Restarting 
+ Container fresh-migrate-1 Started 
+ Container fresh-app-1 Started 
+ Container cpms-db Started 
+$ docker compose exec db psql -U app -d cpms_dev -tAc 'select count(*) from "User"'
+8
+$ curl -s -b cookies.txt localhost:8080/api/auth/me   # session from before restart still valid
+{"user":{"id":"00000000-0000-4000-8000-000000000001","email":"sup1@cpms.test","name":"Supervisor One","role":"SUPERVISOR"}}
