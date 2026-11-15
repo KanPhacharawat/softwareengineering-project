@@ -128,6 +128,8 @@ export function LoginPage() {
           </form>
         </CardContent>
       </Card>
+
+      <p className="text-xs text-muted-foreground">Deployed automatically with GitHub Actions + Cloud Run</p>
     </main>
   );
 }
