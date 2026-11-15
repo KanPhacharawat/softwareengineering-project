@@ -99,11 +99,6 @@ docker run --rm -e DATABASE_URL=... -e NODE_ENV=production -e SEED_PASSWORD=... 
 
 C-03 evidence: `docs/labs/lab-05/evidence/C-03-docker-compose.txt`.
 
-## To do in later episodes
-
-- GCP project, Cloud SQL, Artifact Registry, Secret Manager, Cloud Run service URL.
-- GitHub Actions: CI quality gate, release pipeline from `main`.
-
 ## CI on pull requests (Episode 4)
 
 `.github/workflows/ci-docker.yml`, job `test-and-docker`, runs on every PR to `staging` and `main` (also manual and
@@ -118,3 +113,29 @@ C-03 evidence: `docs/labs/lab-05/evidence/C-03-docker-compose.txt`.
 `smoke_test.py` checks `/api/health`, `/api/ready`, `/` and an optional cookie-session login.
 
 Run the deploy-script tests locally: `bash deploy/tests/test_deploy_stub.sh && bash deploy/tests/test_release_stub.sh && python3 -m unittest discover -s deploy/tests -p 'test_smoke.py'`
+
+## Release pipeline (Episode 7)
+
+`.github/workflows/deploy.yml` (name `Deploy demo`, environment `demo`) runs on every push to `main`:
+CI (`test-and-docker`) -> sign in with Workload Identity Federation (no key) -> build and push
+`asia-southeast1-docker.pkg.dev/<project>/cpms/cpms:<full commit SHA>` -> `deploy/release.sh` (pin the image by
+digest, run job `cpms-migrate`, update service `cpms`, 100% traffic to the new revision) -> `deploy/smoke_test.py`
+(`/api/health`, `/api/ready`, `/`, optional login) -> run summary. Values come from the `demo` environment variables
+`GCP_PROJECT_ID`, `GCP_REGION`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT` (optional `SMOKE_EMAIL` + secret `SMOKE_PASSWORD`).
+
+Release procedure (nobody types a deploy command):
+
+1. Issue -> branch from `staging` -> PR into `staging`, reviewed by the teammate, green CI, merge.
+2. Release PR `staging` -> `main`, green CI, merge. The merge push starts `Deploy demo`.
+3. Sync `staging` with `main` afterwards (merge `origin/main` into `staging`), the ruleset needs up-to-date branches.
+
+Find the running commit:
+
+- Actions -> Deploy demo -> run -> Summary: `Commit image tag` (= merged commit SHA) and `Digest`.
+- Cloud Run -> `cpms` -> Revisions: the revision with 100% traffic shows the same image digest.
+- `gcloud run services describe cpms --region asia-southeast1 --format='value(spec.template.spec.containers[0].image)'`
+  prints the digest; `gcloud artifacts docker images list asia-southeast1-docker.pkg.dev/<project>/cpms/cpms --include-tags`
+  maps that digest to the commit SHA tag.
+
+Rollback: Actions -> Deploy demo -> Run workflow, `image_tag` = full SHA of an older image (no tests, build or
+migration; the database is not rolled back).
