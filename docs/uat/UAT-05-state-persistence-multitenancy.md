@@ -4,7 +4,8 @@
 * **Case ID**: `UAT-05`
 * **Category**: State / history / persistence
 * **Requirements Traceability**: `FR-06`, `FR-09`, `NFR-05`
-* **Acceptance Criteria**: `AC-11`, `AC-17`, `AC-21`
+* **Acceptance Criteria**: `AC-11`, `AC-16`, `AC-17`, `AC-21`
+* **Revision note (19 Nov 2026)**: Expected-result wording aligned with the Sprint 1 contract after PMELS UAT finding(s) UF-02, UF-03, triaged as not-defect (#54). The application and the tested release (`v0.1.0`, deployed `a11fdc0`, revision `cpms-00005-78z`) are unchanged; the case as executed on 17 Nov is in git history.
 * **Execution Order**: **Independent** (or can be combined with existing test milestones)
 
 ---
@@ -13,7 +14,7 @@
 Verify data persistence, multi-user consistency, and backend durability:
 1. **Durable Storage (`NFR-05`)**: Newly created milestones, submissions, and feedback persist across hard browser refreshes (`Ctrl+F5` / `Cmd+Shift+R`), browser restarts, and server session invalidations.
 2. **Multi-User State Synchronization (`AC-11`)**: Work submitted by Student One is immediately stored in PostgreSQL and displayed identically to teammate Student Two and assigned Supervisor One.
-3. **Audit Trail & Attribution**: Submissions accurately record and preserve the submitting author's name (`Submitted by Student One`) and timestamp without data degradation.
+3. **Attribution (`AC-11`, `AC-16`)**: The submission card shows who last saved it and when (`Last updated by Student One at TIME`, per the F-04 UI spec). Sprint 1 keeps only the last editor: if a teammate edits, the card shows that teammate (AC-16). Keeping the original author is a Sprint 2 enhancement (#55).
 
 ---
 
@@ -60,7 +61,7 @@ Verify data persistence, multi-user consistency, and backend durability:
 10. Navigate to the Team Alpha milestone URL.
 11. Inspect the submission card:
     * Verify the submission is visible with identical title, description, and link.
-    * Verify the text displays: *"Submitted by Student One"*.
+    * Verify the text displays: *"Last updated by Student One at TIME"*.
 12. Click **"Log out"**.
 
 ### Part 3: Feedback Durability Across Sessions
@@ -84,5 +85,5 @@ Verify data persistence, multi-user consistency, and backend durability:
 
 ## 8. Evidence to Capture
 * **Screenshot E-B05a**: Student One view showing submission intact after browser hard refresh.
-* **Screenshot E-B05b**: Student Two view showing the same submission with author attribution "Submitted by Student One".
+* **Screenshot E-B05b**: Student Two view showing the same submission with author attribution "Last updated by Student One at TIME".
 * **Screenshot E-B05c**: Milestone view after re-login showing persisted feedback and locked status.

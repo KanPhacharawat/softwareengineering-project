@@ -5,6 +5,7 @@
 * **Category**: Auth
 * **Requirements Traceability**: `FR-01`, `FR-02`, `FR-03`, `NFR-01`, `NFR-02`, `NFR-04`
 * **Acceptance Criteria**: `AC-01`, `AC-02`, `AC-03`, `AC-04`, `AC-22`
+* **Revision note (19 Nov 2026)**: Expected-result wording aligned with the Sprint 1 contract after PMELS UAT finding(s) UF-01, triaged as not-defect (#54). The application and the tested release (`v0.1.0`, deployed `a11fdc0`, revision `cpms-00005-78z`) are unchanged; the case as executed on 17 Nov is in git history.
 * **Execution Order**: **Independent** (Can be executed at any time)
 
 ---
@@ -15,7 +16,7 @@ Verify the end-to-end security and authentication lifecycle of CPMS:
 2. **Credential Validation & User Enumeration Prevention (`AC-02`, `NFR-04`)**:
    * Submitting empty inputs prompts required-field warnings.
    * Invalid passwords and unknown email addresses yield an identical, secure error message (e.g., *"Invalid email or password"*), preventing attacker user enumeration.
-3. **Session Establishment (`AC-01`, `FR-03`)**: Valid credentials log the user in, redirect to the originally requested page, and display authenticated user identity (Name, Email, Role badge).
+3. **Session Establishment (`AC-01`, `FR-03`)**: Valid credentials log the user in, redirect to the originally requested page, and display authenticated user identity in the header (name and role badge, per the F-01 UI spec). The full identity including email is returned by `GET /api/auth/me` (`FR-03`).
 4. **Session Termination & History Protection (`AC-04`, `FR-02`)**: Logging out destroys the server session; subsequent requests or clicking browser "Back" forces a redirect to `/login` without exposing private cached data.
 
 ---
@@ -66,7 +67,8 @@ Verify the end-to-end security and authentication lifecycle of CPMS:
 14. Observe redirection to the destination page.
 15. Inspect the top application shell / header:
     * Verify user name shows **"Student One"**.
-    * Verify role badge indicates **`STUDENT`**.
+    * Verify role badge indicates **"Student"** (role `STUDENT`).
+    * Verify the header shows no email (the F-01 top bar holds name, role and Logout only); the email `s1@cpms.test` is shown in the Team Alpha members table and returned by `GET /api/auth/me`.
     * Verify team card displays **"Team Alpha"**.
 
 ### Test 6.4: Logout & Session Invalidation
@@ -82,7 +84,7 @@ Verify the end-to-end security and authentication lifecycle of CPMS:
 * **Step 2–5**: Unauthenticated requests to `/` or `/teams/...` are intercepted and redirected to `/login`. The previous URL is preserved for post-login redirect.
 * **Step 6–7**: Client-side validation blocks submission; prompts *"Enter your email"* and *"Enter your password"*.
 * **Step 8–11**: Both invalid attempts fail with identical error messages (e.g., *"Invalid email or password"* / *"INVALID_CREDENTIALS"*). The application does not disclose whether `nobody@cpms.test` exists.
-* **Step 14–15**: User is authenticated; header displays identity (Student One, STUDENT, `s1@cpms.test`).
+* **Step 14–15**: User is authenticated; header displays "Student One" and the "Student" role badge. `GET /api/auth/me` returns `{ email: "s1@cpms.test", name: "Student One", role: "STUDENT" }`.
 * **Step 16–17**: Logout request completes; session is terminated on server; page redirects to `/login`.
 * **Step 18–20**: Navigating back or attempting actions immediately redirects back to `/login`; the invalidated session cannot access protected routes.
 
