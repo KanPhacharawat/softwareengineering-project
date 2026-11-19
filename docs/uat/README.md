@@ -6,6 +6,7 @@
 **Assessed Scope**: Sprint 1 Delivered Scope (Features F-00 through F-05)  
 **Authors**: James (`maneejames`), Kan (`KanPhacharawat`)  
 **Target Audience**: Independent UAT Partner Team  
+**Partner Handoff Package**: Detailed deployment details, account directory, and 3-session schedule are provided in [**`docs/uat/handoff.md`**](handoff.md).  
 
 ---
 
