@@ -6,6 +6,7 @@
 * **Requirements Traceability**: `FR-08`, `FR-09`, `FR-10`
 * **Business Rules**: `BR-05`, `BR-07`, `BR-08`
 * **Acceptance Criteria**: `AC-12`, `AC-16`, `AC-17`, `AC-18`, `AC-20`
+* **Revision note (19 Nov 2026)**: Expected-result wording aligned with the Sprint 1 contract after PMELS UAT finding(s) UF-03, triaged as not-defect (#54). The application and the tested release (`v0.1.0`, deployed `a11fdc0`, revision `cpms-00005-78z`) are unchanged; the case as executed on 17 Nov is in git history.
 * **Execution Order**: **Independent** (or can be executed directly using an open milestone)
 
 ---
@@ -63,7 +64,7 @@ Verify the strict lifecycle and immutability rules of submissions and feedback:
     * Change Deliverable link to: `https://github.com/example/alpha/final-v1`
     * Change Description to: `Updated deliverable link and documentation by Student Two.`
 12. Click **"Save changes"**.
-13. Verify the displayed submission reflects the new title, new link, and indicates the updated author/time.
+13. Verify the displayed submission reflects the new title, new link, and shows *"Last updated by Student Two at TIME"* (AC-16: the last editor replaces the previous submitter).
 14. Click **"Log out"**.
 
 ### Part 2: Supervisor Feedback and Lock Verification
