@@ -1,4 +1,5 @@
 // F-04 Team submission with deadline rule: TEST-13..TEST-20, TEST-U02, TEST-U03 (AC-11..AC-16, AC-09, FR-07..FR-09, BR-01, BR-03, BR-05, BR-06, BR-09, NFR-09)
+// F-06 (#55): TEST-26 (AC-23) original submitter kept.
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
@@ -338,6 +339,27 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     const afterRow = await prisma.submission.findUniqueOrThrow({ where: { milestoneId: milestone.id } });
     expect(afterRow.updatedAt.getTime()).toBeGreaterThan(beforeRow.updatedAt.getTime());
     expect(afterRow.submittedById).toBe(S2.id);
+  });
+
+  it('TEST-26 (AC-23) original submitter is kept after a teammate edits', async () => {
+    const future = new Date(Date.now() + 7 * 86400000);
+    const milestone = await createMilestone(ALPHA.id, future);
+
+    const postRes = await post(`/api/milestones/${milestone.id}/submission`, s1, {
+      title: 'Version 1',
+      link: 'https://example.com/v1',
+    });
+    expect(postRes.body.submission.createdBy).toEqual({ id: S1.id, name: S1.name });
+
+    await put(`/api/milestones/${milestone.id}/submission`, s2, {
+      title: 'Version 2',
+      link: 'https://example.com/v2',
+    });
+
+    const getRes = await get(`/api/milestones/${milestone.id}`, sup1);
+    expect(getRes.body.submission.createdBy).toEqual({ id: S1.id, name: S1.name });
+    expect(getRes.body.submission.submittedBy.id).toBe(S2.id);
+    expect(getRes.body.submission.submittedAt).toBe(postRes.body.submission.submittedAt);
   });
 
   it('TEST-20 (AC-09, BR-03) supervisor cannot create or edit a submission (403 FORBIDDEN)', async () => {

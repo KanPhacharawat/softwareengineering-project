@@ -83,6 +83,7 @@ export type Submission = {
   title: string;
   description: string | null;
   link: string;
+  createdBy: { id: string; name: string };
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;

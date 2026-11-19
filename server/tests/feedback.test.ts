@@ -85,6 +85,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
       data: {
         milestoneId: milestone.id,
         submittedById: S1.id,
+        createdById: S1.id,
         title: 'Initial Submission',
         link: 'https://example.com/repo',
         description: 'Initial draft for review',

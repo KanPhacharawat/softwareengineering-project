@@ -19,6 +19,7 @@ export type SubmissionView = {
   title: string;
   description: string | null;
   link: string;
+  createdBy: { id: string; name: string };
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;
@@ -46,6 +47,7 @@ function toSubmissionView(sub: {
   title: string;
   description: string | null;
   link: string;
+  createdBy: { id: string; name: string };
   submittedBy: { id: string; name: string };
   submittedAt: Date;
   updatedAt: Date;
@@ -62,6 +64,7 @@ function toSubmissionView(sub: {
     title: sub.title,
     description: sub.description,
     link: sub.link,
+    createdBy: sub.createdBy,
     submittedBy: sub.submittedBy,
     submittedAt: sub.submittedAt.toISOString(),
     updatedAt: sub.updatedAt.toISOString(),
@@ -94,6 +97,7 @@ async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
       },
       submission: {
         include: {
+          createdBy: { select: { id: true, name: true } },
           submittedBy: { select: { id: true, name: true } },
           feedback: {
             include: {
@@ -182,11 +186,13 @@ export async function createSubmission(
       data: {
         milestoneId,
         submittedById: user.id,
+        createdById: user.id,
         title: data.title,
         description: data.description ?? null,
         link: data.link,
       },
       include: {
+        createdBy: { select: { id: true, name: true } },
         submittedBy: { select: { id: true, name: true } },
       },
     });
@@ -245,6 +251,7 @@ export async function updateSubmission(
         submittedById: user.id,
       },
       include: {
+        createdBy: { select: { id: true, name: true } },
         submittedBy: { select: { id: true, name: true } },
       },
     });
