@@ -3,7 +3,7 @@
 **Course**: CPE334 Software Engineering (Semester 1/2026)  
 **Project Theme**: Theme 6 — Course Project Management System (CPMS)  
 **Product Team**: James (`maneejames`), Kan (`KanPhacharawat`)  
-**Target Partner Team**: Independent UAT Partner Team (Two Assigned Students)  
+**UAT Partner Team**: PMELS UAT Team, Theme 7 (Personal Money and Expense Logging System): Tana Udompornkul (67070503418), Thanaphon Ratchatakulpong (67070503417)  
 **Document Status**: Official Handoff Package for Lab 6 Part A  
 **Submission Due Date**: 22 November 2026 at 23:59  
 
@@ -16,14 +16,15 @@ This handoff package defines the tested baseline and deployment targets for the 
 ### 1.1 Deployment Details
 | Item | Specification / Value |
 |---|---|
-| **Live Deployed URL** | `https://cpms-wpsgfzameq-as.a.run.app` |
+| **Live Deployed URL** | `https://cpms-wpsgfzameq-as.a.run.app` (same service also reachable at `https://cpms-861207197457.asia-southeast1.run.app`) |
 | **Health Liveness Check** | `https://cpms-wpsgfzameq-as.a.run.app/api/health` (HTTP 200 `{ ok: true }`) |
 | **Readiness Smoke Check** | `https://cpms-wpsgfzameq-as.a.run.app/api/ready` (HTTP 200 `{ ok: true, database: "up" }`) |
 | **Cloud Runtime** | Google Cloud Run (Region: `asia-southeast1`) |
 | **Database Instance** | Google Cloud SQL (PostgreSQL 16) |
 | **Baseline Release Tag** | `v0.1.0` |
 | **Sprint 1 Baseline Commit** | `3da07d0` |
-| **Deployed Revision Commit** | `a11fdc0` (Merged into `main` with Lab 5 deployment proof) |
+| **Deployed Revision Commit** | `a11fdc0` (Merged into `main` with Lab 5 deployment proof; Sprint 1 behaviour identical to `v0.1.0`, only deployment changes added) |
+| **Cloud Run Service / Revision** | Service `cpms`, revision `cpms-00005-78z` (100% traffic since 15 Nov 2026 13:35 UTC; served the 17 Nov UAT session) |
 | **Git Repository URL** | `https://github.com/KanPhacharawat/softwareengineering-project` |
 
 ### 1.2 Main Freeze Policy
@@ -55,7 +56,7 @@ The UAT Team evaluates the application strictly against the delivered **Sprint 1
 * **F-05: Supervisor Feedback & Lock (`FR-09`, `FR-10`, `BR-07`, `BR-08`)**:
   * Supervisor records written feedback attached to a team submission.
   * Recording feedback locks the submission permanently; students can no longer edit.
-  * Exactly one feedback record per submission version.
+  * Exactly one feedback record per submission.
 
 ### 2.2 Explicitly Out-of-Scope (Sprint 2 & 3 Features)
 > [!WARNING]
@@ -86,7 +87,7 @@ All test accounts are pre-seeded synthetic accounts. To maintain security, crede
 
 ### 3.2 Private Credential Distribution Policy
 * **Zero Secrets in Repository/PDF**: In strict accordance with course academic integrity and security policies, actual passwords are never written in markdown files or submitted PDFs.
-* **Transmission Method**: The shared course test password for all seeded accounts has been transmitted directly and securely to the UAT Partner Team via the private course Discord/Teams channel.
+* **Transmission Method**: The shared test password for all seeded accounts was sent privately to the PMELS UAT Team (Tana Udompornkul, Thanaphon Ratchatakulpong) by Discord direct message on 17 November 2026, the day of their UAT session. It is not stored in this repository or in any PDF.
 * If credentials need to be re-sent, contact `@maneejames` or `@KanPhacharawat`.
 
 ---
@@ -101,13 +102,13 @@ All test accounts are pre-seeded synthetic accounts. To maintain security, crede
    * Do not submit real student IDs, personal phone numbers, or genuine secrets.
 3. **Data Isolation & Cleanliness**:
    * Tests are self-contained and operate on newly created milestones with future dates.
-   * If database state ever needs a fresh reset, the Product Team can trigger the migration/seed Cloud Run Job (`cpms-migrate`) upon request.
+   * Re-running `cpms-migrate` restores the seeded accounts and teams; it does not delete data created during testing. Use the `UAT-<team>-` prefix to tell test data apart.
 
 ---
 
 ## 5. Agreed UAT Coordination Sessions
 
-To ensure all required activities of Parts A, B, C, and D are completed before the 22 November 2026 deadline, the Product Team and UAT Team have agreed to the following 3 coordination sessions:
+To ensure all required activities of Parts A, B, C, and D are completed before the 22 November 2026 deadline, the Product Team and UAT Team use the following 3 coordination sessions. Each session lists its plan and what actually happened:
 
 ```mermaid
 flowchart LR
@@ -117,6 +118,7 @@ flowchart LR
 
 ### Session 1: Initial UAT Execution & Briefing
 * **Target Timeline**: 17–18 November 2026
+* **Actual**: PMELS ran UAT-01 to UAT-06 on our release on 17 Nov 2026, 13:45–14:11 (UTC+7), both testers taking part (6 PASS, 0 FAIL, 0 BLOCKED). We tested the PMELS release on 18 Nov 2026, 13:44–14:22 (UTC+7).
 * **Channel**: Online sync / Course Discord + GitHub Issue Tracker
 * **Participants**: Both Product Team members (`maneejames`, `KanPhacharawat`) and both UAT Partner Team members.
 * **Agenda**:
@@ -127,6 +129,7 @@ flowchart LR
 
 ### Session 2: Findings Handoff & Triage Review
 * **Target Timeline**: 19–20 November 2026
+* **Actual**: PMELS sent their UAT report (dated 17 Nov 2026) with three findings UF-01 to UF-03. We triaged all three as not-defect (UF-03 also logged as an enhancement) in Issues #54 and #55; the written triage reply goes to PMELS by 20 Nov 2026. With no accepted defect, the TA's controlled defect exercise (Lab 6 §3.5) applies.
 * **Agenda**:
   1. UAT Team delivers outgoing finding reports using the [UAT Defect Template](../../.github/ISSUE_TEMPLATE/uat-defect.md).
   2. Product Team triages every finding against Sprint 1 AC/BR:
@@ -139,6 +142,7 @@ flowchart LR
 
 ### Session 3: Independent Retest & Final Sprint 1 Decision
 * **Target Timeline**: 21–22 November 2026 (prior to 23:59 submission)
+* **Status**: Planned. The controlled exercise is retested on a separate test deployment, not on the URL above.
 * **Agenda**:
   1. Product Team provides corrected release version / commit SHA and retest instructions.
   2. UAT Partner Team independently re-tests all corrected defects and re-runs affected UAT cases.
@@ -161,5 +165,5 @@ If the UAT Partner Team encounters unexpected behavior or failures:
    * Action performed
    * Expected vs. actual result
    * Timestamp (Asia/Bangkok)
-   * Tested commit/revision (`a11fdc0` / Cloud Run)
+   * Tested commit/revision (`a11fdc0` / `cpms-00005-78z`, or the SHA given in the retest instructions)
    * Clear screenshot showing the state and absence of data leakage.
