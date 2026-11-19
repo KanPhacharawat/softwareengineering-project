@@ -22,7 +22,8 @@ model User {
   supervises   Team[]       @relation("TeamSupervisor")
   memberships  TeamMember[]
   milestones   Milestone[]
-  submissions  Submission[]
+  submissions  Submission[] @relation("SubmissionSubmittedBy")
+  createdSubmissions Submission[] @relation("SubmissionCreatedBy")
   feedbacks    Feedback[]
 }
 
@@ -66,11 +67,14 @@ model Submission {
   title         String
   description   String?
   link          String
+  /// Last student who saved it (AC-16). createdById is the original submitter and never changes (#55).
   submittedById String    @db.Uuid
+  createdById   String    @db.Uuid
   submittedAt   DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
   milestone     Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
-  submittedBy   User      @relation(fields: [submittedById], references: [id])
+  submittedBy   User      @relation("SubmissionSubmittedBy", fields: [submittedById], references: [id])
+  createdBy     User      @relation("SubmissionCreatedBy", fields: [createdById], references: [id])
   feedback      Feedback?
 }
 

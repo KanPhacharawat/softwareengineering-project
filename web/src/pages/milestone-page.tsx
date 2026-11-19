@@ -137,7 +137,8 @@ function MilestoneDetailContent({
                 <div>
                   <CardTitle className="text-lg font-medium">{submission.title}</CardTitle>
                   <CardDescription className="mt-1">
-                    Last updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
+                    Submitted by {submission.createdBy.name} at {formatBangkokDateTime(submission.submittedAt)} · Last
+                    updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
                   </CardDescription>
                 </div>
                 {canEdit && (

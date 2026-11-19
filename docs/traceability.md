@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 Sprint 1 AC and TEST IDs are defined in [sprints/sprint-1/](sprints/sprint-1/). Later sprints have feature and
 sprint allocation now; their AC/tests are elaborated in their own contracts.
 
@@ -18,7 +18,7 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | FR-10 | F-05 | 1 | AC-17 | TEST-21 | Implemented (F-05, tests pass) |
 | FR-11 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | FR-12 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
-| FR-13 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
+| FR-13 | F-06 | 2 | AC-23 (part 1); rest in Sprint 2 contract | TEST-26 | Part 1 implemented (original submitter kept, tests pass) |
 | FR-14 | F-07 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | FR-15 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | FR-16 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |

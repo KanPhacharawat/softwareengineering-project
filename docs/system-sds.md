@@ -61,7 +61,7 @@ erDiagram
 | Team | id, name, supervisorId -> User | name unique. supervisorId must be a SUPERVISOR. Owner of all team data. |
 | TeamMember | teamId -> Team, userId -> User | PK (teamId, userId); userId unique (AS-01: one team per student). |
 | Milestone | id, teamId -> Team, title, description, dueAt (timestamptz), createdById -> User, createdAt | title 3..120, description <= 2000 (validated in API). Belongs to one team. |
-| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User, submittedAt, updatedAt | milestoneId unique (BR-05, NFR-09). Team derived through milestone. |
+| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User (last saved by), createdById -> User (original submitter, F-06), submittedAt, updatedAt | milestoneId unique (BR-05, NFR-09). Team derived through milestone. |
 | Feedback | id, submissionId -> Submission, authorId -> User, comment, createdAt | submissionId unique (BR-08). Its presence locks the submission (BR-07). |
 | session | sid, sess (json), expire | Managed by connect-pg-simple, created by migration. |
 
