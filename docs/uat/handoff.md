@@ -42,7 +42,7 @@ The UAT Team evaluates the application strictly against the delivered **Sprint 1
 * **F-01: Authentication & Sessions (`FR-01`, `FR-02`, `FR-03`)**:
   * Email and password login yielding authenticated cookie sessions.
   * Logout with server-side session invalidation.
-  * Retrieval and display of authenticated user identity (Name, Email, Role).
+  * Retrieval of authenticated user identity (name, email, role) via `/api/auth/me`; the header shows name and role badge.
 * **F-02: Role & Team Authorization (`FR-04`, `BR-01`, `BR-02`, `BR-03`, `NFR-03`)**:
   * Strict tenant isolation: Students can only view their own team and its deliverables.
   * Supervisor scoping: Supervisors can only view and manage teams assigned to them.
