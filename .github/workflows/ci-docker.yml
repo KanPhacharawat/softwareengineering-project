@@ -1,4 +1,4 @@
-# CI & Docker Build: runs on every PR to staging/main, manually, and (workflow_call) before a deploy.
+# CI & Docker Build: runs on every PR to staging/main (and lab6-exercise, Lab 6 exercise #46), manually, and (workflow_call) before a deploy.
 # Deploy-script offline tests -> migrate + seed -> server tests -> typecheck -> build -> Docker build. Deploys nothing.
 # Keep the job id `test-and-docker` (the lab guide and branch protection refer to it).
 name: CI & Docker Build
@@ -6,7 +6,7 @@ name: CI & Docker Build
 on:
   workflow_call:
   pull_request:
-    branches: [staging, main]
+    branches: [staging, main, lab6-exercise]
   workflow_dispatch:
 
 permissions:
