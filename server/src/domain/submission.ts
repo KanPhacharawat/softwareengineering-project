@@ -78,17 +78,19 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
 }
 
 // BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: submission has feedback -> SUBMISSION_LOCKED
+// LAB6 CONTROLLED DEFECT (#46): the lock is scoped to the student who submitted, so a teammate is not locked.
 export function canChangeSubmission(
   milestone: { dueAt: Date | string },
-  submission?: { feedback?: unknown } | null,
+  submission?: { feedback?: unknown; submittedById?: string } | null,
   now: Date = new Date(),
+  actorId?: string,
 ): ChangeSubmissionResult {
   const due = new Date(milestone.dueAt).getTime();
   if (now.getTime() >= due) {
     return { allowed: false, reason: 'DEADLINE_PASSED' };
   }
 
-  if (submission?.feedback) {
+  if (submission?.feedback && (actorId === undefined || submission.submittedById === actorId)) {
     return { allowed: false, reason: 'SUBMISSION_LOCKED' };
   }
 

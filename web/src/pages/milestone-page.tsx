@@ -83,7 +83,9 @@ function MilestoneDetailContent({
 
   const isStudent = user?.role === 'STUDENT';
   const deadlinePassed = Date.now() >= new Date(milestone.dueAt).getTime();
-  const canEdit = isStudent && !deadlinePassed && !submission?.feedback;
+  // LAB6 CONTROLLED DEFECT (#46): only the student who submitted is locked after feedback.
+  const lockedForMe = !!submission?.feedback && submission.submittedBy.id === user?.id;
+  const canEdit = isStudent && !deadlinePassed && !lockedForMe;
 
   return (
     <div className="space-y-8">
@@ -117,7 +119,7 @@ function MilestoneDetailContent({
         <h2 className="text-lg font-semibold">Submission</h2>
 
         {/* Status Notices (F-04 / F-05) */}
-        {isStudent && submission?.feedback ? (
+        {isStudent && lockedForMe ? (
           <Alert>
             <Lock className="size-4" />
             <AlertDescription>Locked after feedback</AlertDescription>
