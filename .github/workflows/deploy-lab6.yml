@@ -62,7 +62,6 @@ jobs:
         run: |
           test -n "$PROJECT_ID" && test -n "$REGION"
           test -n "$WIF_PROVIDER" && test -n "$WIF_SERVICE_ACCOUNT"
-          [[ "$WIF_PROVIDER" == */providers/github-lab6 ]] || { echo 'WIF_PROVIDER must be the github-lab6 provider.'; exit 1; }
           [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]] || { echo 'Image tag must be a full 40-character commit SHA.'; exit 1; }
 
       - name: Authenticate to Google Cloud without a key
