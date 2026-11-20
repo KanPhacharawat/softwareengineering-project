@@ -220,7 +220,7 @@ export async function updateSubmission(
     throw new AppError(404, 'NOT_FOUND', 'No submission exists for this milestone');
   }
 
-  const changeCheck = canChangeSubmission(milestone, milestone.submission, now, user.id);
+  const changeCheck = canChangeSubmission(milestone, milestone.submission, now);
   if (!changeCheck.allowed) {
     if (changeCheck.reason === 'DEADLINE_PASSED') {
       throw new AppError(422, 'DEADLINE_PASSED', 'Submission deadline has passed');
@@ -233,7 +233,7 @@ export async function updateSubmission(
     // BR-07: lock the row so a concurrent feedback insert cannot slip in between the check and the update
     await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
     const existingFeedback = await tx.feedback.findUnique({ where: { submissionId } });
-    if (existingFeedback && milestone.submission?.submittedById === user.id) {
+    if (existingFeedback) {
       throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
     }
     return tx.submission.update({
