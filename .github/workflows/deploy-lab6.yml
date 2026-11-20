@@ -1,0 +1,106 @@
+# Deploy lab6 (Lab 6 controlled defect exercise, Issue #46). Isolated copy of deploy.yml:
+# push to lab6-exercise -> CI (test-and-docker) -> WIF login -> build + push image tagged with the full
+# commit SHA -> deploy/release.sh against cpms-lab6 / cpms-lab6-migrate -> smoke test -> summary.
+# The live service `cpms` (environment `demo`, deploy.yml) is never touched by this workflow.
+# Manual rollback: Run workflow with image_tag = full SHA of an existing image (skips tests, build, migration).
+# Do not rename: this file name, environment `lab6`, branch `lab6-exercise` (the WIF provider github-lab6
+# attribute condition checks all three), variables GCP_PROJECT_ID, GCP_REGION, WIF_PROVIDER, WIF_SERVICE_ACCOUNT.
+name: Deploy lab6
+
+on:
+  push:
+    branches: [lab6-exercise]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Rollback: full commit SHA of an existing image. Empty = test, build and deploy current lab6-exercise.'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+# Queue releases; never interrupt a running migration. Separate group from deploy-demo.
+concurrency:
+  group: deploy-lab6
+  cancel-in-progress: false
+
+jobs:
+  test:
+    if: github.ref == 'refs/heads/lab6-exercise' && !inputs.image_tag
+    uses: ./.github/workflows/ci-docker.yml
+
+  deploy:
+    needs: test
+    if: >-
+      always() && !cancelled() && github.ref == 'refs/heads/lab6-exercise' &&
+      (needs.test.result == 'success' ||
+       (github.event_name == 'workflow_dispatch' && inputs.image_tag != '' && needs.test.result == 'skipped'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: lab6
+    permissions:
+      contents: read
+      id-token: write # keyless Google Cloud login (WIF provider github-lab6)
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      SERVICE_NAME: cpms-lab6
+      MIGRATE_JOB_NAME: cpms-lab6-migrate
+      IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+      ROLLBACK: ${{ inputs.image_tag != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate deployment settings
+        env:
+          WIF_PROVIDER: ${{ vars.WIF_PROVIDER }}
+          WIF_SERVICE_ACCOUNT: ${{ vars.WIF_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$PROJECT_ID" && test -n "$REGION"
+          test -n "$WIF_PROVIDER" && test -n "$WIF_SERVICE_ACCOUNT"
+          [[ "$WIF_PROVIDER" == */providers/github-lab6 ]] || { echo 'WIF_PROVIDER must be the github-lab6 provider.'; exit 1; }
+          [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]] || { echo 'Image tag must be a full 40-character commit SHA.'; exit 1; }
+
+      - name: Authenticate to Google Cloud without a key
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      # Same Artifact Registry repo as live; tags are commit SHAs, so images never clash.
+      - name: Build and push image
+        if: env.ROLLBACK != 'true'
+        run: |
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/cpms/cpms:$IMAGE_TAG"
+          docker build --tag "$IMAGE" .
+          docker push "$IMAGE"
+
+      # Exports SERVICE_URL and DEPLOYED_IMAGE for the next steps.
+      - name: Verify image, migrate and deploy
+        run: bash deploy/release.sh
+
+      - name: Smoke test public URL
+        env:
+          # Optional login check: set BOTH (environment variable + secret) or neither.
+          SMOKE_EMAIL: ${{ vars.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: python3 deploy/smoke_test.py "$SERVICE_URL"
+
+      - name: Record deployment
+        run: |
+          REVISION="$(gcloud run services describe "$SERVICE_NAME" --project="$PROJECT_ID" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
+          {
+            echo '### CPMS lab6 deployment (controlled defect exercise, #46)'
+            echo "- Service: \`$SERVICE_NAME\`"
+            echo "- Commit image tag: \`$IMAGE_TAG\`"
+            echo "- Digest: \`$DEPLOYED_IMAGE\`"
+            echo "- Revision: \`$REVISION\`"
+            echo "- Rollback: $ROLLBACK"
+            echo "- URL: $SERVICE_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
