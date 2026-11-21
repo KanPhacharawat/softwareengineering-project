@@ -7,7 +7,7 @@ Version history
 | 0.1 | 2026-11-19 | Part 1 only: keep the original submitter (#55, from Lab 6 UAT finding UF-03). Revision request, resubmission and version history follow in later parts. |
 | 0.2 | 2026-11-21 | Parts 2–4: revision request, resubmission as versions, history (FR-11..FR-13, BR-10, BR-11). Feedback moves to versions. |
 
-Linked requirements: FR-11, FR-12, FR-13, BR-07 (revised: lock per version), BR-08 (per version), BR-09, BR-10, BR-11, BR-01, BR-02, BR-03, NFR-03, NFR-05, NFR-07.
+Linked requirements: FR-11, FR-12, FR-13, BR-07 (revised: lock per version), BR-08 (per version), BR-09, BR-10, BR-11, BR-01, BR-02, BR-03, NFR-02, NFR-03, NFR-05, NFR-07.
 Depends on: F-04, F-05. Hooks used by: F-07 (`MILESTONE_CLOSED`), F-08 (`SUBMISSION_GRADED`, `REVISION_PENDING`).
 
 ## Part 1: original submitter
@@ -172,9 +172,10 @@ Write rules: no code path updates or deletes a `SubmissionVersion` other than th
 Migration `revision_versions`, safe on production data (one SQL migration, runs in a transaction):
 
 1. Create `SubmissionVersion` and `RevisionRequest`; add `Submission.currentVersion` int not null default 1.
-2. `INSERT INTO "SubmissionVersion"` one row per existing `Submission` with `versionNumber = 1`, `title`,
-   `description`, `link` copied, `submittedById = createdById`, `submittedAt = submittedAt`,
-   `updatedAt = updatedAt`.
+2. `INSERT INTO "SubmissionVersion"` one row per existing `Submission` with `id = gen_random_uuid()`,
+   `versionNumber = 1`, `title`, `description`, `link` copied, `submittedById = Submission.submittedById` (last saver,
+   which may be a teammate after an edit; `Submission.createdById` keeps the original submitter),
+   `submittedAt = submittedAt`, `updatedAt = updatedAt`.
 3. Add `Feedback.versionId` nullable; `UPDATE` it to the version 1 id of its submission.
 4. `SET NOT NULL` on `Feedback.versionId`, add its FK and unique index.
 5. Drop the unique index on `Feedback.submissionId`, create a plain index.
@@ -187,10 +188,12 @@ Rehearsal: TEST-36 runs it on a database with Sprint 1-shaped rows before it rea
 |---|---|---|---|---|
 | `POST /api/submissions/:submissionId/revision-request` | Supervisor (assigned) | `{ "reason": "Add test evidence", "dueAt": "2026-11-30T17:00:00+07:00" }` | 201 `{ revisionRequest: { id, submissionId, versionNumber, reason, dueAt, status, requestedBy:{id,name}, createdAt } }` | 400 `VALIDATION_ERROR` (`fields.reason`, `fields.dueAt`); 401; 403 `FORBIDDEN`; 404 `NOT_FOUND`; 409 `MILESTONE_CLOSED`*; 409 `SUBMISSION_GRADED`*; 409 `FEEDBACK_REQUIRED`; 409 `REVISION_EXISTS` |
 | `POST /api/submissions/:submissionId/versions` | Student (member) | `{ "title", "description?", "link" }` | 201 `{ submission }` (same shape as GET milestone `submission`) | 400 `VALIDATION_ERROR` (BR-09); 401; 403; 404; 409 `MILESTONE_CLOSED`*; 409 `NO_REVISION_REQUEST`; 409 `RESUBMISSION_EXISTS`; 422 `REVISION_DUE_PASSED` |
+| `POST /api/milestones/:milestoneId/submission` (existing) | Student | unchanged | 201, `submission` gains `currentVersion: 1` | now creates `Submission` and `SubmissionVersion` 1 in one transaction; errors unchanged |
 | `PUT /api/milestones/:milestoneId/submission` (existing) | Student | unchanged | 200 | now edits the current version (both rows); deadline = revision due for v ≥ 2 (422 `DEADLINE_PASSED`); 409 `SUBMISSION_LOCKED` when the current version has feedback |
 | `POST /api/submissions/:submissionId/feedback` (existing) | Supervisor | unchanged | 201, `feedback` gains `versionNumber` | attaches to the current version (read under the existing row lock); 409 `FEEDBACK_EXISTS` if the current version already has feedback |
 | `GET /api/submissions/:submissionId/history` | member or assigned supervisor | – | 200 `{ submission:{id, milestoneId, createdBy}, versions:[…] }` ascending | 401; 404 |
-| `GET /api/milestones/:milestoneId` (existing) | unchanged | – | `submission` gains `currentVersion` and `revisionRequest` (request on the current version with its status, or null); `submission.feedback` is the feedback of the current version; `milestone.status` may be `REVISION_REQUESTED` | unchanged |
+| `GET /api/milestones/:milestoneId` (existing) | unchanged | – | `submission` gains `currentVersion` and `revisionRequest` (request on the current version with its status, or null); `submission.feedback` is the feedback of the current version and gains `versionNumber` (same shape as `POST /feedback`); `milestone.status` may be `REVISION_REQUESTED` | unchanged |
+| `GET /api/teams/:teamId/milestones` (existing) | unchanged | – | each milestone `status` is computed with the rules above (open request and feedback of the current version), so the team page badge can show `REVISION_REQUESTED` | unchanged |
 
 \* added by F-07 / F-08; listed here so the contract is complete. Order of checks in each endpoint:
 auth (401) → role (403) → scope/UUID (404) → body validation (400) → state rules (409/422), as in W1–W3.
@@ -269,6 +272,9 @@ A malformed or unknown `:id` returns 404 for every authenticated role that passe
   and no form.
 - **Supervisor, open request**: block "Revision requested by {name}: {reason}. Due {time}" and the text
   "Waiting for the team to resubmit".
+- **Supervisor, expired request**: the same block with the text "Not resubmitted: revision due date has passed"; the
+  "Request revision" card stays hidden (a second request on the same version is not allowed). Status badge
+  `FEEDBACK_GIVEN`.
 - **Submission card**: "Version {n}" next to the title; existing "Submitted by … · Last updated by …" line unchanged.
 - **History section** (below the submission card, shown when a submission exists): one entry per version, oldest
   first, "Version {n} · Submitted by {name} at {time}", its link, its feedback block (or "No feedback yet"), and its
@@ -302,7 +308,7 @@ Fixtures: Sprint 1 seed (`docs/sprints/sprint-1/sts.md`); no new seed data. Leve
 | Test | AC | Level | Precondition / input | Action | Expected result |
 |---|---|---|---|---|---|
 | TEST-U04 | AC-25 | Unit | fixed `now` | `validateRevisionRequestInput` with reason 0/1/1000/1001 chars, whitespace, dueAt missing/invalid/now/now-1s/now+1min | invalid → `fields.reason` / `fields.dueAt`; valid → trimmed data |
-| TEST-28 | AC-24 | API/DB | Alpha milestone +7d, S1 submission, Sup1 feedback | Sup1 POST revision-request | 201; DB row reason/dueAt/requestedById=Sup1/versionId=v1; S1 and Sup1 GET milestone status `REVISION_REQUESTED` |
+| TEST-28 | AC-24 | API/DB | Alpha milestone +7d, S1 submission, Sup1 feedback | Sup1 POST revision-request | 201; DB row reason/dueAt/requestedById=Sup1/versionId=v1; S1 and Sup1 GET milestone and GET team milestones list status `REVISION_REQUESTED` |
 | TEST-29 | AC-25 | API/DB | as TEST-28 | Sup1 POST invalid bodies; then reasons of 1 and 1000 chars (separate fixtures) | 400 + fields, `RevisionRequest` count unchanged; 201 for both valid reasons |
 | TEST-30 | AC-26 | API/DB | submission without feedback; then with an open request; then with an expired request | POST; POST again; POST on expired; 2 parallel POSTs | 409 `FEEDBACK_REQUIRED`; 409 `REVISION_EXISTS`; 409 `REVISION_EXISTS`; exactly 1 row after parallel |
 | TEST-31 | AC-27 | API | as TEST-28 | S1, Sup2, `not-a-uuid`, random uuid, no cookie | 403, 404, 404, 404, 401; count unchanged |
@@ -320,9 +326,10 @@ Coverage: AC-24..AC-35 each have at least one test; every test row points to an 
 
 ### Layers with no change
 
-Auth (`routes/auth.ts`, `auth-service.ts`), session config, teams routes and `team-service.ts`, milestone creation
-(`POST /api/teams/:teamId/milestones`), seed data (no new fixtures). The team page changes only by the new status
-badge value.
+Auth (`routes/auth.ts`, `auth-service.ts`), session config, team list and team detail (`GET /api/teams`,
+`GET /api/teams/:teamId`), milestone creation (`POST /api/teams/:teamId/milestones`), seed data (no new fixtures).
+`GET /api/teams/:teamId/milestones` changes only in how `status` is computed; the team page changes only by the new
+status badge value.
 
 ### Definition of Done (F-06 parts 2–4)
 
