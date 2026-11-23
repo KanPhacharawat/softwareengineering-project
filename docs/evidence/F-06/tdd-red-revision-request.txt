@@ -1,0 +1,213 @@
+# TDD red for #67 F-06a revision request. domain/revision.ts is a stub that throws 'not implemented' so the file compiles;
+# the route, prisma models (submissionVersion, revisionRequest) and response fields do not exist yet.
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+5 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 4947ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  463ms
+     ✓ accepts the email in any letter case  350ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  326ms
+     ✓ unknown email gives the same 401 response as a wrong password  650ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  342ms
+     ✓ deletes the session row from the database  316ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2468ms
+ ✓ tests/submissions.test.ts (16 tests) 1583ms
+ ✓ tests/feedback.test.ts (12 tests) 1615ms
+ ❯ tests/revision-request.test.ts (9 tests | 9 failed) 1220ms
+     × TEST-U04 rejects bad reasons with fields.reason 3ms
+     × TEST-U04 rejects bad dueAt with fields.dueAt (missing, not a date, now, now - 1s) 0ms
+     × TEST-U04 accepts reasons of 1 and 1000 characters and dueAt now + 1 min; returns trimmed data 0ms
+     × TEST-28 (AC-24) Sup1 requests a revision -> 201, stored, status REVISION_REQUESTED for S1 and Sup1 53ms
+     × TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fields, nothing stored; 1 and 1000 chars -> 201 33ms
+     × TEST-30 (AC-26) no feedback -> 409 FEEDBACK_REQUIRED; second request (open or expired) -> 409 REVISION_EXISTS 22ms
+     × TEST-30 (AC-26) two parallel requests store exactly one 34ms
+     × TEST-31 (AC-27) S1 403, Sup2 404, malformed 404, unknown 404, no session 401; nothing stored 36ms
+     × TEST-36 every Submission has its current version row and every Feedback points to a version 5ms
+ ✓ tests/teams.test.ts (13 tests) 1478ms
+ ✓ tests/milestones.test.ts (11 tests) 847ms
+ ✓ tests/seed.test.ts (4 tests) 821ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  752ms
+ ✓ tests/health.test.ts (6 tests) 96ms
+ ✓ tests/authorization.test.ts (9 tests) 64ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-U04 validateRevisionRequestInput (AC-25, BR-10) > TEST-U04 rejects bad reasons with fields.reason
+Error: not implemented
+ ❯ validateRevisionRequestInput src/domain/revision.ts:7:9
+      5| 
+      6| export function validateRevisionRequestInput(_input: unknown, _now: Da…
+      7|   throw new Error('not implemented');
+       |         ^
+      8| }
+      9| 
+ ❯ check tests/revision-request.test.ts:59:37
+ ❯ tests/revision-request.test.ts:63:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-U04 validateRevisionRequestInput (AC-25, BR-10) > TEST-U04 rejects bad dueAt with fields.dueAt (missing, not a date, now, now - 1s)
+Error: not implemented
+ ❯ validateRevisionRequestInput src/domain/revision.ts:7:9
+      5| 
+      6| export function validateRevisionRequestInput(_input: unknown, _now: Da…
+      7|   throw new Error('not implemented');
+       |         ^
+      8| }
+      9| 
+ ❯ check tests/revision-request.test.ts:59:37
+ ❯ tests/revision-request.test.ts:75:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-U04 validateRevisionRequestInput (AC-25, BR-10) > TEST-U04 accepts reasons of 1 and 1000 characters and dueAt now + 1 min; returns trimmed data
+Error: not implemented
+ ❯ validateRevisionRequestInput src/domain/revision.ts:7:9
+      5| 
+      6| export function validateRevisionRequestInput(_input: unknown, _now: Da…
+      7|   throw new Error('not implemented');
+       |         ^
+      8| }
+      9| 
+ ❯ check tests/revision-request.test.ts:59:37
+ ❯ tests/revision-request.test.ts:88:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-28..TEST-31 Revision request API (AC-24..AC-27) > TEST-28 (AC-24) Sup1 requests a revision -> 201, stored, status REVISION_REQUESTED for S1 and Sup1
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/revision-request.test.ts:104:24
+    102| 
+    103|     const res = await post(revisionUrl(submissionId), sup1, body);
+    104|     expect(res.status).toBe(201);
+       |                        ^
+    105|     const rr = res.body.revisionRequest;
+    106|     expect(rr.requestedBy).toEqual({ id: SUP1.id, name: SUP1.name });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-28..TEST-31 Revision request API (AC-24..AC-27) > TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fields, nothing stored; 1 and 1000 chars -> 201
+TypeError: Cannot read properties of undefined (reading 'count')
+ ❯ tests/revision-request.test.ts:136:49
+    134|   it('TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fiel…
+    135|     const { submissionId } = await fixture();
+    136|     const before = await prisma.revisionRequest.count();
+       |                                                 ^
+    137|     const cases: [unknown, string][] = [
+    138|       [{ reason: '', dueAt: inDays(3) }, 'reason'],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-28..TEST-31 Revision request API (AC-24..AC-27) > TEST-30 (AC-26) no feedback -> 409 FEEDBACK_REQUIRED; second request (open or expired) -> 409 REVISION_EXISTS
+AssertionError: expected 404 to be 409 // Object.is equality
+
+- Expected
++ Received
+
+- 409
++ 404
+
+ ❯ tests/revision-request.test.ts:163:25
+    161|     const noFeedback = await fixture({ withFeedback: false });
+    162|     const res1 = await post(revisionUrl(noFeedback.submissionId), sup1…
+    163|     expect(res1.status).toBe(409);
+       |                         ^
+    164|     expect(res1.body.error.code).toBe('FEEDBACK_REQUIRED');
+    165|     expect(await prisma.revisionRequest.count({ where: { submissionId:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-28..TEST-31 Revision request API (AC-24..AC-27) > TEST-30 (AC-26) two parallel requests store exactly one
+AssertionError: expected [ 404, 404 ] to deeply equal [ 201, 409 ]
+
+- Expected
++ Received
+
+  [
+-   201,
+-   409,
++   404,
++   404,
+  ]
+
+ ❯ tests/revision-request.test.ts:191:49
+    189|       post(revisionUrl(submissionId), sup1, validBody()),
+    190|     ]);
+    191|     expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+       |                                                 ^
+    192|     expect(results.find((r) => r.status === 409)!.body.error.code).toB…
+    193|     expect(await prisma.revisionRequest.count({ where: { submissionId …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-28..TEST-31 Revision request API (AC-24..AC-27) > TEST-31 (AC-27) S1 403, Sup2 404, malformed 404, unknown 404, no session 401; nothing stored
+TypeError: Cannot read properties of undefined (reading 'count')
+ ❯ tests/revision-request.test.ts:198:49
+    196|   it('TEST-31 (AC-27) S1 403, Sup2 404, malformed 404, unknown 404, no…
+    197|     const { submissionId } = await fixture();
+    198|     const before = await prisma.revisionRequest.count();
+       |                                                 ^
+    199| 
+    200|     const student = await post(revisionUrl(submissionId), s1, validBod…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  tests/revision-request.test.ts > TEST-36 (AC-35) version invariant after the flows above > TEST-36 every Submission has its current version row and every Feedback points to a version
+PrismaClientValidationError: 
+Invalid `prisma.submission.findMany()` invocation in
+/home/user/softwareengineering-project/server/tests/revision-request.test.ts:220:49
+
+  217 
+  218 describe('TEST-36 (AC-35) version invariant after the flows above', () => {
+  219   it('TEST-36 every Submission has its current version row and every Feedback points to a version', async () => {
+→ 220     const submissions = await prisma.submission.findMany({
+            include: {
+              versions: true,
+              ~~~~~~~~
+          ?   milestone?: true,
+          ?   submittedBy?: true,
+          ?   createdBy?: true,
+          ?   feedback?: true
+            }
+          })
+
+Unknown field `versions` for include statement on model `Submission`. Available options are marked with ?.
+ ❯ Nn ../node_modules/@prisma/client/runtime/library.js:29:1363
+ ❯ ei.handleRequestError ../node_modules/@prisma/client/runtime/library.js:121:6911
+ ❯ ei.handleAndLogRequestError ../node_modules/@prisma/client/runtime/library.js:121:6593
+ ❯ ei.request ../node_modules/@prisma/client/runtime/library.js:121:6300
+ ❯ a ../node_modules/@prisma/client/runtime/library.js:130:9551
+ ❯ tests/revision-request.test.ts:220:25
+    218| describe('TEST-36 (AC-35) version invariant after the flows above', ()…
+    219|   it('TEST-36 every Submission has its current version row and every F…
+    220|     const submissions = await prisma.submission.findMany({ include: { …
+       |                         ^
+    221|     expect(submissions.length).toBeGreaterThan(0);
+    222|     for (const s of submissions) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed | 8 passed (9)
+      Tests  9 failed | 85 passed (94)
+   Start at  17:25:29
+   Duration  17.04s (transform 274ms, setup 134ms, import 1.71s, tests 12.67s, environment 1ms)
+
