@@ -31,7 +31,7 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-04 | F-03 | 1 | AC-07 | TEST-08, TEST-U01 | Implemented (F-03, tests pass) |
 | BR-05 | F-04 | 1 | AC-12 | TEST-14, TEST-15 | Implemented (F-04, tests pass) |
 | BR-06 | F-04 | 1 | AC-13 | TEST-16, TEST-U02 | Implemented (F-04, tests pass) |
-| BR-07 | F-05 | 1 | AC-18 | TEST-24, TEST-U02 | Implemented (F-05, tests pass) |
+| BR-07 | F-05 | 1 | AC-18 | TEST-24, TEST-27, TEST-U02 | Implemented (F-05, tests pass) |
 | BR-08 | F-05 | 1 | AC-20 | TEST-25 | Implemented (F-05, tests pass) |
 | BR-09 | F-04 | 1 | AC-14 | TEST-17, TEST-U03 | Implemented (F-04, tests pass) |
 | BR-10 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |

@@ -41,6 +41,7 @@ Supertest). E2E = browser through UI, API and DB (Playwright).
 | TEST-22 | AC-19 | API | Alpha submission | S1 POST feedback | 403; no feedback row |
 | TEST-23 | AC-19 | API | Alpha submission | Sup2 POST feedback | 404; no feedback row |
 | TEST-24 | AC-18 | API/DB | Alpha submission with feedback, before due | S1 PUT | 409 SUBMISSION_LOCKED; row unchanged |
+| TEST-27 | AC-18 | API/DB | Alpha submission by S1 with feedback, before due | S2 (teammate) PUT | 409 SUBMISSION_LOCKED; row unchanged, still attributed to S1 (added in Lab 6, #61) |
 | TEST-25 | AC-20 | API | Alpha submission | Sup1 POST comment "   "; then valid; then valid again | 400; 201; 409 FEEDBACK_EXISTS |
 | TEST-U01 | AC-07 | Unit | now fixed | validate milestone input: title lengths 2/3/120/121, dueAt past/equal/future | only 3..120 and future pass |
 | TEST-U02 | AC-13, AC-18 | Unit | now fixed | `canChangeSubmission` with now before/equal/after due, with and without feedback | allowed only when now < due and no feedback; reasons DEADLINE_PASSED / SUBMISSION_LOCKED |
