@@ -1,4 +1,5 @@
 import { prisma } from '../db.js';
+import { CURRENT_VERSION, currentState } from './submission-service.js';
 import { computeMilestoneStatus, type MilestoneStatus, type ValidatedMilestoneData } from '../domain/milestone.js';
 
 export type MilestoneView = {
@@ -26,10 +27,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     where: { teamId },
     include: {
       submission: {
-        select: {
-          id: true,
-          feedback: { select: { id: true } },
-        },
+        select: { versions: CURRENT_VERSION },
       },
     },
     orderBy: { dueAt: 'asc' },
@@ -40,7 +38,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     title: m.title,
     description: m.description,
     dueAt: m.dueAt.toISOString(),
-    status: computeMilestoneStatus(m, m.submission, now),
+    status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
   }));
 }
 

@@ -1,0 +1,71 @@
+# TEST-36 (AC-35) migration rehearsal for #67, run 2026-11-23T17:30Z on local Postgres 16 (Docker not available in this environment;
+# same server version as docker-compose.yml). Scratch DB: cpms_rehearsal.
+
+## 1-3. Old schema (origin/staging 45af544 migrations) + seed + Sprint 1-shaped rows
+$ createdb cpms_rehearsal; DATABASE_URL=.../cpms_rehearsal npx prisma migrate deploy; npx tsx prisma/seed.ts
+$ psql cpms_rehearsal -f rehearsal-before.sql   # milestone A: S1 submits + Sup1 feedback; B: S1 submits, S2 edits, no feedback; C: Gamma S5 submits + Sup2 feedback
+    -- Sprint 1-shaped rows: A = S1 submits, Sup1 feedback; B = S1 submits, S2 edits, no feedback; C = S5 submits (Gamma), Sup2 feedback
+    INSERT INTO "Milestone" (id, "teamId", title, "dueAt", "createdById") VALUES
+     ('10000000-0000-4000-8000-00000000000a', '00000000-0000-4000-8000-0000000000a1', 'Sprint 1 demo', now() + interval '7 days', '00000000-0000-4000-8000-000000000001'),
+     ('10000000-0000-4000-8000-00000000000b', '00000000-0000-4000-8000-0000000000a1', 'Design review', now() + interval '7 days', '00000000-0000-4000-8000-000000000001'),
+     ('10000000-0000-4000-8000-00000000000c', '00000000-0000-4000-8000-0000000000c1', 'Proposal', now() - interval '1 day', '00000000-0000-4000-8000-000000000002');
+    INSERT INTO "Submission" (id, "milestoneId", title, description, link, "submittedById", "createdById", "submittedAt", "updatedAt") VALUES
+     ('20000000-0000-4000-8000-00000000000a', '10000000-0000-4000-8000-00000000000a', 'Sprint 1 demo', 'First cut', 'https://github.com/example/cpms/pull/10', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000011', now() - interval '2 days', now() - interval '2 days'),
+     ('20000000-0000-4000-8000-00000000000b', '10000000-0000-4000-8000-00000000000b', 'Design review v2', NULL, 'https://github.com/example/cpms/pull/11', '00000000-0000-4000-8000-000000000012', '00000000-0000-4000-8000-000000000011', now() - interval '2 days', now() - interval '1 day'),
+     ('20000000-0000-4000-8000-00000000000c', '10000000-0000-4000-8000-00000000000c', 'Proposal', 'Gamma proposal', 'https://github.com/example/cpms/pull/12', '00000000-0000-4000-8000-000000000015', '00000000-0000-4000-8000-000000000015', now() - interval '3 days', now() - interval '3 days');
+    INSERT INTO "Feedback" (id, "submissionId", "authorId", comment) VALUES
+     ('30000000-0000-4000-8000-00000000000a', '20000000-0000-4000-8000-00000000000a', '00000000-0000-4000-8000-000000000001', 'Tests are missing'),
+     ('30000000-0000-4000-8000-00000000000c', '20000000-0000-4000-8000-00000000000c', '00000000-0000-4000-8000-000000000002', 'Good scope');
+    SELECT s.title, s."submittedById" = s."createdById" AS same_author, f.comment FROM "Submission" s LEFT JOIN "Feedback" f ON f."submissionId" = s.id ORDER BY s.title;
+
+INSERT 0 3
+INSERT 0 3
+INSERT 0 2
+      title       | same_author |      comment      
+------------------+-------------+-------------------
+ Design review v2 | f           | 
+ Proposal         | t           | Good scope
+ Sprint 1 demo    | t           | Tests are missing
+(3 rows)
+
+            migration_name            
+--------------------------------------
+ 20261105180947_init
+ 20261106171857_milestone
+ 20261107092737_submission
+ 20261109145639_feedback
+ 20261119150000_submission_created_by
+(5 rows)
+
+
+## 4. Apply the new migration
+$ DATABASE_URL=.../cpms_rehearsal npx prisma migrate deploy
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_rehearsal", schema "public" at "localhost:5433"
+6 migrations found in prisma/migrations
+Applying migration `20261123180000_revision_versions`
+The following migration(s) have been applied:
+migrations/
+  └─ 20261123180000_revision_versions/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+
+## 5. Check
+$ psql cpms_rehearsal -c 'SELECT s.title, v."versionNumber", v.title = s.title AND v.link = s.link AND v.description IS NOT DISTINCT FROM s.description AS same_fields, v."submittedById" = s."submittedById" AS same_submitter, s."currentVersion", f."versionId" = v.id AS feedback_linked FROM "Submission" s JOIN "SubmissionVersion" v ON v."submissionId" = s.id LEFT JOIN "Feedback" f ON f."submissionId" = s.id ORDER BY s.title;'
+      title       | versionNumber | same_fields | same_submitter | currentVersion | feedback_linked 
+------------------+---------------+-------------+----------------+----------------+-----------------
+ Design review v2 |             1 | t           | t              |              1 | 
+ Proposal         |             1 | t           | t              |              1 | t
+ Sprint 1 demo    |             1 | t           | t              |              1 | t
+(3 rows)
+
+ submissions | versions | unlinked_feedback 
+-------------+----------+-------------------
+           3 |        3 |                 0
+(1 row)
+
+Expected: one version 1 per submission, same_fields t, same_submitter t (last saver, so 'Design review v2' keeps S2), feedback_linked t or empty when there is no feedback.
+
+## 6. Sprint 1 suite on the migrated schema: see tdd-green-revision-request.txt (all 85 Sprint 1 tests pass unchanged).

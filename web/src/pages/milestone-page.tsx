@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, Send } from 'lucide-react';
+import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, RotateCcw, Send } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
 import { EmptyState, ErrorState } from '@/components/page-states';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { api, ApiError, formatBangkokDateTime, type MilestoneDetail, type Submission } from '@/lib/api';
+import { api, ApiError, formatBangkokDateTime, type MilestoneDetail, type RevisionRequest, type Submission } from '@/lib/api';
 import { useApi } from '@/lib/use-api';
 
 // `/milestones/:milestoneId` (F-04): milestone details, team submission and editing.
@@ -135,7 +135,10 @@ function MilestoneDetailContent({
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-lg font-medium">{submission.title}</CardTitle>
+                  <CardTitle className="text-lg font-medium">
+                    {submission.title}{' '}
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">Version {submission.currentVersion}</span>
+                  </CardTitle>
                   <CardDescription className="mt-1">
                     Submitted by {submission.createdBy.name} at {formatBangkokDateTime(submission.submittedAt)} · Last
                     updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
@@ -190,6 +193,14 @@ function MilestoneDetailContent({
               <p className="text-sm leading-6 whitespace-pre-wrap">{submission.feedback.comment}</p>
             </CardContent>
           </Card>
+        )}
+
+        {/* Revision request (F-06): student alert, supervisor block or form */}
+        {submission?.revisionRequest && (
+          <RevisionRequestNotice request={submission.revisionRequest} isStudent={isStudent} />
+        )}
+        {submission && submission.feedback && !submission.revisionRequest && !isStudent && (
+          <RevisionRequestForm submissionId={submission.id} onSaved={onReload} />
         )}
 
         {/* Supervisor Feedback Form (F-05) */}
@@ -315,6 +326,116 @@ function FeedbackForm({
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="animate-spin size-4" />}
             Save feedback
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RevisionRequestNotice({ request, isStudent }: { request: RevisionRequest; isStudent: boolean }) {
+  const due = formatBangkokDateTime(request.dueAt);
+  const expired = request.status === 'EXPIRED';
+  if (isStudent) {
+    return (
+      <Alert>
+        <RotateCcw className="size-4" />
+        <AlertDescription>
+          {expired ? 'Revision due date has passed.' : `Revision requested: ${request.reason}. Resubmit by ${due}.`}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  return (
+    <Alert>
+      <RotateCcw className="size-4" />
+      <AlertDescription>
+        <p>
+          Revision requested by {request.requestedBy.name}: {request.reason}. Due {due}
+        </p>
+        <p className="text-muted-foreground">
+          {expired ? 'Not resubmitted: revision due date has passed' : 'Waiting for the team to resubmit'}
+        </p>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function RevisionRequestForm({ submissionId, onSaved }: { submissionId: string; onSaved: () => void }) {
+  const [reason, setReason] = useState('');
+  const [dueAt, setDueAt] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      // datetime-local gives "YYYY-MM-DDTHH:mm" with no zone: entered in Asia/Bangkok, same as team-page.tsx
+      const bangkokIso = dueAt ? (dueAt.length === 16 ? `${dueAt}:00+07:00` : `${dueAt}+07:00`) : undefined;
+      await api(`/submissions/${encodeURIComponent(submissionId)}/revision-request`, {
+        method: 'POST',
+        body: { reason, dueAt: bangkokIso },
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
+        setErrors(err.fields);
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not request revision' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Request revision</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="revision-reason">Reason</Label>
+            <Textarea
+              id="revision-reason"
+              value={reason}
+              maxLength={1000}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="What should the team change?"
+              aria-invalid={!!errors.reason}
+            />
+            <p className="text-xs text-muted-foreground">{reason.length} / 1000</p>
+            {errors.reason && <p className="text-sm text-destructive">{errors.reason}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="revision-due">Revision due</Label>
+            <Input
+              id="revision-due"
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              aria-invalid={!!errors.dueAt}
+            />
+            <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
+            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+          </div>
+
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="animate-spin size-4" />}
+            {isSubmitting ? 'Requesting…' : 'Request revision'}
           </Button>
         </form>
       </CardContent>

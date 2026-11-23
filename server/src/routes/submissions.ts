@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Role } from '@prisma/client';
 import { requireRole } from '../middleware/require-role.js';
 import { createFeedback } from '../services/feedback-service.js';
+import { createRevisionRequest } from '../services/revision-service.js';
 
 export const submissionsRouter = Router();
 
@@ -12,3 +13,9 @@ submissionsRouter.post('/:submissionId/feedback', requireRole(Role.SUPERVISOR), 
   res.status(201).json({ feedback });
 });
 
+
+// POST /api/submissions/:submissionId/revision-request (FR-11, BR-10, AC-24..AC-27)
+submissionsRouter.post('/:submissionId/revision-request', requireRole(Role.SUPERVISOR), async (req, res) => {
+  const revisionRequest = await createRevisionRequest(req.user!, req.params.submissionId as string, req.body ?? {});
+  res.status(201).json({ revisionRequest });
+});

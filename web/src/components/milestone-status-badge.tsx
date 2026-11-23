@@ -1,4 +1,4 @@
-import { CircleCheck, CircleDot, CircleX, Clock } from 'lucide-react';
+import { CircleCheck, CircleDot, CircleX, Clock, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { MilestoneStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,12 @@ const config: Record<
     className:
       'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900',
     icon: CircleCheck,
+  },
+  REVISION_REQUESTED: {
+    label: 'Revision requested',
+    className:
+      'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-900',
+    icon: RotateCcw,
   },
   MISSED: {
     label: 'MISSED',
