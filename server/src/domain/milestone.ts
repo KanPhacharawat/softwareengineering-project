@@ -1,5 +1,5 @@
 // F-03 Milestone domain rules (BR-04, FR-05, FR-06)
-export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'MISSED';
+export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'REVISION_REQUESTED' | 'MISSED';
 
 export type ValidatedMilestoneData = {
   title: string;
@@ -67,15 +67,19 @@ export function validateMilestoneInput(input: unknown, now: Date = new Date()): 
 }
 
 // F-03 status computation:
-// - SUBMITTED / FEEDBACK_GIVEN when submission exists (F-04/F-05)
+// - SUBMITTED / FEEDBACK_GIVEN when submission exists (F-04/F-05), judged on the current version (F-06)
+// - REVISION_REQUESTED while the current version has an open revision request (F-06, before its dueAt)
 // - OPEN before due date with no submission
 // - MISSED past due date with no submission
 export function computeMilestoneStatus(
   milestone: { dueAt: Date | string },
-  submission?: { feedback?: unknown } | null,
+  submission?: { feedback?: unknown; revisionRequest?: { dueAt: Date } | null } | null,
   now: Date = new Date(),
 ): MilestoneStatus {
   if (submission) {
+    if (submission.revisionRequest && now.getTime() < submission.revisionRequest.dueAt.getTime()) {
+      return 'REVISION_REQUESTED';
+    }
     return submission.feedback ? 'FEEDBACK_GIVEN' : 'SUBMITTED';
   }
   const due = typeof milestone.dueAt === 'string' ? new Date(milestone.dueAt) : milestone.dueAt;

@@ -1,0 +1,38 @@
+# TDD green for #67 F-06a revision request (server suite, cpms_test).
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+6 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 4947ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  454ms
+     ✓ accepts the email in any letter case  320ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  307ms
+     ✓ unknown email gives the same 401 response as a wrong password  634ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  341ms
+     ✓ deletes the session row from the database  333ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2530ms
+ ✓ tests/submissions.test.ts (16 tests) 1792ms
+ ✓ tests/revision-request.test.ts (9 tests) 1583ms
+ ✓ tests/feedback.test.ts (12 tests) 1722ms
+ ✓ tests/teams.test.ts (13 tests) 1552ms
+ ✓ tests/milestones.test.ts (11 tests) 828ms
+ ✓ tests/seed.test.ts (4 tests) 808ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  728ms
+ ✓ tests/health.test.ts (6 tests) 90ms
+ ✓ tests/authorization.test.ts (9 tests) 69ms
+
+ Test Files  9 passed (9)
+      Tests  94 passed (94)
+   Start at  17:30:11
+   Duration  18.05s (transform 323ms, setup 156ms, import 1.77s, tests 13.39s, environment 1ms)
+

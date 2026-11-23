@@ -89,6 +89,16 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
         title: 'Initial Submission',
         link: 'https://example.com/repo',
         description: 'Initial draft for review',
+        // F-06: every submission has its version 1
+        versions: {
+          create: {
+            versionNumber: 1,
+            title: 'Initial Submission',
+            link: 'https://example.com/repo',
+            description: 'Initial draft for review',
+            submittedById: S1.id,
+          },
+        },
       },
     });
 
@@ -118,7 +128,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(getRes.body.submission.feedback.author).toEqual({ id: SUP1.id, name: SUP1.name });
 
     // DB verification (STS Expected)
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).not.toBeNull();
@@ -138,7 +148,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('FORBIDDEN');
 
     // DB verification
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -156,7 +166,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('NOT_FOUND');
 
     // DB verification
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -228,7 +238,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(resWhitespace.status).toBe(400);
     expect(resWhitespace.body.error?.code).toBe('VALIDATION_ERROR');
 
-    const noFbInDb = await prisma.feedback.findUnique({
+    const noFbInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(noFbInDb).toBeFalsy();
@@ -296,7 +306,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(fbRes.status).toBe(201);
     expect([200, 409]).toContain(putRes.status);
 
-    const fbInDb = await prisma.feedback.findUnique({
+    const fbInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(fbInDb).not.toBeNull();

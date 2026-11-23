@@ -60,7 +60,7 @@ export type Team = {
   members: TeamMember[];
 };
 
-export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'MISSED';
+export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'REVISION_REQUESTED' | 'MISSED';
 
 export type Milestone = {
   id: string;
@@ -75,6 +75,19 @@ export type Feedback = {
   comment: string;
   createdAt: string;
   author: { id: string; name: string };
+  versionNumber: number;
+};
+
+// F-06: revision request on the current version; status is derived by the server.
+export type RevisionRequest = {
+  id: string;
+  submissionId: string;
+  versionNumber: number;
+  reason: string;
+  dueAt: string;
+  status: 'OPEN' | 'EXPIRED' | 'RESUBMITTED';
+  requestedBy: { id: string; name: string };
+  createdAt: string;
 };
 
 export type Submission = {
@@ -87,7 +100,9 @@ export type Submission = {
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;
+  currentVersion: number;
   feedback: Feedback | null;
+  revisionRequest: RevisionRequest | null;
 };
 
 export type MilestoneDetail = {
