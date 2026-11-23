@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, RotateCcw, Send } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
+import { SubmissionHistoryList } from '@/components/submission-history';
 import { EmptyState, ErrorState } from '@/components/page-states';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -246,6 +247,17 @@ function MilestoneDetailContent({
           </>
         )}
       </section>
+
+      {/* History (F-06c): the key changes on every write, so the list re-fetches after onReload */}
+      {submission && (
+        <section className="space-y-4" aria-labelledby="history-heading">
+          <h2 id="history-heading" className="text-lg font-semibold">History</h2>
+          <SubmissionHistoryList
+            key={[submission.id, submission.currentVersion, submission.updatedAt, submission.feedback?.id, submission.revisionRequest?.id].join()}
+            submissionId={submission.id}
+          />
+        </section>
+      )}
     </div>
   );
 }

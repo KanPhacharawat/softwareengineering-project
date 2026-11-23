@@ -52,7 +52,7 @@ test('student submits to an open milestone, sees the saved submission card, and 
   // Saved card appears with status SUBMITTED
   await expect(page.getByText('Final Project Delivery')).toBeVisible();
   await expect(page.getByText('SUBMITTED', { exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'https://github.com/example/delivery' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'https://github.com/example/delivery' }).first()).toBeVisible();
   await expect(page.getByText('Last updated by Student One')).toBeVisible();
 
   // Student can edit submission
@@ -94,7 +94,7 @@ test('supervisor sees submission read-only without edit button or submission for
 
   // Assert submission card and deliverable link are visible
   await expect(page.getByText('Supervisor Check Submission')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'https://github.com/example/sup-check' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'https://github.com/example/sup-check' }).first()).toBeVisible();
   await expect(page.getByText('Last updated by Student One')).toBeVisible();
 
   // Assert neither Edit button nor Submit button are visible to supervisor

@@ -107,6 +107,24 @@ export type Submission = {
   revisionRequest: RevisionRequest | null;
 };
 
+// F-06c: GET /api/submissions/:id/history, versions oldest first
+export type SubmissionVersionView = {
+  versionNumber: number;
+  title: string;
+  description: string | null;
+  link: string;
+  submittedBy: { id: string; name: string };
+  submittedAt: string;
+  updatedAt: string;
+  feedback: Omit<Feedback, 'versionNumber'> | null;
+  revisionRequest: Omit<RevisionRequest, 'submissionId' | 'versionNumber'> | null;
+};
+
+export type SubmissionHistory = {
+  submission: { id: string; milestoneId: string; createdBy: { id: string; name: string } };
+  versions: SubmissionVersionView[];
+};
+
 export type MilestoneDetail = {
   milestone: Milestone;
   team: { id: string; name: string };

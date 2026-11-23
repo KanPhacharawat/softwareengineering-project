@@ -4,6 +4,7 @@ import { requireRole } from '../middleware/require-role.js';
 import { createFeedback } from '../services/feedback-service.js';
 import { createRevisionRequest } from '../services/revision-service.js';
 import { resubmit } from '../services/submission-service.js';
+import { getSubmissionHistory } from '../services/history-service.js';
 
 export const submissionsRouter = Router();
 
@@ -25,4 +26,9 @@ submissionsRouter.post('/:submissionId/revision-request', requireRole(Role.SUPER
 submissionsRouter.post('/:submissionId/versions', requireRole(Role.STUDENT), async (req, res) => {
   const submission = await resubmit(req.user!, req.params.submissionId as string, req.body ?? {});
   res.status(201).json({ submission });
+});
+
+// GET /api/submissions/:submissionId/history (FR-13, AC-32, AC-33): both roles, scope checked in the service
+submissionsRouter.get('/:submissionId/history', async (req, res) => {
+  res.json(await getSubmissionHistory(req.user!, req.params.submissionId as string));
 });
