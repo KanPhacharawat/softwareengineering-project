@@ -101,6 +101,8 @@ export type Submission = {
   submittedAt: string;
   updatedAt: string;
   currentVersion: number;
+  /** End of the edit window of the current version: milestone due for v1, revision due for v >= 2 (BR-11). */
+  editableUntil: string;
   feedback: Feedback | null;
   revisionRequest: RevisionRequest | null;
 };

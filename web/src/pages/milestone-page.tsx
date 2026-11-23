@@ -82,8 +82,10 @@ function MilestoneDetailContent({
   const [isEditing, setIsEditing] = useState(false);
 
   const isStudent = user?.role === 'STUDENT';
-  const deadlinePassed = Date.now() >= new Date(milestone.dueAt).getTime();
+  // F-06: the server gives the edit window of the current version (revision due for v >= 2), so the browser does not recompute it
+  const deadlinePassed = Date.now() >= new Date(submission?.editableUntil ?? milestone.dueAt).getTime();
   const canEdit = isStudent && !deadlinePassed && !submission?.feedback;
+  const canResubmit = isStudent && submission?.revisionRequest?.status === 'OPEN';
 
   return (
     <div className="space-y-8">
@@ -117,7 +119,7 @@ function MilestoneDetailContent({
         <h2 className="text-lg font-semibold">Submission</h2>
 
         {/* Status Notices (F-04 / F-05) */}
-        {isStudent && submission?.feedback ? (
+        {canResubmit ? null : isStudent && submission?.feedback ? (
           <Alert>
             <Lock className="size-4" />
             <AlertDescription>Locked after feedback</AlertDescription>
@@ -201,6 +203,9 @@ function MilestoneDetailContent({
         )}
         {submission && submission.feedback && !submission.revisionRequest && !isStudent && (
           <RevisionRequestForm submissionId={submission.id} onSaved={onReload} />
+        )}
+        {submission && canResubmit && (
+          <SubmissionForm milestoneId={milestone.id} initialValues={submission} resubmitId={submission.id} onSaved={onReload} />
         )}
 
         {/* Supervisor Feedback Form (F-05) */}
@@ -447,12 +452,15 @@ function SubmissionForm({
   milestoneId,
   initialValues,
   isEdit = false,
+  resubmitId,
   onSaved,
   onCancel,
 }: {
   milestoneId: string;
   initialValues?: Submission;
   isEdit?: boolean;
+  /** F-06: post a new version of this submission instead of creating/editing (button "Resubmit") */
+  resubmitId?: string;
   onSaved: () => void;
   onCancel?: () => void;
 }) {
@@ -499,7 +507,10 @@ function SubmissionForm({
     setErrors({});
     setIsSubmitting(true);
     try {
-      await api(`/milestones/${encodeURIComponent(milestoneId)}/submission`, {
+      const path = resubmitId
+        ? `/submissions/${encodeURIComponent(resubmitId)}/versions`
+        : `/milestones/${encodeURIComponent(milestoneId)}/submission`;
+      await api(path, {
         method: isEdit ? 'PUT' : 'POST',
         body: {
           title: trimmedTitle,
@@ -527,7 +538,7 @@ function SubmissionForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          <h3 className="text-base font-medium">{isEdit ? 'Edit submission' : 'Submit work'}</h3>
+          <h3 className="text-base font-medium">{resubmitId ? 'Resubmit' : isEdit ? 'Edit submission' : 'Submit work'}</h3>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -579,7 +590,7 @@ function SubmissionForm({
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="animate-spin" /> : isEdit ? null : <Send className="size-4" />}
-              {isEdit ? 'Save changes' : 'Submit'}
+              {resubmitId ? (isSubmitting ? 'Resubmitting…' : 'Resubmit') : isEdit ? 'Save changes' : 'Submit'}
             </Button>
             {isEdit && onCancel && (
               <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
