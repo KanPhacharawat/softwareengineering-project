@@ -20,8 +20,8 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | FR-12 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | FR-13 | F-06 | 2 | AC-23 (part 1); rest in Sprint 2 contract | TEST-26 | Part 1 implemented (original submitter kept, tests pass) |
 | FR-14 | F-07 | 2 | AC-36..AC-42 ([F-07](sprints/sprint-2/F-07-milestone-management.md)) | TEST-U06, TEST-39..TEST-44, TEST-E2E-04 | Contracted (F-07 v0.1, S2-04 #70) |
-| FR-15 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
-| FR-16 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
+| FR-15 | F-08 | 2 | AC-43..AC-47 ([F-08](sprints/sprint-2/F-08-grading.md)) | TEST-U07, TEST-45..TEST-49 | Contracted (F-08 v0.1, S2-05 #71) |
+| FR-16 | F-08 | 2 | AC-48 ([F-08](sprints/sprint-2/F-08-grading.md)) | TEST-50, TEST-E2E-05 | Contracted (F-08 v0.1, S2-05 #71) |
 | FR-17 | F-09 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
 | FR-18 | F-10 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
 | FR-19 | F-09 | 3 | Sprint 3 contract | Sprint 3 | Allocated |
@@ -36,7 +36,7 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-09 | F-04 | 1 | AC-14 | TEST-17, TEST-U03 | Implemented (F-04, tests pass) |
 | BR-10 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
 | BR-11 | F-06 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
-| BR-12 | F-08 | 2 | Sprint 2 contract | Sprint 2 | Allocated |
+| BR-12 | F-08 | 2 | AC-43..AC-47 ([F-08](sprints/sprint-2/F-08-grading.md)) | TEST-U07, TEST-45..TEST-49 | Contracted (F-08 v0.1, S2-05 #71) |
 | BR-13 | F-07 | 2 | AC-37, AC-38, AC-39, AC-42 ([F-07](sprints/sprint-2/F-07-milestone-management.md)) | TEST-U06, TEST-40, TEST-41, TEST-42, TEST-44 | Contracted (F-07 v0.1, S2-04 #70) |
 | NFR-01 | F-01 | 1 | AC-05 | TEST-06 | Implemented (F-01, tests pass) |
 | NFR-02 | F-01, F-02 | 1 | AC-03 | TEST-04 | Implemented (401 on every non-public /api route, tests pass) |
