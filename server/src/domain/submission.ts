@@ -77,14 +77,14 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
   };
 }
 
-// BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: submission has feedback -> SUBMISSION_LOCKED
+// BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: current version has feedback -> SUBMISSION_LOCKED.
+// BR-11 (F-06): version >= 2 uses the revision due of the request on the previous version instead of the milestone due.
 export function canChangeSubmission(
   milestone: { dueAt: Date | string },
-  submission?: { feedback?: unknown } | null,
+  submission?: { feedback?: unknown; versionNumber?: number; revisionDueAt?: Date | null } | null,
   now: Date = new Date(),
 ): ChangeSubmissionResult {
-  const due = new Date(milestone.dueAt).getTime();
-  if (now.getTime() >= due) {
+  if (now.getTime() >= effectiveDueAt(milestone, submission).getTime()) {
     return { allowed: false, reason: 'DEADLINE_PASSED' };
   }
 
@@ -93,4 +93,12 @@ export function canChangeSubmission(
   }
 
   return { allowed: true };
+}
+
+export function effectiveDueAt(
+  milestone: { dueAt: Date | string },
+  submission?: { versionNumber?: number; revisionDueAt?: Date | null } | null,
+): Date {
+  const revisionDue = (submission?.versionNumber ?? 1) >= 2 ? submission?.revisionDueAt : null;
+  return new Date(revisionDue ?? milestone.dueAt);
 }

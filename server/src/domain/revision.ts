@@ -37,3 +37,14 @@ export function canRequestRevision(current: { feedback?: unknown; revisionReques
   if (current.revisionRequest) return { allowed: false, reason: 'REVISION_EXISTS' };
   return { allowed: true };
 }
+
+// W2: `revisionDueAt` is the due of the request on the current version (null = none). Without one, the latest
+// request was already answered when the previous version had it (contract decision 2).
+export function canResubmit(
+  { revisionDueAt, previousHadRequest }: { revisionDueAt: Date | null; previousHadRequest: boolean },
+  now: Date = new Date(),
+): { allowed: true } | { allowed: false; reason: 'NO_REVISION_REQUEST' | 'RESUBMISSION_EXISTS' | 'REVISION_DUE_PASSED' } {
+  if (!revisionDueAt) return { allowed: false, reason: previousHadRequest ? 'RESUBMISSION_EXISTS' : 'NO_REVISION_REQUEST' };
+  if (now.getTime() >= revisionDueAt.getTime()) return { allowed: false, reason: 'REVISION_DUE_PASSED' };
+  return { allowed: true };
+}
