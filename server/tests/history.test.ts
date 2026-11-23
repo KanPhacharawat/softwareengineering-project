@@ -64,7 +64,7 @@ describe('TEST-37..TEST-38 History API (AC-32, AC-33)', () => {
     }
   });
 
-  it('TEST-38 (AC-33) S3 404, Sup2 404, malformed 404, no session 401; error bodies carry no data', async () => {
+  it('TEST-38 (AC-33) S3 404, Sup2 404, malformed 404, unknown 404, no session 401; error bodies carry no data', async () => {
     const { submissionId } = await createRevisionRequestedSubmission(app, { sup1, s1 });
 
     for (const cookie of [s3, sup2]) {
@@ -75,6 +75,9 @@ describe('TEST-37..TEST-38 History API (AC-32, AC-33)', () => {
     const malformed = await request(app).get(historyUrl('not-a-uuid')).set('Cookie', s1);
     expect(malformed.status).toBe(404);
     expect(Object.keys(malformed.body)).toEqual(['error']);
+    const unknown = await request(app).get(historyUrl('6f0c0000-0000-4000-8000-000000000000')).set('Cookie', s1);
+    expect(unknown.status).toBe(404);
+    expect(Object.keys(unknown.body)).toEqual(['error']);
     const anon = await request(app).get(historyUrl(submissionId));
     expect(anon.status).toBe(401);
     expect(Object.keys(anon.body)).toEqual(['error']);

@@ -46,7 +46,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
   await page.getByLabel('Description').fill('Ready for review');
   await page.getByRole('button', { name: 'Submit' }).click();
 
-  await expect(page.getByText('Initial Delivery Report')).toBeVisible();
+  await expect(page.getByText('Initial Delivery Report').first()).toBeVisible();
   await expect(page.getByText('SUBMITTED', { exact: true })).toBeVisible();
 
   // 3. Sup1 logs in, views submission and records feedback
@@ -54,7 +54,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
   await login(page, 'sup1@cpms.test');
   await page.goto(milestoneUrl);
 
-  await expect(page.getByText('Initial Delivery Report')).toBeVisible();
+  await expect(page.getByText('Initial Delivery Report').first()).toBeVisible();
   const feedbackInput = page.getByLabel('Feedback');
   await expect(feedbackInput).toBeVisible();
   await feedbackInput.fill('Well structured deliverable. All core requirements satisfied.');

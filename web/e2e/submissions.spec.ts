@@ -50,7 +50,7 @@ test('student submits to an open milestone, sees the saved submission card, and 
   await page.getByRole('button', { name: 'Submit' }).click();
 
   // Saved card appears with status SUBMITTED
-  await expect(page.getByText('Final Project Delivery')).toBeVisible();
+  await expect(page.getByText('Final Project Delivery').first()).toBeVisible();
   await expect(page.getByText('SUBMITTED', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'https://github.com/example/delivery' }).first()).toBeVisible();
   await expect(page.getByText('Last updated by Student One')).toBeVisible();
@@ -59,7 +59,7 @@ test('student submits to an open milestone, sees the saved submission card, and 
   await page.getByRole('button', { name: 'Edit submission' }).click();
   await page.getByLabel('Title').fill('Final Project Delivery v2');
   await page.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByText('Final Project Delivery v2')).toBeVisible();
+  await expect(page.getByText('Final Project Delivery v2').first()).toBeVisible();
 });
 
 test('supervisor sees submission read-only without edit button or submission form', async ({ page }) => {
@@ -85,7 +85,7 @@ test('supervisor sees submission read-only without edit button or submission for
   await page.getByLabel('Title').fill('Supervisor Check Submission');
   await page.getByLabel('Deliverable link').fill('https://github.com/example/sup-check');
   await page.getByRole('button', { name: 'Submit' }).click();
-  await expect(page.getByText('Supervisor Check Submission')).toBeVisible();
+  await expect(page.getByText('Supervisor Check Submission').first()).toBeVisible();
 
   // 3. Supervisor re-logs in and views milestone
   await page.getByRole('button', { name: 'Log out' }).click();
@@ -93,7 +93,7 @@ test('supervisor sees submission read-only without edit button or submission for
   await page.goto(milestoneUrl);
 
   // Assert submission card and deliverable link are visible
-  await expect(page.getByText('Supervisor Check Submission')).toBeVisible();
+  await expect(page.getByText('Supervisor Check Submission').first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'https://github.com/example/sup-check' }).first()).toBeVisible();
   await expect(page.getByText('Last updated by Student One')).toBeVisible();
 

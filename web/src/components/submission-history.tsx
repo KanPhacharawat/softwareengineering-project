@@ -46,6 +46,7 @@ export function SubmissionHistoryList({ submissionId }: { submissionId: string }
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
+            <p className="font-medium">{v.title}</p>
             <a
               href={v.link}
               target="_blank"

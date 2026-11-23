@@ -63,15 +63,41 @@ test('TEST-E2E-03 (AC-34) supervisor requests a revision, student resubmits, bot
   await page.getByRole('button', { name: 'Resubmit' }).click();
   await expect(history(page).getByText('Version 2')).toBeVisible();
 
-  // 5. Sup1 and S1 both see Version 1 and Version 2 in History
+  // 5. Sup1 records feedback on v2; it appears on Version 2 only
+  await switchUser(page, 'sup1@cpms.test', milestoneUrl);
+  await page.getByLabel('Feedback').fill('Evidence added, thanks');
+  await page.getByRole('button', { name: 'Save feedback' }).click();
+  await expect(history(page).getByText('Evidence added, thanks')).toBeVisible();
+
+  // 6. Sup1 and S1 both see Version 1 and Version 2 in History
   for (const email of ['sup1@cpms.test', 's1@cpms.test']) {
     await switchUser(page, email, milestoneUrl);
     await expect(history(page).getByText('Version 1')).toBeVisible();
     await expect(history(page).getByText('Version 2')).toBeVisible();
+    await expect(history(page).getByText('History report v2')).toBeVisible();
     await expect(history(page).getByText('Submitted by Student Two', { exact: false })).toBeVisible();
     await expect(history(page).getByText('Tests are missing')).toBeVisible();
     await expect(history(page).getByText('No earlier versions')).toHaveCount(0);
-    await history(page).scrollIntoViewIfNeeded();
-    await page.screenshot({ path: `${SHOTS}/h${email.startsWith('sup') ? 1 : 2}-${email.split('@')[0]}-history.png`, fullPage: true });
+    // Evidence for the D2 PDF only on demand, so normal runs never rewrite tracked PNGs
+    if (process.env.CAPTURE_EVIDENCE) {
+      await history(page).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${SHOTS}/h${email.startsWith('sup') ? 1 : 2}-${email.split('@')[0]}-history.png`, fullPage: true });
+    }
   }
+
+  // 7. Loading and error states (route interception): slow 500 -> skeleton -> error alert -> Retry loads versions.
+  // Every call fails until Retry, because React StrictMode in dev fires the first fetch twice.
+  let fail = true;
+  await page.route('**/api/submissions/*/history', async (route) => {
+    if (!fail) return route.continue();
+    await new Promise((r) => setTimeout(r, 1000));
+    await route.fulfill({ status: 500, json: { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } } });
+  });
+  await page.reload();
+  await expect(page.getByLabel('Loading history')).toBeVisible();
+  await expect(history(page).getByText('Could not load history')).toBeVisible();
+  fail = false;
+  await history(page).getByRole('button', { name: 'Retry' }).click();
+  await expect(history(page).getByText('Version 2')).toBeVisible();
+  await expect(history(page).getByText('Could not load history')).toHaveCount(0);
 });

@@ -1,5 +1,6 @@
-# TDD green for #69 F-06c revision history: npm test, npm run typecheck, npm run build, npm run test:e2e
-# Sprint 1 E2E (feedback, submissions) now take .first() on texts/links the History section repeats.
+# TDD green for #69 F-06c revision history (after PR #81 review round 1): npm test, typecheck, build, test:e2e
+# Review fixes: TEST-E2E-03 covers loading/error/Retry (route interception) + Sup1 feedback on v2; screenshots only with CAPTURE_EVIDENCE=1;
+# History shows version title; TEST-38 adds unknown UUID. Sprint 1 E2E take .first() on texts/links that History repeats.
 
 
 > test
@@ -23,30 +24,30 @@ Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:
 
 
 No pending migrations to apply.
- ✓ tests/auth.test.ts (14 tests) 4974ms
-     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  453ms
-     ✓ accepts the email in any letter case  320ms
-     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  335ms
-     ✓ unknown email gives the same 401 response as a wrong password  647ms
-     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  328ms
-     ✓ deletes the session row from the database  340ms
-     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2524ms
- ✓ tests/resubmission.test.ts (10 tests) 2117ms
- ✓ tests/history.test.ts (2 tests) 1949ms
- ✓ tests/revision-request.test.ts (9 tests) 1622ms
- ✓ tests/submissions.test.ts (16 tests) 1726ms
- ✓ tests/feedback.test.ts (12 tests) 1564ms
- ✓ tests/teams.test.ts (13 tests) 1593ms
- ✓ tests/milestones.test.ts (11 tests) 931ms
- ✓ tests/seed.test.ts (4 tests) 851ms
-     ✓ keeps app data and does not duplicate demo rows when run again without reset  758ms
- ✓ tests/health.test.ts (6 tests) 89ms
- ✓ tests/authorization.test.ts (9 tests) 68ms
+ ✓ tests/auth.test.ts (14 tests) 5111ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  433ms
+     ✓ accepts the email in any letter case  321ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  337ms
+     ✓ unknown email gives the same 401 response as a wrong password  633ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  333ms
+     ✓ deletes the session row from the database  336ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2686ms
+ ✓ tests/resubmission.test.ts (10 tests) 2043ms
+ ✓ tests/history.test.ts (2 tests) 1913ms
+ ✓ tests/submissions.test.ts (16 tests) 1770ms
+ ✓ tests/revision-request.test.ts (9 tests) 1620ms
+ ✓ tests/teams.test.ts (13 tests) 1475ms
+ ✓ tests/feedback.test.ts (12 tests) 1572ms
+ ✓ tests/milestones.test.ts (11 tests) 881ms
+ ✓ tests/seed.test.ts (4 tests) 830ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  754ms
+ ✓ tests/health.test.ts (6 tests) 97ms
+ ✓ tests/authorization.test.ts (9 tests) 83ms
 
  Test Files  11 passed (11)
       Tests  106 passed (106)
-   Start at  18:29:32
-   Duration  22.81s (transform 329ms, setup 162ms, import 2.23s, tests 17.49s, environment 1ms)
+   Start at  19:20:23
+   Duration  22.61s (transform 350ms, setup 176ms, import 2.12s, tests 17.39s, environment 1ms)
 
 
 > typecheck
@@ -65,9 +66,9 @@ rendering chunks...
 computing gzip size...
 dist/index.html                   0.73 kB │ gzip:   0.40 kB
 dist/assets/index-BZ6F1Xfq.css   35.35 kB │ gzip:   7.14 kB
-dist/assets/index-BB70-duV.js   338.64 kB │ gzip: 104.04 kB
+dist/assets/index-BBKZZsN2.js   338.70 kB │ gzip: 104.05 kB
 
-✓ built in 389ms
+✓ built in 917ms
 
 > test:e2e
 > npm run test:e2e -w web
@@ -80,23 +81,23 @@ dist/assets/index-BB70-duV.js   338.64 kB │ gzip: 104.04 kB
 Running 19 tests using 1 worker
 
   ✓   1 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (2.1s)
-  ✓   2 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (1.5s)
-  ✓   3 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (644ms)
+  ✓   2 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (1.4s)
+  ✓   3 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (694ms)
   ✓   4 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (1.9s)
-  ✓   5 [chromium] › e2e/feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice (7.9s)
-  ✓   6 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (1.9s)
-  ✓   7 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (1.9s)
-  ✓   8 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (2.5s)
-  ✓   9 [chromium] › e2e/milestones.spec.ts:55:1 › validation errors appear under form inputs when submitting invalid milestone (2.1s)
-  ✓  10 [chromium] › e2e/revision-history.spec.ts:29:1 › TEST-E2E-03 (AC-34) supervisor requests a revision, student resubmits, both see History (12.4s)
-  ✓  11 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (615ms)
-  ✓  12 [chromium] › e2e/submissions.spec.ts:24:1 › student submits to an open milestone, sees the saved submission card, and can edit it (5.1s)
-  ✓  13 [chromium] › e2e/submissions.spec.ts:65:1 › supervisor sees submission read-only without edit button or submission form (6.5s)
-  ✓  14 [chromium] › e2e/submissions.spec.ts:105:1 › validation errors appear under form inputs and prevent submission on invalid data (4.5s)
+  ✓   5 [chromium] › e2e/feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice (8.7s)
+  ✓   6 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (1.8s)
+  ✓   7 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (2.0s)
+  ✓   8 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (2.7s)
+  ✓   9 [chromium] › e2e/milestones.spec.ts:55:1 › validation errors appear under form inputs when submitting invalid milestone (1.8s)
+  ✓  10 [chromium] › e2e/revision-history.spec.ts:29:1 › TEST-E2E-03 (AC-34) supervisor requests a revision, student resubmits, both see History (16.3s)
+  ✓  11 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (629ms)
+  ✓  12 [chromium] › e2e/submissions.spec.ts:24:1 › student submits to an open milestone, sees the saved submission card, and can edit it (5.6s)
+  ✓  13 [chromium] › e2e/submissions.spec.ts:65:1 › supervisor sees submission read-only without edit button or submission form (6.6s)
+  ✓  14 [chromium] › e2e/submissions.spec.ts:105:1 › validation errors appear under form inputs and prevent submission on invalid data (4.4s)
   ✓  15 [chromium] › e2e/teams.spec.ts:14:1 › a student sees only their own team with supervisor and members (1.5s)
-  ✓  16 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (1.5s)
+  ✓  16 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (1.4s)
   ✓  17 [chromium] › e2e/teams.spec.ts:37:1 › opening a team card shows the team page with its members (1.6s)
-  ✓  18 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (1.9s)
-  ✓  19 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (1.5s)
+  ✓  18 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (2.0s)
+  ✓  19 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (1.6s)
 
-  19 passed (1.0m)
+  19 passed (1.1m)
