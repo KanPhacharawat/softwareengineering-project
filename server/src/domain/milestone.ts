@@ -66,6 +66,21 @@ export function validateMilestoneInput(input: unknown, now: Date = new Date()): 
   };
 }
 
+export type ValidatedMilestoneUpdate = Partial<{
+  title: string;
+  description: string | null;
+  dueAt: Date;
+}>;
+
+export type MilestoneUpdateValidationResult =
+  | { success: true; data: ValidatedMilestoneUpdate }
+  | { success: false; fields: Record<string, string> };
+
+// Stub for TDD RED (#70): implemented in the GREEN commit.
+export function validateMilestoneUpdate(_input: unknown, _now: Date = new Date()): MilestoneUpdateValidationResult {
+  throw new Error('not implemented');
+}
+
 // F-03 status computation:
 // - SUBMITTED / FEEDBACK_GIVEN when submission exists (F-04/F-05), judged on the current version (F-06)
 // - REVISION_REQUESTED while the current version has an open revision request (F-06, before its dueAt)
