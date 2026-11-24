@@ -21,7 +21,8 @@ model User {
   createdAt          DateTime            @default(now()) @db.Timestamptz(3)
   supervises         Team[]              @relation("TeamSupervisor")
   memberships        TeamMember[]
-  milestones         Milestone[]
+  milestones         Milestone[]         @relation("MilestoneCreatedBy")
+  closedMilestones   Milestone[]         @relation("MilestoneClosedBy")
   submissions        Submission[]        @relation("SubmissionSubmittedBy")
   createdSubmissions Submission[]        @relation("SubmissionCreatedBy")
   feedbacks          Feedback[]
@@ -56,8 +57,11 @@ model Milestone {
   dueAt       DateTime    @db.Timestamptz(3)
   createdById String      @db.Uuid
   createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  closedAt    DateTime?   @db.Timestamptz(3)
+  closedById  String?     @db.Uuid
   team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  createdBy   User        @relation(fields: [createdById], references: [id])
+  createdBy   User        @relation("MilestoneCreatedBy", fields: [createdById], references: [id])
+  closedBy    User?       @relation("MilestoneClosedBy", fields: [closedById], references: [id], onDelete: Restrict)
   submission  Submission?
 
   @@index([teamId])

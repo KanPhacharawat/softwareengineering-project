@@ -67,6 +67,8 @@ export type Milestone = {
   title: string;
   description: string | null;
   dueAt: string;
+  closedAt: string | null;
+  closedBy: { id: string; name: string } | null;
   status: MilestoneStatus;
 };
 
@@ -146,4 +148,23 @@ export function formatBangkokDateTime(isoString: string): string {
 
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
   return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')}`;
+}
+
+// F-07: converts a UTC ISO string to "YYYY-MM-DDTHH:mm" in Asia/Bangkok for <input type="datetime-local"> prefill & dirty checks.
+export function toBangkokDateTimeLocal(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Bangkok',
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  const hour = get('hour') === '24' ? '00' : get('hour');
+  return `${get('year')}-${get('month')}-${get('day')}T${hour}:${get('minute')}`;
 }
