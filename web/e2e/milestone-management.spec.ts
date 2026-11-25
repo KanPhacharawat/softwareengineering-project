@@ -40,11 +40,17 @@ test('TEST-E2E-04 (AC-41) supervisor edits and closes milestone; team page and s
   const milestoneUrl = page.url();
 
   // 2. Sup1 edits title and due date
+  const updatedDue = getFutureDateTimeLocal(10);
   await page.getByRole('button', { name: 'Edit milestone' }).click();
   await page.getByLabel('Title').fill(updatedTitle);
-  await page.getByLabel('Due date').fill(getFutureDateTimeLocal(10));
+  await page.getByLabel('Due date').fill(updatedDue);
   await page.getByRole('button', { name: 'Save changes' }).click();
   await expect(page.getByText(updatedTitle).first()).toBeVisible();
+
+  // Verify toBangkokDateTimeLocal round-trip: re-opening Edit prefills the exact Bangkok YYYY-MM-DDTHH:mm
+  await page.getByRole('button', { name: 'Edit milestone' }).click();
+  await expect(page.getByLabel('Due date')).toHaveValue(updatedDue);
+  await page.getByRole('button', { name: 'Cancel' }).click();
 
   // 3. Sup1 closes the milestone via inline confirmation
   await page.getByRole('button', { name: 'Close milestone' }).click();

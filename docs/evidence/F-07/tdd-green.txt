@@ -7,7 +7,7 @@
 > vitest run
 
 
- RUN  v4.0.18 C:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server[39m
 
 node.exe : warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please 
 migrate to a Prisma config file (e.g., `prisma.config.ts`).
@@ -25,47 +25,44 @@ Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:
 
 7 migrations found in prisma/migrations
 
-Applying migration `20261124140000_milestone_close`
 
-The following migration(s) have been applied:
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.19.3 -> 8.0.0-rc.35                 │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+No pending migrations to apply.
+ [32m✓[39m tests/auth.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 9225[2mms[22m[39m
+     [33m[2m✓[22m[39m returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user [33m 794[2mms[22m[39m
+     [33m[2m✓[22m[39m accepts the email in any letter case [33m 625[2mms[22m[39m
+     [33m[2m✓[22m[39m wrong password gives 401 INVALID_CREDENTIALS and no session cookie [33m 448[2mms[22m[39m
+     [33m[2m✓[22m[39m unknown email gives the same 401 response as a wrong password [33m 1224[2mms[22m[39m
+     [33m[2m✓[22m[39m returns 204, clears the cookie, and the old cookie is rejected afterwards [33m 742[2mms[22m[39m
+     [33m[2m✓[22m[39m deletes the session row from the database [33m 679[2mms[22m[39m
+     [33m[2m✓[22m[39m every passwordHash is bcrypt with cost >= 10 and is not the plain password [33m 4670[2mms[22m[39m
+ [32m✓[39m tests/milestone-management.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 3683[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201) [33m 706[2mms[22m[39m
+ [32m✓[39m tests/history.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 3701[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-37 (AC-32) S1, S2, Sup1 get every version ascending with submitter, feedback and revision request [33m 636[2mms[22m[39m
+ [32m✓[39m tests/resubmission.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 3568[2mms[22m[39m
+ [32m✓[39m tests/feedback.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 2866[2mms[22m[39m
+ [32m✓[39m tests/revision-request.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 2866[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fields, nothing stored; 1 and 1000 chars -> 201 [33m 381[2mms[22m[39m
+ [32m✓[39m tests/teams.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 2493[2mms[22m[39m
+ [32m✓[39m tests/submissions.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 2831[2mms[22m[39m
+ [32m✓[39m tests/milestones.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1206[2mms[22m[39m
+ [32m✓[39m tests/seed.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1144[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps app data and does not duplicate demo rows when run again without reset [33m 1090[2mms[22m[39m
+ [32m✓[39m tests/health.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+ [32m✓[39m tests/authorization.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 61[2mms[22m[39m
 
-migrations/
-  +- 20261124140000_milestone_close/
-    +- migration.sql
-      
-All migrations have been successfully applied.
- ? tests/milestone-management.test.ts (9 tests) 6067ms
-     ? TEST-40 (AC-37) invalid PATCH bodies -> 400 + fields, row unchanged; valid 3/120 titles and clear description -> 200  493ms
-     ? TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201)  858ms
- ? tests/auth.test.ts (14 tests) 14931ms
-     ? returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  1193ms
-     ? accepts the email in any letter case  1049ms
-     ? wrong password gives 401 INVALID_CREDENTIALS and no session cookie  1085ms
-     ? unknown email gives the same 401 response as a wrong password  1973ms
-     ? returns 204, clears the cookie, and the old cookie is rejected afterwards  1020ms
-     ? deletes the session row from the database  1090ms
-     ? every passwordHash is bcrypt with cost >= 10 and is not the plain password  7443ms
- ? tests/resubmission.test.ts (10 tests) 5268ms
-     ? TEST-32 (AC-28) S2 resubmits before revision due -> 201 v2, createdBy S1, v1 + v1 feedback unchanged  322ms
-     ? TEST-34 (AC-30) no request 409, second 409 RESUBMISSION_EXISTS, Sup1 403, S3 404, malformed 404  416ms
-     ? TEST-34 (AC-30) S1 PUT edits v2 only before feedback; after revision due -> 422 DEADLINE_PASSED  339ms
-     ? TEST-35 (AC-31) feedback on v2 is stored on v2 and locks it; second feedback 409; v1 feedback unchanged  306ms
- ? tests/submissions.test.ts (16 tests) 4531ms
- ? tests/history.test.ts (2 tests) 5349ms
-     ? TEST-37 (AC-32) S1, S2, Sup1 get every version ascending with submitter, feedback and revision request  457ms
- ? tests/revision-request.test.ts (9 tests) 4626ms
-     ? TEST-28 (AC-24) Sup1 requests a revision -> 201, stored, status REVISION_REQUESTED for S1 and Sup1  388ms
-     ? TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fields, nothing stored; 1 and 1000 chars -> 201  553ms
- ? tests/feedback.test.ts (12 tests) 4673ms
- ? tests/teams.test.ts (13 tests) 4610ms
- ? tests/milestones.test.ts (11 tests) 2397ms
- ? tests/seed.test.ts (4 tests) 2262ms
-     ? keeps app data and does not duplicate demo rows when run again without reset  2196ms
- ? tests/health.test.ts (6 tests) 210ms
- ? tests/authorization.test.ts (9 tests) 97ms
-
- Test Files  12 passed (12)
-      Tests  115 passed (115)
-   Start at  14:14:28
-   Duration  82.71s (transform 1.12s, setup 633ms, import 12.70s, tests 55.02s, environment 4ms)
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m115 passed[39m[22m[90m (115)[39m
+[2m   Start at [22m 15:42:31
+[2m   Duration [22m 54.07s[2m (transform 700ms, setup 409ms, import 10.93s, tests 33.77s, environment 2ms)[22m
 

@@ -102,6 +102,11 @@ function MilestoneDetailContent({
       setIsConfirmingClose(false);
       onReload();
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'MILESTONE_CLOSED') {
+        setIsConfirmingClose(false);
+        onReload();
+        return;
+      }
       setCloseError(err instanceof Error ? err.message : 'Could not close milestone');
     } finally {
       setIsClosing(false);
@@ -402,6 +407,10 @@ function EditMilestoneForm({
       });
       onSaved();
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'MILESTONE_CLOSED') {
+        onSaved();
+        return;
+      }
       if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
         setErrors(err.fields);
       } else {

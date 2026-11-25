@@ -21,29 +21,38 @@ export type MilestoneView = {
   status: MilestoneStatus;
 };
 
-export type CreatedMilestoneView = {
-  id: string;
+export type CreatedMilestoneView = MilestoneView & {
   teamId: string;
-  title: string;
-  description: string | null;
-  dueAt: string;
-  closedAt: string | null;
-  closedBy: { id: string; name: string } | null;
   createdById: string;
   createdAt: string;
-  status: MilestoneStatus;
 };
 
-export type ManagedMilestoneView = {
-  id: string;
+export type ManagedMilestoneView = MilestoneView & {
   teamId: string;
-  title: string;
-  description: string | null;
-  dueAt: string;
-  closedAt: string | null;
-  closedBy: { id: string; name: string } | null;
-  status: MilestoneStatus;
 };
+
+function toMilestoneView(
+  m: {
+    id: string;
+    title: string;
+    description: string | null;
+    dueAt: Date;
+    closedAt: Date | null;
+    closedBy: { id: string; name: string } | null;
+    submission: Parameters<typeof currentState>[0] | null;
+  },
+  now: Date,
+): MilestoneView {
+  return {
+    id: m.id,
+    title: m.title,
+    description: m.description,
+    dueAt: m.dueAt.toISOString(),
+    closedAt: m.closedAt ? m.closedAt.toISOString() : null,
+    closedBy: m.closedBy,
+    status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
+  };
+}
 
 // FR-06: lists milestones of a team, sorted by due date ascending, with calculated status.
 export async function listTeamMilestones(teamId: string, now: Date = new Date()): Promise<MilestoneView[]> {
@@ -58,15 +67,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     orderBy: { dueAt: 'asc' },
   });
 
-  return milestones.map((m) => ({
-    id: m.id,
-    title: m.title,
-    description: m.description,
-    dueAt: m.dueAt.toISOString(),
-    closedAt: m.closedAt ? m.closedAt.toISOString() : null,
-    closedBy: m.closedBy,
-    status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
-  }));
+  return milestones.map((m) => toMilestoneView(m, now));
 }
 
 // FR-05: stores a new milestone for an assigned team.
@@ -87,16 +88,10 @@ export async function createMilestone(
   });
 
   return {
-    id: milestone.id,
+    ...toMilestoneView({ ...milestone, closedBy: null, submission: null }, now),
     teamId: milestone.teamId,
-    title: milestone.title,
-    description: milestone.description,
-    dueAt: milestone.dueAt.toISOString(),
-    closedAt: null,
-    closedBy: null,
     createdById: milestone.createdById,
     createdAt: milestone.createdAt.toISOString(),
-    status: computeMilestoneStatus(milestone, null, now),
   };
 }
 
@@ -131,16 +126,7 @@ export async function updateMilestone(
     });
   });
 
-  return {
-    id: updated.id,
-    teamId: updated.teamId,
-    title: updated.title,
-    description: updated.description,
-    dueAt: updated.dueAt.toISOString(),
-    closedAt: updated.closedAt ? updated.closedAt.toISOString() : null,
-    closedBy: updated.closedBy,
-    status: computeMilestoneStatus(updated, updated.submission && currentState(updated.submission, now), now),
-  };
+  return { ...toMilestoneView(updated, now), teamId: updated.teamId };
 }
 
 // POST /api/milestones/:milestoneId/close (FR-14, BR-13, AC-38, AC-40)
@@ -158,9 +144,12 @@ export async function closeMilestone(
       throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
     }
 
+    // Use DB clock_timestamp() *after* acquiring FOR UPDATE so closedAt is always >= any submission committed before close.
+    const [{ closedAt }] = await tx.$queryRaw<[{ closedAt: Date }]>`SELECT clock_timestamp() AS "closedAt"`;
+
     return tx.milestone.update({
       where: { id: milestoneId },
-      data: { closedAt: now, closedById: user.id },
+      data: { closedAt, closedById: user.id },
       include: {
         closedBy: USER,
         submission: { select: { versions: CURRENT_VERSION } },
@@ -168,14 +157,5 @@ export async function closeMilestone(
     });
   });
 
-  return {
-    id: closed.id,
-    teamId: closed.teamId,
-    title: closed.title,
-    description: closed.description,
-    dueAt: closed.dueAt.toISOString(),
-    closedAt: closed.closedAt ? closed.closedAt.toISOString() : null,
-    closedBy: closed.closedBy,
-    status: computeMilestoneStatus(closed, closed.submission && currentState(closed.submission, now), now),
-  };
+  return { ...toMilestoneView(closed, now), teamId: closed.teamId };
 }
