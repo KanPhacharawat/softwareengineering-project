@@ -66,6 +66,80 @@ export function validateMilestoneInput(input: unknown, now: Date = new Date()): 
   };
 }
 
+export type ValidatedMilestoneUpdate = Partial<{
+  title: string;
+  description: string | null;
+  dueAt: Date;
+}>;
+
+export type MilestoneUpdateValidationResult =
+  | { success: true; data: ValidatedMilestoneUpdate }
+  | { success: false; fields: Record<string, string> };
+
+// F-07 partial milestone update validation (FR-14, BR-04, BR-13). Presence is defined by Object.hasOwn.
+export function validateMilestoneUpdate(input: unknown, now: Date = new Date()): MilestoneUpdateValidationResult {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { success: false, fields: { form: 'At least one field is required' } };
+  }
+
+  const record = input as Record<string, unknown>;
+  const hasTitle = Object.hasOwn(record, 'title');
+  const hasDescription = Object.hasOwn(record, 'description');
+  const hasDueAt = Object.hasOwn(record, 'dueAt');
+
+  if (!hasTitle && !hasDescription && !hasDueAt) {
+    return { success: false, fields: { form: 'At least one field is required' } };
+  }
+
+  const fields: Record<string, string> = {};
+  const data: ValidatedMilestoneUpdate = {};
+
+  if (hasTitle) {
+    const rawTitle = typeof record.title === 'string' ? record.title.trim() : '';
+    if (!rawTitle || rawTitle.length < 3 || rawTitle.length > 120) {
+      fields.title = 'Title must be between 3 and 120 characters';
+    } else {
+      data.title = rawTitle;
+    }
+  }
+
+  if (hasDescription) {
+    if (record.description === null) {
+      data.description = null;
+    } else if (typeof record.description === 'string') {
+      const trimmedDesc = record.description.trim();
+      if (trimmedDesc.length > 2000) {
+        fields.description = 'Description cannot exceed 2000 characters';
+      } else {
+        data.description = trimmedDesc.length > 0 ? trimmedDesc : null;
+      }
+    } else {
+      fields.description = 'Description must be text';
+    }
+  }
+
+  if (hasDueAt) {
+    if (typeof record.dueAt !== 'string') {
+      fields.dueAt = 'Invalid due date';
+    } else {
+      const timestamp = Date.parse(record.dueAt);
+      if (Number.isNaN(timestamp)) {
+        fields.dueAt = 'Invalid due date';
+      } else if (timestamp <= now.getTime()) {
+        fields.dueAt = 'Due date must be in the future';
+      } else {
+        data.dueAt = new Date(timestamp);
+      }
+    }
+  }
+
+  if (Object.keys(fields).length > 0) {
+    return { success: false, fields };
+  }
+
+  return { success: true, data };
+}
+
 // F-03 status computation:
 // - SUBMITTED / FEEDBACK_GIVEN when submission exists (F-04/F-05), judged on the current version (F-06)
 // - REVISION_REQUESTED while the current version has an open revision request (F-06, before its dueAt)

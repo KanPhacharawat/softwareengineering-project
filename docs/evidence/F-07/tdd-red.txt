@@ -1,0 +1,257 @@
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+ RUN  v4.0.18 C:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server
+
+node.exe : warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please 
+migrate to a Prisma config file (e.g., `prisma.config.ts`).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warn The config...ma.config.ts`).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+6 migrations found in prisma/migrations
+
+Applying migration `20261119150000_submission_created_by`
+Applying migration `20261123180000_revision_versions`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261119150000_submission_created_by/
+    └─ migration.sql
+  └─ 20261123180000_revision_versions/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+ ✓ tests/submissions.test.ts (16 tests) 2158ms
+ ❯ tests/milestone-management.test.ts (9 tests | 9 failed) 1891ms
+     × TEST-U06 rejects empty, unknown-only, and non-object bodies with fields.form 4ms
+     × TEST-U06 validates partial title, description, and dueAt boundaries 0ms
+     × TEST-U06 canChangeSubmission returns MILESTONE_CLOSED before DEADLINE_PASSED 4ms
+     × TEST-39 (AC-36) Sup1 PATCHes title, description, dueAt -> 200, DB updated, S1 GET sees new values 42ms
+     × TEST-40 (AC-37) invalid PATCH bodies -> 400 + fields, row unchanged; valid 3/120 titles and clear description -> 200 28ms
+     × TEST-41 (AC-38) Sup1 closes milestone -> 200; close again -> 409; PATCH closed -> 409; parallel closes -> one 200 + one 409 27ms
+     × TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201) 26ms
+     × TEST-43 (AC-40) S1 403, Sup2 404, malformed 404, no cookie 401; DB row unchanged 28ms
+     × TEST-44 (AC-42) past-due milestone: title-only PATCH keeps MISSED; extending dueAt reopens submit window 30ms
+ ✓ tests/resubmission.test.ts (10 tests) 2535ms
+ ✓ tests/revision-request.test.ts (9 tests) 1933ms
+ ✓ tests/auth.test.ts (14 tests) 5850ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  458ms
+     ✓ accepts the email in any letter case  425ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  371ms
+     ✓ unknown email gives the same 401 response as a wrong password  772ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  415ms
+     ✓ deletes the session row from the database  419ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2956ms
+ ✓ tests/feedback.test.ts (12 tests) 1763ms
+ ✓ tests/teams.test.ts (13 tests) 1613ms
+ ✓ tests/milestones.test.ts (11 tests) 937ms
+ ✓ tests/history.test.ts (2 tests) 2152ms
+ ✓ tests/seed.test.ts (4 tests) 827ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  789ms
+ ✓ tests/health.test.ts (6 tests) 67ms
+ ✓ tests/authorization.test.ts (9 tests) 42ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-U06 validateMilestoneUpdate & canChangeSubmission closed check 
+(AC-37, AC-39) > TEST-U06 rejects empty, unknown-only, and non-object bodies with fields.form
+Error: not implemented
+ ❯ validateMilestoneUpdate src/domain/milestone.ts:81:9
+     79| // Stub for TDD RED (#70): implemented in the GREEN commit.
+     80| export function validateMilestoneUpdate(_input: unknown, _now: Date = …
+     81|   throw new Error('not implemented');
+       |         ^
+     82| }
+     83| 
+ ❯ tests/milestone-management.test.ts:51:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-U06 validateMilestoneUpdate & canChangeSubmission closed check 
+(AC-37, AC-39) > TEST-U06 validates partial title, description, and dueAt boundaries
+Error: not implemented
+ ❯ validateMilestoneUpdate src/domain/milestone.ts:81:9
+     79| // Stub for TDD RED (#70): implemented in the GREEN commit.
+     80| export function validateMilestoneUpdate(_input: unknown, _now: Date = …
+     81|   throw new Error('not implemented');
+       |         ^
+     82| }
+     83| 
+ ❯ tests/milestone-management.test.ts:59:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-U06 validateMilestoneUpdate & canChangeSubmission closed check 
+(AC-37, AC-39) > TEST-U06 canChangeSubmission returns MILESTONE_CLOSED before DEADLINE_PASSED
+AssertionError: expected { allowed: false, …(1) } to deeply equal { allowed: false, …(1) }
+
+- Expected
++ Received
+
+  {
+    "allowed": false,
+-   "reason": "MILESTONE_CLOSED",
++   "reason": "DEADLINE_PASSED",
+  }
+
+ ❯ tests/milestone-management.test.ts:93:60
+     91|       typeof canChangeSubmission
+     92|     >[0];
+     93|     expect(canChangeSubmission(milestone, null, fixedNow)).toEqual({
+       |                                                            ^
+     94|       allowed: false,
+     95|       reason: 'MILESTONE_CLOSED',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-39 (AC-36) Sup1 PATCHes title, description, dueAt -> 200, DB updated, S1 GET sees new values
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/milestone-management.test.ts:110:24
+    108|       dueAt: newDue,
+    109|     });
+    110|     expect(res.status).toBe(200);
+       |                        ^
+    111|     expect(res.body.milestone).toMatchObject({
+    112|       id: ms.id,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-40 (AC-37) invalid PATCH bodies -> 400 + fields, row unchanged; valid 3/120 titles and clear description -> 200
+AssertionError: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ tests/milestone-management.test.ts:158:26
+    156|     for (const [body, field] of invalidCases) {
+    157|       const res = await patch(`/api/milestones/${ms.id}`, sup1, body);
+    158|       expect(res.status).toBe(400);
+       |                          ^
+    159|       expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    160|       expect(res.body.error.fields[field]).toBeDefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-41 (AC-38) Sup1 closes milestone -> 200; close again -> 409; PATCH closed -> 409; parallel closes -> one 200 + 
+one 409
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/milestone-management.test.ts:177:27
+    175| 
+    176|     const close1 = await post(`/api/milestones/${ms.id}/close`, sup1);
+    177|     expect(close1.status).toBe(200);
+       |                           ^
+    178|     expect(close1.body.milestone.closedAt).toBeTruthy();
+    179|     expect(close1.body.milestone.closedBy).toEqual({ id: SUP1.id, name…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows 
+feedback (201)
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/milestone-management.test.ts:201:78
+    199|     // (1) Empty milestone -> close -> S1 POST submission -> 409
+    200|     const emptyMs = await createAlphaMilestone(7);
+    201|     expect((await post(`/api/milestones/${emptyMs.id}/close`, sup1)).s…
+       |                                                                              ^
+    202|     const subOnClosed = await post(`/api/milestones/${emptyMs.id}/subm…
+    203|       title: 'Late submit',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-43 (AC-40) S1 403, Sup2 404, malformed 404, no cookie 401; DB row unchanged
+AssertionError: expected 404 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 404
+
+ ❯ tests/milestone-management.test.ts:280:87
+    278|     const before = await prisma.milestone.findUniqueOrThrow({ where: {…
+    279| 
+    280|     expect((await patch(`/api/milestones/${ms.id}`, s1, { title: 'Hack…
+       |                                                                                       ^
+    281|     expect((await post(`/api/milestones/${ms.id}/close`, s1)).status).…
+    282|     expect((await patch(`/api/milestones/${ms.id}`, sup2, { title: 'Ot…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+
+ Test Files  1 failed | 11 passed (12)
+      Tests  9 failed | 106 passed (115)
+   Start at  14:05:35
+   Duration  42.06s (transform 504ms, setup 266ms, import 9.22s, tests 21.77s, environment 2ms)
+
+ FAIL  tests/milestone-management.test.ts > TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42) > 
+TEST-44 (AC-42) past-due milestone: title-only PATCH keeps MISSED; extending dueAt reopens submit window
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/milestone-management.test.ts:299:30
+    297|     // Title-only PATCH on past-due milestone succeeds and keeps dueAt…
+    298|     const renameRes = await patch(`/api/milestones/${ms.id}`, sup1, { …
+    299|     expect(renameRes.status).toBe(200);
+       |                              ^
+    300|     expect(renameRes.body.milestone.dueAt).toBe(pastDue.toISOString());
+    301|     expect(renameRes.body.milestone.status).toBe('MISSED');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path C:\Users\CPE KMUTT\Documents\GitHub\softwareengineering-project\server
+npm error workspace @cpms/server
+npm error location C:\Users\CPE KMUTT\Documents\GitHub\softwareengineering-project\server
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vitest run

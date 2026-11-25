@@ -48,11 +48,11 @@ describe('TEST-U05 canResubmit / canChangeSubmission / computeMilestoneStatus (A
   });
 
   it('TEST-U05 canChangeSubmission uses the revision due for v >= 2 (BR-11) and locks on current feedback (BR-07)', () => {
-    const pastMilestone = { dueAt: at(-DAY) };
+    const pastMilestone = { dueAt: at(-DAY), closedAt: null };
     expect(canChangeSubmission(pastMilestone, { feedback: null }, now)).toEqual({ allowed: false, reason: 'DEADLINE_PASSED' });
     expect(canChangeSubmission(pastMilestone, { versionNumber: 2, revisionDueAt: at(DAY) }, now)).toEqual({ allowed: true });
     expect(canChangeSubmission(pastMilestone, { versionNumber: 2, revisionDueAt: at(0) }, now)).toEqual({ allowed: false, reason: 'DEADLINE_PASSED' });
-    expect(canChangeSubmission({ dueAt: at(DAY) }, { versionNumber: 2, revisionDueAt: at(-1000) }, now)).toEqual({ allowed: false, reason: 'DEADLINE_PASSED' });
+    expect(canChangeSubmission({ dueAt: at(DAY), closedAt: null }, { versionNumber: 2, revisionDueAt: at(-1000) }, now)).toEqual({ allowed: false, reason: 'DEADLINE_PASSED' });
     expect(canChangeSubmission(pastMilestone, { versionNumber: 2, revisionDueAt: at(DAY), feedback: { id: 'x' } }, now)).toEqual({ allowed: false, reason: 'SUBMISSION_LOCKED' });
   });
 

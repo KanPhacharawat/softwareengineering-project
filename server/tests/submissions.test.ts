@@ -39,25 +39,25 @@ describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
   const equalDue = new Date('2026-11-06T12:00:00.000Z');
 
   it('allows submission when now < dueAt and no feedback', () => {
-    const res = canChangeSubmission({ dueAt: futureDue }, null, fixedNow);
+    const res = canChangeSubmission({ dueAt: futureDue, closedAt: null }, null, fixedNow);
     expect(res.allowed).toBe(true);
 
-    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: null }, fixedNow);
+    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue, closedAt: null }, { feedback: null }, fixedNow);
     expect(resWithSubNoFeedback.allowed).toBe(true);
   });
 
   it('rejects with DEADLINE_PASSED when now >= dueAt', () => {
-    const resPast = canChangeSubmission({ dueAt: pastDue }, null, fixedNow);
+    const resPast = canChangeSubmission({ dueAt: pastDue, closedAt: null }, null, fixedNow);
     expect(resPast.allowed).toBe(false);
     if (!resPast.allowed) expect(resPast.reason).toBe('DEADLINE_PASSED');
 
-    const resEqual = canChangeSubmission({ dueAt: equalDue }, null, fixedNow);
+    const resEqual = canChangeSubmission({ dueAt: equalDue, closedAt: null }, null, fixedNow);
     expect(resEqual.allowed).toBe(false);
     if (!resEqual.allowed) expect(resEqual.reason).toBe('DEADLINE_PASSED');
   });
 
   it('rejects with SUBMISSION_LOCKED when submission has feedback, even before due', () => {
-    const resFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: { id: 'x' } }, fixedNow);
+    const resFeedback = canChangeSubmission({ dueAt: futureDue, closedAt: null }, { feedback: { id: 'x' } }, fixedNow);
     expect(resFeedback.allowed).toBe(false);
     if (!resFeedback.allowed) expect(resFeedback.reason).toBe('SUBMISSION_LOCKED');
   });

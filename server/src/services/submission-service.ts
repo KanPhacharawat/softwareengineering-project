@@ -102,6 +102,8 @@ export type MilestoneDetailView = {
     title: string;
     description: string | null;
     dueAt: string;
+    closedAt: string | null;
+    closedBy: { id: string; name: string } | null;
     status: MilestoneStatus;
   };
   team: {
@@ -148,7 +150,7 @@ function toSubmissionView(
 
 const SUBMISSION_INCLUDE = { createdBy: USER, submittedBy: USER, versions: CURRENT_VERSION } as const;
 
-async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
+export async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
   if (!UUID.test(milestoneId)) {
     throw new AppError(404, 'NOT_FOUND', 'Not found or you do not have access');
   }
@@ -156,6 +158,7 @@ async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
   const milestone = await prisma.milestone.findUnique({
     where: { id: milestoneId },
     include: {
+      closedBy: USER,
       team: {
         select: {
           id: true,
@@ -203,6 +206,8 @@ export async function getMilestoneDetail(
       title: milestone.title,
       description: milestone.description,
       dueAt: milestone.dueAt.toISOString(),
+      closedAt: milestone.closedAt ? milestone.closedAt.toISOString() : null,
+      closedBy: milestone.closedBy,
       status: computeMilestoneStatus(milestone, milestone.submission && currentState(milestone.submission), now),
     },
     team: {
@@ -213,14 +218,24 @@ export async function getMilestoneDetail(
   };
 }
 
-// POST /api/milestones/:milestoneId/submission (FR-07, BR-05, BR-06, BR-07, BR-09, AC-11..AC-14, NFR-09)
+function rejectChangeSubmission(reason: 'MILESTONE_CLOSED' | 'DEADLINE_PASSED' | 'SUBMISSION_LOCKED'): never {
+  if (reason === 'MILESTONE_CLOSED') {
+    throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+  }
+  if (reason === 'DEADLINE_PASSED') {
+    throw new AppError(422, 'DEADLINE_PASSED', 'Submission deadline has passed');
+  }
+  throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
+}
+
+// POST /api/milestones/:milestoneId/submission (FR-07, BR-05, BR-06, BR-07, BR-09, BR-13, AC-11..AC-14, NFR-09)
 export async function createSubmission(
   user: PublicUser,
   milestoneId: string,
   input: unknown,
   now: Date = new Date(),
 ): Promise<SubmissionView> {
-  const milestone = await loadMilestoneInScope(user, milestoneId);
+  await loadMilestoneInScope(user, milestoneId);
 
   const validation = validateSubmissionInput(input);
   if (!validation.success) {
@@ -228,44 +243,57 @@ export async function createSubmission(
   }
   const data = validation.data;
 
-  // BR-05: duplicate submission check
-  if (milestone.submission) {
-    throw new AppError(409, 'SUBMISSION_EXISTS', 'Submission already exists for this milestone');
-  }
-
-  // BR-06: deadline check
-  const changeCheck = canChangeSubmission(milestone, milestone.submission, now);
-  if (!changeCheck.allowed) {
-    if (changeCheck.reason === 'DEADLINE_PASSED') {
-      throw new AppError(422, 'DEADLINE_PASSED', 'Submission deadline has passed');
-    }
-    throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
-  }
-
   try {
-    const sub = await prisma.submission.create({
-      data: {
-        milestoneId,
-        submittedById: user.id,
-        createdById: user.id,
-        title: data.title,
-        description: data.description ?? null,
-        link: data.link,
-        // F-06: version 1 is created in the same statement (one transaction)
-        versions: {
-          create: {
-            versionNumber: 1,
-            title: data.title,
-            description: data.description ?? null,
-            link: data.link,
-            submittedById: user.id,
+    const { sub, lockedMilestone } = await prisma.$transaction(async (tx) => {
+      // F-07 concurrency rule: lock Milestone first so a concurrent close cannot slip in before insert
+      await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
+      const lockedMilestone = await tx.milestone.findUniqueOrThrow({
+        where: { id: milestoneId },
+        select: { dueAt: true, closedAt: true, submission: { select: { id: true } } },
+      });
+
+      // BR-13 (F-07): closed check runs before duplicate and deadline checks
+      if (lockedMilestone.closedAt !== null) {
+        rejectChangeSubmission('MILESTONE_CLOSED');
+      }
+
+      // BR-05: duplicate submission check
+      if (lockedMilestone.submission) {
+        throw new AppError(409, 'SUBMISSION_EXISTS', 'Submission already exists for this milestone');
+      }
+
+      // BR-06: deadline check
+      const changeCheck = canChangeSubmission(lockedMilestone, null, now);
+      if (!changeCheck.allowed) {
+        rejectChangeSubmission(changeCheck.reason);
+      }
+
+      const created = await tx.submission.create({
+        data: {
+          milestoneId,
+          submittedById: user.id,
+          createdById: user.id,
+          title: data.title,
+          description: data.description ?? null,
+          link: data.link,
+          // F-06: version 1 is created in the same statement (one transaction)
+          versions: {
+            create: {
+              versionNumber: 1,
+              title: data.title,
+              description: data.description ?? null,
+              link: data.link,
+              submittedById: user.id,
+            },
           },
         },
-      },
-      include: SUBMISSION_INCLUDE,
+        include: SUBMISSION_INCLUDE,
+      });
+
+      return { sub: created, lockedMilestone };
     });
 
-    return toSubmissionView(sub, milestone, now);
+    return toSubmissionView(sub, lockedMilestone, now);
   } catch (err: unknown) {
     // P2002: unique constraint violation on milestoneId under concurrent requests (NFR-09)
     if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
@@ -275,7 +303,7 @@ export async function createSubmission(
   }
 }
 
-// PUT /api/milestones/:milestoneId/submission (FR-09, BR-06, BR-07, BR-09, AC-16)
+// PUT /api/milestones/:milestoneId/submission (FR-09, BR-06, BR-07, BR-09, BR-13, AC-16)
 export async function updateSubmission(
   user: PublicUser,
   milestoneId: string,
@@ -296,32 +324,32 @@ export async function updateSubmission(
 
   const changeCheck = canChangeSubmission(milestone, currentState(milestone.submission), now);
   if (!changeCheck.allowed) {
-    if (changeCheck.reason === 'DEADLINE_PASSED') {
-      throw new AppError(422, 'DEADLINE_PASSED', 'Submission deadline has passed');
-    }
-    throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
+    rejectChangeSubmission(changeCheck.reason);
   }
 
   const submissionId = milestone.submission.id;
-  const sub = await prisma.$transaction(async (tx) => {
-    // BR-07: lock the row so a concurrent feedback insert cannot slip in between the check and the update
+  const { sub, lockedMilestone } = await prisma.$transaction(async (tx) => {
+    // Lock order: Milestone first, then Submission (F-07 concurrency rule + BR-07 feedback lock)
+    await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
     await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+    const lockedMilestone = await tx.milestone.findUniqueOrThrow({
+      where: { id: milestoneId },
+      select: { dueAt: true, closedAt: true },
+    });
     // F-06: re-check on the locked row; deadline and lock are per current version (a resubmit may have just landed)
     const locked = await tx.submission.findUniqueOrThrow({ where: { id: submissionId }, include: { versions: CURRENT_VERSION } });
-    const recheck = canChangeSubmission(milestone, currentState(locked), now);
+    const recheck = canChangeSubmission(lockedMilestone, currentState(locked), now);
     if (!recheck.allowed) {
-      if (recheck.reason === 'DEADLINE_PASSED') {
-        throw new AppError(422, 'DEADLINE_PASSED', 'Submission deadline has passed');
-      }
-      throw new AppError(409, 'SUBMISSION_LOCKED', 'Submission is locked after feedback');
+      rejectChangeSubmission(recheck.reason);
     }
     const versionKey = { submissionId_versionNumber: { submissionId, versionNumber: locked.currentVersion } };
     const fields = { title: data.title, description: data.description ?? null, link: data.link, submittedById: user.id };
     await tx.submissionVersion.update({ where: versionKey, data: fields });
-    return tx.submission.update({ where: { milestoneId }, data: fields, include: SUBMISSION_INCLUDE });
+    const updated = await tx.submission.update({ where: { milestoneId }, data: fields, include: SUBMISSION_INCLUDE });
+    return { sub: updated, lockedMilestone };
   });
 
-  return toSubmissionView(sub, milestone, now);
+  return toSubmissionView(sub, lockedMilestone, now);
 }
 
 function rejectResubmit(reason: 'NO_REVISION_REQUEST' | 'RESUBMISSION_EXISTS' | 'REVISION_DUE_PASSED'): never {
@@ -332,7 +360,7 @@ function rejectResubmit(reason: 'NO_REVISION_REQUEST' | 'RESUBMISSION_EXISTS' | 
   throw new AppError(409, 'NO_REVISION_REQUEST', 'No revision has been requested for this submission');
 }
 
-// POST /api/submissions/:submissionId/versions (FR-12, BR-10, BR-11, AC-28..AC-30). Order: 404 scope -> 400 body -> 409/422 state (W2).
+// POST /api/submissions/:submissionId/versions (FR-12, BR-10, BR-11, BR-13, AC-28..AC-30). Order: 404 scope -> 400 body -> 409/422 state (W2).
 export async function resubmit(
   user: PublicUser,
   submissionId: string,
@@ -344,7 +372,7 @@ export async function resubmit(
 
   const found = await prisma.submission.findUnique({
     where: { id: submissionId },
-    select: { milestone: { select: { dueAt: true, team: { select: { members: { select: { userId: true } } } } } } },
+    select: { milestone: { select: { id: true, dueAt: true, closedAt: true, team: { select: { members: { select: { userId: true } } } } } } },
   });
   if (!found || !found.milestone.team.members.some((m) => m.userId === user.id)) throw notFound();
 
@@ -354,10 +382,19 @@ export async function resubmit(
   }
   const data = validation.data;
 
+  const milestoneId = found.milestone.id;
   try {
-    const sub = await prisma.$transaction(async (tx) => {
-      // Same row lock as feedback/PUT/revision request: the current version cannot change between check and insert
+    const { sub, lockedMilestone } = await prisma.$transaction(async (tx) => {
+      // Lock order: Milestone first, then Submission (F-07 concurrency rule)
+      await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
       await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+      const lockedMilestone = await tx.milestone.findUniqueOrThrow({
+        where: { id: milestoneId },
+        select: { dueAt: true, closedAt: true },
+      });
+      if (lockedMilestone.closedAt !== null) {
+        rejectChangeSubmission('MILESTONE_CLOSED');
+      }
       const locked = await tx.submission.findUniqueOrThrow({ where: { id: submissionId }, include: { versions: CURRENT_VERSION } });
       const current = currentState(locked, now);
       const check = canResubmit(
@@ -370,13 +407,14 @@ export async function resubmit(
       const fields = { title: data.title, description: data.description ?? null, link: data.link, submittedById: user.id };
       // Insert only: older versions, their feedback and requests are never changed (BR-10). createdById/submittedAt stay.
       await tx.submissionVersion.create({ data: { submissionId, versionNumber, ...fields } });
-      return tx.submission.update({
+      const updated = await tx.submission.update({
         where: { id: submissionId },
         data: { ...fields, currentVersion: versionNumber },
         include: SUBMISSION_INCLUDE,
       });
+      return { sub: updated, lockedMilestone };
     });
-    return toSubmissionView(sub, found.milestone, now);
+    return toSubmissionView(sub, lockedMilestone, now);
   } catch (err: unknown) {
     // P2002: unique (submissionId, versionNumber) under parallel resubmissions (AC-30)
     if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') rejectResubmit('RESUBMISSION_EXISTS');

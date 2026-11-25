@@ -13,7 +13,7 @@ export type SubmissionValidationResult =
 
 export type ChangeSubmissionResult =
   | { allowed: true }
-  | { allowed: false; reason: 'DEADLINE_PASSED' | 'SUBMISSION_LOCKED' };
+  | { allowed: false; reason: 'MILESTONE_CLOSED' | 'DEADLINE_PASSED' | 'SUBMISSION_LOCKED' };
 
 // BR-09: title trimmed 3..120; description max 2000 (may be empty); link absolute http(s) URL max 500
 export function validateSubmissionInput(input: unknown): SubmissionValidationResult {
@@ -77,13 +77,18 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
   };
 }
 
+// BR-13 (F-07): closedAt !== null -> MILESTONE_CLOSED (checked first);
 // BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: current version has feedback -> SUBMISSION_LOCKED.
 // BR-11 (F-06): version >= 2 uses the revision due of the request on the previous version instead of the milestone due.
 export function canChangeSubmission(
-  milestone: { dueAt: Date | string },
+  milestone: { dueAt: Date | string; closedAt: Date | string | null },
   submission?: { feedback?: unknown; versionNumber?: number; revisionDueAt?: Date | null } | null,
   now: Date = new Date(),
 ): ChangeSubmissionResult {
+  if (milestone.closedAt !== null) {
+    return { allowed: false, reason: 'MILESTONE_CLOSED' };
+  }
+
   if (now.getTime() >= effectiveDueAt(milestone, submission).getTime()) {
     return { allowed: false, reason: 'DEADLINE_PASSED' };
   }
