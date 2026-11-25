@@ -1,0 +1,232 @@
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+ RUN  v4.0.18 C:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server
+
+node.exe : warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please 
+migrate to a Prisma config file (e.g., `prisma.config.ts`).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warn The config...ma.config.ts`).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+7 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 7913ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  596ms
+     ✓ accepts the email in any letter case  619ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  700ms
+     ✓ unknown email gives the same 401 response as a wrong password  1167ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  672ms
+     ✓ deletes the session row from the database  483ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  3628ms
+ ✓ tests/feedback.test.ts (12 tests) 2697ms
+ ❯ tests/grading.test.ts (8 tests | 8 failed) 2583ms
+     × TEST-U07 validates score boundaries and rejects non-integer / non-number / out-of-range values 9ms
+     × TEST-U07 canGrade checks FEEDBACK_REQUIRED first and blocks only OPEN + unclosed milestone 1ms
+     × TEST-45 (AC-43) Sup1 PUTs grade 85 on open, closed, expired-revision, and closed+open-revision milestones -> 200 107ms
+     × TEST-46 (AC-44) invalid scores -> 400 fields.score, nothing stored; 0 and 100 -> 200 79ms
+     × TEST-47 (AC-45) FEEDBACK_REQUIRED, REVISION_PENDING, SUBMISSION_GRADED, and parallel grade vs revision-request 59ms
+     × TEST-48 (AC-46) updating grade 85 -> 90 keeps one row with later updatedAt; parallel PUTs keep one row 67ms
+     × TEST-49 (AC-47) S1 403, Sup2 404, malformed 404, unknown 404, no cookie 401; Grade count 0 58ms
+     × TEST-50 (AC-48) S1 and S2 see grade in GET milestone, S3 gets 404, ungraded returns grade: null 59ms
+ ✓ tests/history.test.ts (2 tests) 3244ms
+ ✓ tests/milestone-management.test.ts (9 tests) 3267ms
+     ✓ TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201)  396ms
+ ✓ tests/resubmission.test.ts (10 tests) 2746ms
+ ✓ tests/revision-request.test.ts (9 tests) 2212ms
+ ✓ tests/submissions.test.ts (16 tests) 2433ms
+ ✓ tests/teams.test.ts (13 tests) 2128ms
+ ✓ tests/milestones.test.ts (11 tests) 1145ms
+ ✓ tests/seed.test.ts (4 tests) 1045ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  990ms
+ ✓ tests/health.test.ts (6 tests) 91ms
+ ✓ tests/authorization.test.ts (9 tests) 59ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/grading.test.ts > TEST-U07 validateGradeInput & canGrade (AC-44, AC-45, 
+BR-12) > TEST-U07 validates score boundaries and rejects non-integer / non-number / out-of-range values
+Error: not implemented
+ ❯ validateGradeInput src/domain/grade.ts:20:9
+     18| // Stubs for TDD RED (#71): implemented in the GREEN commit.
+     19| export function validateGradeInput(_input: unknown): GradeValidationRe…
+     20|   throw new Error('not implemented');
+       |         ^
+     21| }
+     22| 
+ ❯ tests/grading.test.ts:56:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-U07 validateGradeInput & canGrade (AC-44, AC-45, 
+BR-12) > TEST-U07 canGrade checks FEEDBACK_REQUIRED first and blocks only OPEN + unclosed milestone
+Error: not implemented
+ ❯ canGrade src/domain/grade.ts:24:9
+     22| 
+     23| export function canGrade(_state: 
+CanGradeInput): CanGradeResult {
+     24|   throw new Error('not implemented');
+       |         ^
+     25| }
+     26| 
+ ❯ tests/grading.test.ts:86:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-45 (AC-43) Sup1 PUTs grade 85 on open, closed, expired-revision, and closed+open-revision milestones -> 200
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/grading.test.ts:123:25
+    121|     const f1 = await createFeedbackGivenFixture();
+    122|     const res1 = await put(gradeUrl(f1.submissionId), sup1, { score: 8…
+    123|     expect(res1.status).toBe(200);
+       |                         ^
+    124|     expect(res1.body.grade).toMatchObject({
+    125|       score: 85,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-46 (AC-44) invalid scores -> 400 fields.score, nothing stored; 0 and 100 -> 200
+AssertionError: expected 404 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 404
+
+ ❯ tests/grading.test.ts:175:26
+    173|     for (const body of invalidBodies) {
+    174|       const res = await 
+put(gradeUrl(submissionId), sup1, body);
+    175|       expect(res.status).toBe(400);
+       |                          ^
+    176|       expect(res.body.error.code).toBe(
+[32m'VALIDATION_ERROR');
+    177|       expect(res.body.error.fields.score).toBe('Score must be a whole …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-47 (AC-45) FEEDBACK_REQUIRED, REVISION_PENDING, SUBMISSION_GRADED, and parallel grade vs revision-request
+AssertionError: expected 404 to be 409 // Object.is equality
+
+- Expected
++ Received
+
+- 409
++ 404
+
+ ❯ tests/grading.test.ts:194:25
+    192|     const unreviewed = await 
+createUnreviewedFixture();
+    193|     const noFb = await put(gradeUrl(unreviewed.submissionId), sup1, { …
+    194|     expect(noFb.status).toBe(409);
+       |                         ^
+    195|     expect(noFb.body.error.code).toBe([
+32m'FEEDBACK_REQUIRED');
+    196| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-48 (AC-46) updating grade 85 -> 90 keeps one row with later updatedAt; parallel PUTs keep one row
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/grading.test.ts:236:26
+    234|     const { submissionId } = await 
+createFeedbackGivenFixture();
+    235|     const first = await put(gradeUrl(submissionId), sup1, { score: 85 …
+    236|     expect(first.status).toBe(200);
+       |                          ^
+    237|     const firstGradedAt = 
+first.body.grade.gradedAt as string;
+    238| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-49 (AC-47) S1 403, Sup2 404, malformed 404, unknown 404, no cookie 401; Grade count 0
+AssertionError: expected 404 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 404
+
+ ❯ tests/grading.test.ts:261:75
+    259|   it('TEST-49 (AC-47) S1 403, Sup2 404, malformed 404, unknown 404, no…
+    260|     const { submissionId } = await 
+createFeedbackGivenFixture();
+    261|     expect((await put(gradeUrl(submissionId), s1, { score: 85 })).stat…
+       |                                                                           ^
+    262|     expect((await put(gradeUrl(submissionId), sup2, { score: 85 })).st…
+    263|     expect((await put(gradeUrl('not-a-uuid'), sup1, { score: 85 })).st…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/grading.test.ts > TEST-45..TEST-50 Grading API (AC-43..AC-48) > 
+TEST-50 (AC-48) S1 and S2 see grade in GET milestone, S3 gets 404, ungraded returns grade: null
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/grading.test.ts:271:84
+    269|   it('TEST-50 (AC-48) S1 and S2 see grade in GET milestone, S3 gets 40…
+    270|     const graded = await 
+createFeedbackGivenFixture();
+    271|     expect((await put(gradeUrl(graded.submissionId), sup1, { score: 85…
+       |                                                                                    ^
+    272| 
+    273|     for (const cookie of [s1, s2]) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed | 12 passed (13)
+      Tests  8 failed | 115 passed (123)
+   Start at  16:36:56
+   Duration  48.92s (transform 556ms, setup 390ms, import 7.37s, tests 31.56s, environment 3ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path C:\Users\CPE KMUTT\Documents\GitHub\softwareengineering-project\server
+npm error workspace @cpms/server
+npm error location C:\Users\CPE KMUTT\Documents\GitHub\softwareengineering-project\server
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vitest run

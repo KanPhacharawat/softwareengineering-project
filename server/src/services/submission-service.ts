@@ -80,6 +80,30 @@ export function toRevisionRequestView(
   };
 }
 
+export type GradeView = {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: string;
+  updatedAt: string;
+};
+
+export function toGradeView(g: {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: Date;
+  updatedAt: Date;
+}): GradeView {
+  return {
+    score: g.score,
+    versionNumber: g.versionNumber,
+    gradedBy: g.gradedBy,
+    gradedAt: g.gradedAt.toISOString(),
+    updatedAt: g.updatedAt.toISOString(),
+  };
+}
+
 export type SubmissionView = {
   id: string;
   milestoneId: string;
@@ -96,6 +120,7 @@ export type SubmissionView = {
   lateAt: string | null;
   feedback: FeedbackView | null;
   revisionRequest: RevisionRequestView | null;
+  grade: GradeView | null;
 };
 
 export type MilestoneDetailView = {
@@ -130,6 +155,13 @@ function toSubmissionView(
     currentVersion: number;
     lateAt: Date | null;
     versions: CurrentVersionRow[];
+    grade?: {
+      score: number;
+      versionNumber: number;
+      gradedBy: { id: string; name: string };
+      gradedAt: Date;
+      updatedAt: Date;
+    } | null;
   },
   milestone: { dueAt: Date },
   now: Date = new Date(),
@@ -150,10 +182,16 @@ function toSubmissionView(
     lateAt: sub.lateAt?.toISOString() ?? null,
     feedback: current.feedbackView,
     revisionRequest: current.revisionRequestView,
+    grade: sub.grade ? toGradeView(sub.grade) : null,
   };
 }
 
-const SUBMISSION_INCLUDE = { createdBy: USER, submittedBy: USER, versions: CURRENT_VERSION } as const;
+const SUBMISSION_INCLUDE = {
+  createdBy: USER,
+  submittedBy: USER,
+  versions: CURRENT_VERSION,
+  grade: { include: { gradedBy: USER } },
+} as const;
 
 export async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
   if (!UUID.test(milestoneId)) {
