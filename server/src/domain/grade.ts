@@ -15,11 +15,28 @@ export type CanGradeResult =
   | { allowed: true }
   | { allowed: false; reason: 'FEEDBACK_REQUIRED' | 'REVISION_PENDING' };
 
-// Stubs for TDD RED (#71): implemented in the GREEN commit.
-export function validateGradeInput(_input: unknown): GradeValidationResult {
-  throw new Error('not implemented');
+const SCORE_ERROR = 'Score must be a whole number from 0 to 100';
+
+// BR-12: JSON integer 0..100 (rejects strings, decimals, booleans, null, NaN, out-of-range).
+export function validateGradeInput(input: unknown): GradeValidationResult {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { success: false, fields: { score: SCORE_ERROR } };
+  }
+  const raw = input as Record<string, unknown>;
+  const score = raw.score;
+  if (typeof score !== 'number' || !Number.isInteger(score) || score < 0 || score > 100) {
+    return { success: false, fields: { score: SCORE_ERROR } };
+  }
+  return { success: true, data: { score } };
 }
 
-export function canGrade(_state: CanGradeInput): CanGradeResult {
-  throw new Error('not implemented');
+// F-08 Decision 3: feedback on current version required first; OPEN revision blocks only on an unclosed milestone.
+export function canGrade(state: CanGradeInput): CanGradeResult {
+  if (!state.currentVersionHasFeedback) {
+    return { allowed: false, reason: 'FEEDBACK_REQUIRED' };
+  }
+  if (state.revisionRequestStatus === 'OPEN' && !state.milestoneClosed) {
+    return { allowed: false, reason: 'REVISION_PENDING' };
+  }
+  return { allowed: true };
 }

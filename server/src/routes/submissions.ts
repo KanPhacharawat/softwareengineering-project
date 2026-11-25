@@ -5,6 +5,7 @@ import { createFeedback } from '../services/feedback-service.js';
 import { createRevisionRequest } from '../services/revision-service.js';
 import { resubmit } from '../services/submission-service.js';
 import { getSubmissionHistory } from '../services/history-service.js';
+import { setGrade } from '../services/grade-service.js';
 
 export const submissionsRouter = Router();
 
@@ -31,4 +32,10 @@ submissionsRouter.post('/:submissionId/versions', requireRole(Role.STUDENT), asy
 // GET /api/submissions/:submissionId/history (FR-13, AC-32, AC-33): both roles, scope checked in the service
 submissionsRouter.get('/:submissionId/history', async (req, res) => {
   res.json(await getSubmissionHistory(req.user!, req.params.submissionId as string));
+});
+
+// PUT /api/submissions/:submissionId/grade (FR-15, BR-12, AC-43..AC-47)
+submissionsRouter.put('/:submissionId/grade', requireRole(Role.SUPERVISOR), async (req, res) => {
+  const grade = await setGrade(req.user!, req.params.submissionId as string, req.body ?? {});
+  res.json({ grade });
 });

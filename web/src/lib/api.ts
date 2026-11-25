@@ -92,6 +92,15 @@ export type RevisionRequest = {
   createdAt: string;
 };
 
+// F-08: one grade per submission (BR-12).
+export type Grade = {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: string;
+  updatedAt: string;
+};
+
 export type Submission = {
   id: string;
   milestoneId: string;
@@ -107,6 +116,7 @@ export type Submission = {
   editableUntil: string;
   feedback: Feedback | null;
   revisionRequest: RevisionRequest | null;
+  grade: Grade | null;
 };
 
 // F-06c: GET /api/submissions/:id/history, versions oldest first

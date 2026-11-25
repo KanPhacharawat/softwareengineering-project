@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { api, ApiError, formatBangkokDateTime, toBangkokDateTimeLocal, type Milestone, type MilestoneDetail, type RevisionRequest, type Submission } from '@/lib/api';
+import { api, ApiError, formatBangkokDateTime, toBangkokDateTimeLocal, type Grade, type Milestone, type MilestoneDetail, type RevisionRequest, type Submission } from '@/lib/api';
 import { useApi } from '@/lib/use-api';
 
 // `/milestones/:milestoneId` (F-04): milestone details, team submission and editing.
@@ -293,15 +293,25 @@ function MilestoneDetailContent({
           </Card>
         )}
 
-        {/* Revision request (F-06): hidden when closed (F-07 closed wins in UI) */}
+        {/* Revision request (F-06): hidden when closed (F-07) or graded (F-08) */}
         {!isClosed && submission?.revisionRequest && (
           <RevisionRequestNotice request={submission.revisionRequest} isStudent={isStudent} />
         )}
-        {!isClosed && submission && submission.feedback && !submission.revisionRequest && !isStudent && (
+        {!isClosed && submission && submission.feedback && !submission.revisionRequest && !submission.grade && !isStudent && (
           <RevisionRequestForm submissionId={submission.id} onSaved={onReload} />
         )}
         {submission && canResubmit && (
           <SubmissionForm milestoneId={milestone.id} initialValues={submission} resubmitId={submission.id} onSaved={onReload} />
+        )}
+
+        {/* Grade Section (F-08) */}
+        {submission && (
+          <GradeSection
+            submission={submission}
+            isStudent={isStudent}
+            milestoneClosed={isClosed}
+            onSaved={onReload}
+          />
         )}
 
         {/* Supervisor Feedback Form (F-05) */}
@@ -354,6 +364,175 @@ function MilestoneDetailContent({
         </section>
       )}
     </div>
+  );
+}
+
+function GradeSection({
+  submission,
+  isStudent,
+  milestoneClosed,
+  onSaved,
+}: {
+  submission: Submission;
+  isStudent: boolean;
+  milestoneClosed: boolean;
+  onSaved: () => void;
+}) {
+  const [isEditingGrade, setIsEditingGrade] = useState(false);
+
+  if (isStudent) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Grade</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            {submission.grade ? `Grade: ${submission.grade.score} / 100` : 'Not graded yet'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Supervisor: no Grade card until the current version has feedback
+  if (!submission.feedback) return null;
+
+  const hasActiveOpenRevision = submission.revisionRequest?.status === 'OPEN' && !milestoneClosed;
+  if (hasActiveOpenRevision) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Grade</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Grading is available after the team resubmits and you give feedback.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (submission.grade && !isEditingGrade) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-lg font-medium">Grade</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => setIsEditingGrade(true)}>
+              <Pencil className="size-4" />
+              Edit grade
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            Grade: {submission.grade.score} / 100 · Graded by {submission.grade.gradedBy.name} at{' '}
+            {formatBangkokDateTime(submission.grade.updatedAt)}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <GradeForm
+      submissionId={submission.id}
+      initialGrade={submission.grade}
+      onSaved={() => {
+        setIsEditingGrade(false);
+        onSaved();
+      }}
+      onCancel={submission.grade ? () => setIsEditingGrade(false) : undefined}
+    />
+  );
+}
+
+function GradeForm({
+  submissionId,
+  initialGrade,
+  onSaved,
+  onCancel,
+}: {
+  submissionId: string;
+  initialGrade: Grade | null;
+  onSaved: () => void;
+  onCancel?: () => void;
+}) {
+  const [scoreInput, setScoreInput] = useState(initialGrade ? String(initialGrade.score) : '');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      // F-08 UI rule: never coerce empty input to 0; send null so server returns 400 fields.score, and never round decimals.
+      const trimmed = scoreInput.trim();
+      const score = trimmed === '' ? null : Number(trimmed);
+      await api(`/submissions/${encodeURIComponent(submissionId)}/grade`, {
+        method: 'PUT',
+        body: { score },
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
+        setErrors(err.fields);
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not save grade' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Grade</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="grade-score">Score (0–100)</Label>
+            <Input
+              id="grade-score"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={scoreInput}
+              onChange={(e) => setScoreInput(e.target.value)}
+              aria-invalid={!!errors.score}
+            />
+            {errors.score && <p className="text-sm text-destructive">{errors.score}</p>}
+          </div>
+
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="animate-spin size-4" />}
+              {isSubmitting ? 'Saving…' : 'Save grade'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 

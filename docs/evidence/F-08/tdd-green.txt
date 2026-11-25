@@ -1,0 +1,66 @@
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server[39m
+
+node.exe : warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please 
+migrate to a Prisma config file (e.g., `prisma.config.ts`).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warn The config...ma.config.ts`).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+For more information, see: https://pris.ly/prisma-config
+
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+Environment variables loaded from .env
+
+8 migrations found in prisma/migrations
+
+Applying migration `20261125164000_grade`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261125164000_grade/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+ [32m✓[39m tests/grading.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 4600[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-45 (AC-43) Sup1 PUTs grade 85 on open, closed, expired-revision, and closed+open-revision milestones -> 200 [33m 590[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-47 (AC-45) FEEDBACK_REQUIRED, REVISION_PENDING, SUBMISSION_GRADED, and parallel grade vs revision-request [33m 376[2mms[22m[39m
+ [32m✓[39m tests/auth.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 8028[2mms[22m[39m
+     [33m[2m✓[22m[39m returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user [33m 546[2mms[22m[39m
+     [33m[2m✓[22m[39m accepts the email in any letter case [33m 536[2mms[22m[39m
+     [33m[2m✓[22m[39m wrong password gives 401 INVALID_CREDENTIALS and no session cookie [33m 607[2mms[22m[39m
+     [33m[2m✓[22m[39m unknown email gives the same 401 response as a wrong password [33m 984[2mms[22m[39m
+     [33m[2m✓[22m[39m returns 204, clears the cookie, and the old cookie is rejected afterwards [33m 616[2mms[22m[39m
+     [33m[2m✓[22m[39m deletes the session row from the database [33m 550[2mms[22m[39m
+     [33m[2m✓[22m[39m every passwordHash is bcrypt with cost >= 10 and is not the plain password [33m 4141[2mms[22m[39m
+ [32m✓[39m tests/milestone-management.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 2964[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201) [33m 402[2mms[22m[39m
+ [32m✓[39m tests/history.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 2635[2mms[22m[39m
+ [32m✓[39m tests/resubmission.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 2859[2mms[22m[39m
+ [32m✓[39m tests/feedback.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 2617[2mms[22m[39m
+ [32m✓[39m tests/submissions.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 2200[2mms[22m[39m
+ [32m✓[39m tests/revision-request.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 2200[2mms[22m[39m
+ [32m✓[39m tests/teams.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 2060[2mms[22m[39m
+ [32m✓[39m tests/milestones.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1172[2mms[22m[39m
+ [32m✓[39m tests/seed.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 923[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps app data and does not duplicate demo rows when run again without reset [33m 862[2mms[22m[39m
+ [32m✓[39m tests/health.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 125[2mms[22m[39m
+ [32m✓[39m tests/authorization.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[32m123 passed[39m[22m[90m (123)[39m
+[2m   Start at [22m 16:52:13
+[2m   Duration [22m 48.21s[2m (transform 565ms, setup 318ms, import 7.17s, tests 32.43s, environment 2ms)[22m
+

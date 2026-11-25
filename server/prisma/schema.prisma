@@ -28,6 +28,7 @@ model User {
   feedbacks          Feedback[]
   submittedVersions  SubmissionVersion[] @relation("VersionSubmittedBy")
   revisionRequests   RevisionRequest[]   @relation("RevisionRequestedBy")
+  grades             Grade[]             @relation("GradeGradedBy")
 }
 
 model Team {
@@ -86,6 +87,7 @@ model Submission {
   versions         SubmissionVersion[]
   revisionRequests RevisionRequest[]
   feedbacks        Feedback[]
+  grade            Grade?
 }
 
 /// F-06: one row per (re)submitted version. Only the current version is ever updated.
@@ -137,6 +139,19 @@ model Feedback {
 
   @@index([authorId])
   @@index([submissionId])
+}
+
+/// F-08: one grade per submission (BR-12), score 0..100 enforced by API and DB CHECK.
+model Grade {
+  id            String     @id @default(uuid()) @db.Uuid
+  submissionId  String     @unique @db.Uuid
+  score         Int
+  versionNumber Int
+  gradedById    String     @db.Uuid
+  gradedAt      DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(3)
+  submission    Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  gradedBy      User       @relation("GradeGradedBy", fields: [gradedById], references: [id], onDelete: Restrict)
 }
 
 /// Session store table used by connect-pg-simple (F-01). Shape must match that library.

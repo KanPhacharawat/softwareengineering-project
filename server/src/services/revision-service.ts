@@ -28,6 +28,7 @@ export async function createRevisionRequest(
     where: { id: submissionId },
     include: {
       milestone: { select: { id: true, closedAt: true, team: { select: { supervisorId: true } } } },
+      grade: { select: { id: true } },
       versions: CURRENT_VERSION,
     },
   });
@@ -40,6 +41,9 @@ export async function createRevisionRequest(
 
   if (submission.milestone.closedAt !== null) {
     throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+  }
+  if (submission.grade) {
+    throw new AppError(409, 'SUBMISSION_GRADED', 'Submission has already been graded');
   }
 
   const check = canRequestRevision(currentState(submission));
@@ -55,7 +59,13 @@ export async function createRevisionRequest(
       if (lockedMilestone.closedAt !== null) {
         throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
       }
-      const locked = await tx.submission.findUniqueOrThrow({ where: { id: submissionId }, include: { versions: CURRENT_VERSION } });
+      const locked = await tx.submission.findUniqueOrThrow({
+        where: { id: submissionId },
+        include: { grade: { select: { id: true } }, versions: CURRENT_VERSION },
+      });
+      if (locked.grade) {
+        throw new AppError(409, 'SUBMISSION_GRADED', 'Submission has already been graded');
+      }
       const recheck = canRequestRevision(currentState(locked));
       if (!recheck.allowed) rejectState(recheck.reason);
       const version = locked.versions[0];

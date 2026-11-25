@@ -52,12 +52,12 @@ export function currentState(sub: { versions: CurrentVersionRow[] }, now: Date =
     revisionRequest: v?.revisionRequest ?? null,
     feedbackView: v?.feedback
       ? {
-          id: v.feedback.id,
-          comment: v.feedback.comment,
-          author: v.feedback.author,
-          createdAt: v.feedback.createdAt.toISOString(),
-          versionNumber: v.versionNumber,
-        }
+        id: v.feedback.id,
+        comment: v.feedback.comment,
+        author: v.feedback.author,
+        createdAt: v.feedback.createdAt.toISOString(),
+        versionNumber: v.versionNumber,
+      }
       : null,
     revisionRequestView: v?.revisionRequest ? toRevisionRequestView(v.revisionRequest, v.versionNumber, now) : null,
   };
@@ -80,6 +80,14 @@ export function toRevisionRequestView(
   };
 }
 
+export type GradeView = {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: string;
+  updatedAt: string;
+};
+
 export type SubmissionView = {
   id: string;
   milestoneId: string;
@@ -94,6 +102,7 @@ export type SubmissionView = {
   editableUntil: string;
   feedback: FeedbackView | null;
   revisionRequest: RevisionRequestView | null;
+  grade: GradeView | null;
 };
 
 export type MilestoneDetailView = {
@@ -126,6 +135,13 @@ function toSubmissionView(
     updatedAt: Date;
     currentVersion: number;
     versions: CurrentVersionRow[];
+    grade?: {
+      score: number;
+      versionNumber: number;
+      gradedBy: { id: string; name: string };
+      gradedAt: Date;
+      updatedAt: Date;
+    } | null;
   },
   milestone: { dueAt: Date },
   now: Date = new Date(),
@@ -145,10 +161,24 @@ function toSubmissionView(
     editableUntil: effectiveDueAt(milestone, current).toISOString(),
     feedback: current.feedbackView,
     revisionRequest: current.revisionRequestView,
+    grade: sub.grade
+      ? {
+        score: sub.grade.score,
+        versionNumber: sub.grade.versionNumber,
+        gradedBy: sub.grade.gradedBy,
+        gradedAt: sub.grade.gradedAt.toISOString(),
+        updatedAt: sub.grade.updatedAt.toISOString(),
+      }
+      : null,
   };
 }
 
-const SUBMISSION_INCLUDE = { createdBy: USER, submittedBy: USER, versions: CURRENT_VERSION } as const;
+const SUBMISSION_INCLUDE = {
+  createdBy: USER,
+  submittedBy: USER,
+  versions: CURRENT_VERSION,
+  grade: { include: { gradedBy: USER } },
+} as const;
 
 export async function loadMilestoneInScope(user: PublicUser, milestoneId: string) {
   if (!UUID.test(milestoneId)) {
