@@ -1,0 +1,51 @@
+# TDD red: Lab 7 #84 (CR-01 BR-06 v2)
+# base: 492957a (staging) ; date: 2026-11-25T12:31:19Z
+# cmd: cd server && npx vitest run
+     × version 1: D - 1 ms, D, G - 1 ms allowed; G rejected 8ms
+     × unchanged rules inside the grace window: closed first, feedback lock, v2 has no grace 2ms
+     × status with no submission: OPEN until G, MISSED from G 2ms
+     × TEST-52 (AC-49, AC-50) POST inside the grace window -> 201 with lateAt; after it -> 422, no row 27ms
+     × TEST-53 (AC-49, AC-50) on-time then late edit sets lateAt once; F-07 extension keeps it; after grace 422 31ms
+     × TEST-54 (AC-51, AC-50) team list: OPEN + graceEndsAt in grace, MISSED after, lateAt for team and supervisor only 19ms
+     × TEST-55 (AC-52) unchanged rules inside the grace window 53ms
+     × TEST-56 (AC-50, AC-52) on-time row has lateAt null; parallel late PUTs set lateAt once 31ms
+ ✓ tests/auth.test.ts (14 tests) 5092ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  439ms
+     ✓ accepts the email in any letter case  325ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  367ms
+     ✓ unknown email gives the same 401 response as a wrong password  682ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  341ms
+     ✓ deletes the session row from the database  370ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2540ms
+ ✓ tests/milestone-management.test.ts (9 tests) 2228ms
+     ✓ TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201)  332ms
+ ✓ tests/resubmission.test.ts (10 tests) 2253ms
+ ✓ tests/history.test.ts (2 tests) 1962ms
+ ✓ tests/submissions.test.ts (16 tests) 1805ms
+ ✓ tests/revision-request.test.ts (9 tests) 1759ms
+ ✓ tests/feedback.test.ts (12 tests) 1739ms
+ ✓ tests/teams.test.ts (13 tests) 1687ms
+ ✓ tests/milestones.test.ts (11 tests) 866ms
+ ✓ tests/seed.test.ts (4 tests) 818ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  735ms
+ ✓ tests/health.test.ts (6 tests) 98ms
+ ✓ tests/authorization.test.ts (9 tests) 85ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/late-grace.test.ts > TEST-U08 (AC-49, AC-51, AC-52) grace window boundaries with a fixed now > version 1: D - 1 ms, D, G - 1 ms allowed; G rejected
+AssertionError: expected { allowed: false, …(1) } to deeply equal { allowed: true }
+ FAIL  tests/late-grace.test.ts > TEST-U08 (AC-49, AC-51, AC-52) grace window boundaries with a fixed now > unchanged rules inside the grace window: closed first, feedback lock, v2 has no grace
+AssertionError: expected { allowed: false, …(1) } to deeply equal { allowed: false, …(1) }
+ FAIL  tests/late-grace.test.ts > TEST-U08 (AC-49, AC-51, AC-52) grace window boundaries with a fixed now > status with no submission: OPEN until G, MISSED from G
+AssertionError: expected 'MISSED' to be 'OPEN' // Object.is equality
+ FAIL  tests/late-grace.test.ts > TEST-52..TEST-56 grace window API/DB (AC-49..AC-52) > TEST-52 (AC-49, AC-50) POST inside the grace window -> 201 with lateAt; after it -> 422, no row
+AssertionError: expected 422 to be 201 // Object.is equality
+ FAIL  tests/late-grace.test.ts > TEST-52..TEST-56 grace window API/DB (AC-49..AC-52) > TEST-53 (AC-49, AC-50) on-time then late edit sets lateAt once; F-07 extension keeps it; after grace 422
+AssertionError: expected undefined to be null
+ FAIL  tests/late-grace.test.ts > TEST-52..TEST-56 grace window API/DB (AC-49..AC-52) > TEST-54 (AC-51, AC-50) team list: OPEN + graceEndsAt in grace, MISSED after, lateAt for team and supervisor only
+AssertionError: expected 422 to be 201 // Object.is equality
+ FAIL  tests/late-grace.test.ts > TEST-52..TEST-56 grace window API/DB (AC-49..AC-52) > TEST-55 (AC-52) unchanged rules inside the grace window
+AssertionError: expected 422 to be 201 // Object.is equality
+ FAIL  tests/late-grace.test.ts > TEST-52..TEST-56 grace window API/DB (AC-49..AC-52) > TEST-56 (AC-50, AC-52) on-time row has lateAt null; parallel late PUTs set lateAt once
+AssertionError: expected undefined to be null
+ Test Files  1 failed | 12 passed (13)
+      Tests  8 failed | 115 passed (123)
