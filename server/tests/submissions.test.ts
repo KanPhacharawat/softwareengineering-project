@@ -32,11 +32,12 @@ const post = (path: string, cookie: string, body: unknown) =>
 const put = (path: string, cookie: string, body: unknown) =>
   request(app).put(path).set('Cookie', cookie).send(body as object);
 
-describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
+describe('TEST-U02 (AC-49 was AC-13, AC-18) canChangeSubmission unit tests', () => {
   const fixedNow = new Date('2026-11-06T12:00:00.000Z');
   const futureDue = new Date('2026-11-13T12:00:00.000Z');
-  const pastDue = new Date('2026-11-05T12:00:00.000Z');
-  const equalDue = new Date('2026-11-06T12:00:00.000Z');
+  // Lab 7 BR-06 v2 (CR-01, #82): the deadline is now dueAt + 24 h, so "past" means more than 24 h ago and "equal" means the grace end equals now
+  const pastDue = new Date('2026-11-04T12:00:00.000Z');
+  const equalDue = new Date('2026-11-05T12:00:00.000Z');
 
   it('allows submission when now < dueAt and no feedback', () => {
     const res = canChangeSubmission({ dueAt: futureDue, closedAt: null }, null, fixedNow);
@@ -46,7 +47,7 @@ describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
     expect(resWithSubNoFeedback.allowed).toBe(true);
   });
 
-  it('rejects with DEADLINE_PASSED when now >= dueAt', () => {
+  it('rejects with DEADLINE_PASSED when now >= dueAt + 24 h', () => {
     const resPast = canChangeSubmission({ dueAt: pastDue, closedAt: null }, null, fixedNow);
     expect(resPast.allowed).toBe(false);
     if (!resPast.allowed) expect(resPast.reason).toBe('DEADLINE_PASSED');
@@ -209,8 +210,9 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     expect(count).toBe(1);
   });
 
-  it('TEST-16 (AC-13, BR-06) past dueAt returns 422 DEADLINE_PASSED on POST and PUT', async () => {
-    const past = new Date(Date.now() - 3600000); // 1 hour ago
+  it('TEST-16 (AC-49 was AC-13, BR-06) dueAt more than 24 h ago returns 422 DEADLINE_PASSED on POST and PUT', async () => {
+    // Lab 7 BR-06 v2 (CR-01, #82): was 1 hour ago; inside the grace window that is now accepted
+    const past = new Date(Date.now() - 25 * 3600000); // 25 hours ago
     const milestone = await createMilestone(ALPHA.id, past);
 
     // POST on expired milestone
@@ -235,7 +237,7 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     // Move milestone to past in database
     await prisma.milestone.update({
       where: { id: milestoneForPut.id },
-      data: { dueAt: new Date(Date.now() - 1000) },
+      data: { dueAt: new Date(Date.now() - 25 * 3600000) }, // Lab 7 BR-06 v2 (CR-01, #82): was 1 s ago
     });
 
     const putRes = await put(`/api/milestones/${milestoneForPut.id}/submission`, s1, {
