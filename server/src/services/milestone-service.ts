@@ -7,6 +7,7 @@ import {
   type MilestoneStatus,
   type ValidatedMilestoneData,
 } from '../domain/milestone.js';
+import { graceEndsAt } from '../domain/submission.js';
 import type { PublicUser } from './auth-service.js';
 
 const USER = { select: { id: true, name: true } } as const;
@@ -19,6 +20,9 @@ export type MilestoneView = {
   closedAt: string | null;
   closedBy: { id: string; name: string } | null;
   status: MilestoneStatus;
+  /** Lab 7 BR-06 v2: dueAt + 24 h; lateAt of the submission (null = none or on time). */
+  graceEndsAt: string;
+  lateAt: string | null;
 };
 
 export type CreatedMilestoneView = MilestoneView & {
@@ -39,7 +43,7 @@ function toMilestoneView(
     dueAt: Date;
     closedAt: Date | null;
     closedBy: { id: string; name: string } | null;
-    submission: Parameters<typeof currentState>[0] | null;
+    submission: (Parameters<typeof currentState>[0] & { lateAt: Date | null }) | null;
   },
   now: Date,
 ): MilestoneView {
@@ -51,6 +55,8 @@ function toMilestoneView(
     closedAt: m.closedAt ? m.closedAt.toISOString() : null,
     closedBy: m.closedBy,
     status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
+    graceEndsAt: graceEndsAt(m.dueAt).toISOString(),
+    lateAt: m.submission?.lateAt?.toISOString() ?? null,
   };
 }
 
@@ -61,7 +67,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     include: {
       closedBy: USER,
       submission: {
-        select: { versions: CURRENT_VERSION },
+        select: { lateAt: true, versions: CURRENT_VERSION },
       },
     },
     orderBy: { dueAt: 'asc' },
@@ -121,7 +127,7 @@ export async function updateMilestone(
       data: validation.data,
       include: {
         closedBy: USER,
-        submission: { select: { versions: CURRENT_VERSION } },
+        submission: { select: { lateAt: true, versions: CURRENT_VERSION } },
       },
     });
   });
@@ -152,7 +158,7 @@ export async function closeMilestone(
       data: { closedAt, closedById: user.id },
       include: {
         closedBy: USER,
-        submission: { select: { versions: CURRENT_VERSION } },
+        submission: { select: { lateAt: true, versions: CURRENT_VERSION } },
       },
     });
   });

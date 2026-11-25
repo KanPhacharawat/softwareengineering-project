@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarClock, CircleAlert, Flag, Loader2, Plus, Users } fro
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
 import { ClosedBadge } from '@/components/closed-badge';
+import { LateBadge } from '@/components/late-badge';
 import { EmptyState, ErrorState } from '@/components/page-states';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -143,6 +144,7 @@ function TeamDetail({ team }: { team: Team }) {
                             <div className="flex flex-wrap items-center gap-1.5">
                               <MilestoneStatusBadge status={m.status} />
                               {m.closedAt && <ClosedBadge />}
+                              {m.lateAt && <LateBadge />}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -174,6 +176,7 @@ function TeamDetail({ team }: { team: Team }) {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <MilestoneStatusBadge status={m.status} />
                           {m.closedAt && <ClosedBadge />}
+                          {m.lateAt && <LateBadge />}
                         </div>
                       </div>
                     </div>

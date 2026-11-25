@@ -1,3 +1,5 @@
+import { graceEndsAt } from './submission.js';
+
 // F-03 Milestone domain rules (BR-04, FR-05, FR-06)
 export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'REVISION_REQUESTED' | 'MISSED';
 
@@ -144,7 +146,7 @@ export function validateMilestoneUpdate(input: unknown, now: Date = new Date()):
 // - SUBMITTED / FEEDBACK_GIVEN when submission exists (F-04/F-05), judged on the current version (F-06)
 // - REVISION_REQUESTED while the current version has an open revision request (F-06, before its dueAt)
 // - OPEN before due date with no submission
-// - MISSED past due date with no submission
+// - MISSED with no submission once the grace window ends (BR-06 v2: dueAt + 24 h); OPEN before that
 export function computeMilestoneStatus(
   milestone: { dueAt: Date | string },
   submission?: { feedback?: unknown; revisionRequest?: { dueAt: Date } | null } | null,
@@ -156,6 +158,5 @@ export function computeMilestoneStatus(
     }
     return submission.feedback ? 'FEEDBACK_GIVEN' : 'SUBMITTED';
   }
-  const due = typeof milestone.dueAt === 'string' ? new Date(milestone.dueAt) : milestone.dueAt;
-  return now.getTime() > due.getTime() ? 'MISSED' : 'OPEN';
+  return now.getTime() >= graceEndsAt(milestone.dueAt).getTime() ? 'MISSED' : 'OPEN';
 }

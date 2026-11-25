@@ -13,6 +13,7 @@
 | 0.1 | 2026-11-24 | First draft in #82: BR-09 link must be https only. |
 | 0.2 | 2026-11-25 | Replaced by the BR-06 late grace window (this document). The https-only change was judged too small for the Lab 7 criterion that the change must be complex enough and cover the Sprint 1 slice. Open questions 1 to 5 answered by Kan (section 3.3). |
 | 0.3 | 2026-11-25 | Review fixes from PR #90 (section reference, exact-`D` status note) and team approval recorded. |
+| 0.4 | 2026-11-25 | Section 7: actual pre-change baseline filled in by #84. |
 
 ## 1. Summary
 
@@ -113,7 +114,7 @@ IDs reserved for Lab 7: AC-49..52, TEST-52..56, TEST-U08, TEST-E2E-08.
 |---|---|---|
 | Accepted Sprint 1 baseline | tag `v0.1.0` → `3da07d0` | old BR-06 behavior |
 | Sprint 1 accepted in Lab 6 UAT | `main` `a11fdc0`, Cloud Run revision `cpms-00006-xfg` | partner team PMELS accepted, no limitations |
-| Actual pre-change implementation | `staging` head right before the #84 red commit, after #70 (F-07) is merged | to be filled in by #84 |
+| Actual pre-change implementation | `staging` `492957a` (after #70 F-07 and #91), right before the #84 red commit `081f8a6` | baseline `npm test` 115/115 passed |
 | Intervening development | F-06 (#67, #68, #69), F-07 (#70) on `staging` | Sprint 2 work, not part of this change |
 
 ## 8. Approval
