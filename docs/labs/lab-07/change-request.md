@@ -6,12 +6,13 @@
 | Issue | #82 (change request), followed by #83 (impact + contract), #84 (implementation), #85 (release) |
 | Requested by | Phacharawat Eakgawatphokhin (Kan), 67070503426 |
 | Team approver | Chaiyaphoom Chenchirotphiphat (James), 67070503410, by review of the PR that adds this file |
-| Status | Proposed, waiting for team approval |
+| Status | Approved by the team (PR #90 review, 2026-11-25) |
 
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-24 | First draft in #82: BR-09 link must be https only. |
-| 0.2 | 2026-11-25 | Replaced by the BR-06 late grace window (this document). The https-only change was judged too small for the Lab 7 criterion that the change must be complex enough and cover the Sprint 1 slice. Open questions 1 to 5 (section 6) answered by Kan. |
+| 0.3 | 2026-11-25 | Review fixes from PR #90 (section reference, exact-`D` status note) and team approval recorded. |
+| 0.2 | 2026-11-25 | Replaced by the BR-06 late grace window (this document). The https-only change was judged too small for the Lab 7 criterion that the change must be complex enough and cover the Sprint 1 slice. Open questions 1 to 5 answered by Kan (section 3.3). |
 
 ## 1. Summary
 
@@ -56,7 +57,7 @@ real data.
 | Milestone status, no submission | Sprint 1 | New |
 |---|---|---|
 | `now < D` | `OPEN` | `OPEN` |
-| `D <= now < D + 24 h` | `MISSED` | `OPEN`, UI shows the grace message |
+| `D <= now < D + 24 h` | `MISSED` (`OPEN` at exactly `now = D`, because the code uses `now > dueAt`) | `OPEN`, UI shows the grace message |
 | `now >= D + 24 h` | `MISSED` | `MISSED` |
 
 ### 3.3 Decisions (answered by Kan, 2026-11-25)
@@ -120,7 +121,7 @@ IDs reserved for Lab 7: AC-49..52, TEST-52..56, TEST-U08, TEST-E2E-08.
 | Role | Name | Date | Record |
 |---|---|---|---|
 | Requester | Phacharawat Eakgawatphokhin (Kan) | 2026-11-25 | this document, #82 |
-| Team approver | Chaiyaphoom Chenchirotphiphat (James) | | approval of the PR that adds this file |
+| Team approver | Chaiyaphoom Chenchirotphiphat (James) | 2026-11-25 | approved PR #90 review |
 | Instructor / TA | not required | 2026-11-24 | Prof. Suthep Madarasmi announced in the course Facebook group on 24 November 2026 that instructor/TA approval of the Lab 7 change is not required, provided the change is complex enough and covers the Sprint 1 slice. |
 
 No code for this change may be committed before this file is approved and merged into `staging`.
