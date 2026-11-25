@@ -1,0 +1,26 @@
+# TDD green: Lab 7 #84 (CR-01 BR-06 v2)
+# on top of red commit 081f8a6 ; date: 2026-11-25T12:35:06Z
+# cmd: cd server && npx vitest run
+ ✓ tests/auth.test.ts (14 tests) 4964ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  420ms
+     ✓ accepts the email in any letter case  356ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  320ms
+     ✓ unknown email gives the same 401 response as a wrong password  628ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  355ms
+     ✓ deletes the session row from the database  330ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2521ms
+ ✓ tests/resubmission.test.ts (10 tests) 2329ms
+ ✓ tests/milestone-management.test.ts (9 tests) 2084ms
+ ✓ tests/history.test.ts (2 tests) 2018ms
+ ✓ tests/late-grace.test.ts (8 tests) 1837ms
+ ✓ tests/submissions.test.ts (16 tests) 1800ms
+ ✓ tests/revision-request.test.ts (9 tests) 1900ms
+ ✓ tests/feedback.test.ts (12 tests) 1696ms
+ ✓ tests/teams.test.ts (13 tests) 1579ms
+ ✓ tests/milestones.test.ts (11 tests) 882ms
+ ✓ tests/seed.test.ts (4 tests) 914ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  792ms
+ ✓ tests/health.test.ts (6 tests) 116ms
+ ✓ tests/authorization.test.ts (9 tests) 77ms
+ Test Files  13 passed (13)
+      Tests  123 passed (123)

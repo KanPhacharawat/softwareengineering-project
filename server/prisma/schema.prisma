@@ -84,6 +84,8 @@ model Submission {
   createdBy        User                @relation("SubmissionCreatedBy", fields: [createdById], references: [id])
   /// F-06: number of the latest SubmissionVersion; the title/description/link above mirror that version.
   currentVersion   Int                 @default(1)
+  /// Lab 7 BR-06 v2: server time of the first save at or after dueAt (version 1). Never cleared.
+  lateAt           DateTime?           @db.Timestamptz(3)
   versions         SubmissionVersion[]
   revisionRequests RevisionRequest[]
   feedbacks        Feedback[]

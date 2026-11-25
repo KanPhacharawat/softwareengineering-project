@@ -291,7 +291,7 @@ describe('TEST-39..TEST-44 Milestone edit and close API (AC-36..AC-40, AC-42)', 
 
   it('TEST-44 (AC-42) past-due milestone: title-only PATCH keeps MISSED; extending dueAt reopens submit window', async () => {
     const ms = await createAlphaMilestone(7);
-    const pastDue = new Date(Date.now() - DAY);
+    const pastDue = new Date(Date.now() - DAY - 3600000); // Lab 7 BR-06 v2 (CR-01, #82): past the 24 h grace window, so MISSED and 422
     await prisma.milestone.update({ where: { id: ms.id }, data: { dueAt: pastDue } });
 
     // Title-only PATCH on past-due milestone succeeds and keeps dueAt & MISSED status

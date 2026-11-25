@@ -2,7 +2,7 @@ import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
 import { computeMilestoneStatus, type MilestoneStatus } from '../domain/milestone.js';
-import { canChangeSubmission, effectiveDueAt, validateSubmissionInput } from '../domain/submission.js';
+import { canChangeSubmission, effectiveDueAt, graceEndsAt, validateSubmissionInput } from '../domain/submission.js';
 import { canResubmit, revisionStatus, type RevisionStatus } from '../domain/revision.js';
 import { UUID } from './team-service.js';
 import type { PublicUser } from './auth-service.js';
@@ -116,6 +116,8 @@ export type SubmissionView = {
   updatedAt: string;
   currentVersion: number;
   editableUntil: string;
+  /** Lab 7 BR-06 v2: first save at or after dueAt; null = on time. */
+  lateAt: string | null;
   feedback: FeedbackView | null;
   revisionRequest: RevisionRequestView | null;
   grade: GradeView | null;
@@ -130,6 +132,7 @@ export type MilestoneDetailView = {
     closedAt: string | null;
     closedBy: { id: string; name: string } | null;
     status: MilestoneStatus;
+    graceEndsAt: string;
   };
   team: {
     id: string;
@@ -150,6 +153,7 @@ function toSubmissionView(
     submittedAt: Date;
     updatedAt: Date;
     currentVersion: number;
+    lateAt: Date | null;
     versions: CurrentVersionRow[];
     grade?: {
       score: number;
@@ -175,6 +179,7 @@ function toSubmissionView(
     updatedAt: sub.updatedAt.toISOString(),
     currentVersion: sub.currentVersion,
     editableUntil: effectiveDueAt(milestone, current).toISOString(),
+    lateAt: sub.lateAt?.toISOString() ?? null,
     feedback: current.feedbackView,
     revisionRequest: current.revisionRequestView,
     grade: sub.grade ? toGradeView(sub.grade) : null,
@@ -247,6 +252,7 @@ export async function getMilestoneDetail(
       closedAt: milestone.closedAt ? milestone.closedAt.toISOString() : null,
       closedBy: milestone.closedBy,
       status: computeMilestoneStatus(milestone, milestone.submission && currentState(milestone.submission), now),
+      graceEndsAt: graceEndsAt(milestone.dueAt).toISOString(),
     },
     team: {
       id: milestone.team.id,
@@ -314,6 +320,8 @@ export async function createSubmission(
           title: data.title,
           description: data.description ?? null,
           link: data.link,
+          // BR-06 v2: saved inside the grace window -> late
+          lateAt: now >= lockedMilestone.dueAt ? now : null,
           // F-06: version 1 is created in the same statement (one transaction)
           versions: {
             create: {
@@ -383,7 +391,9 @@ export async function updateSubmission(
     const versionKey = { submissionId_versionNumber: { submissionId, versionNumber: locked.currentVersion } };
     const fields = { title: data.title, description: data.description ?? null, link: data.link, submittedById: user.id };
     await tx.submissionVersion.update({ where: versionKey, data: fields });
-    const updated = await tx.submission.update({ where: { milestoneId }, data: fields, include: SUBMISSION_INCLUDE });
+    // BR-06 v2: first version-1 save at or after dueAt marks it late; never cleared or moved (CR-01 3.3)
+    const lateAt = locked.currentVersion === 1 && !locked.lateAt && now >= lockedMilestone.dueAt ? now : undefined;
+    const updated = await tx.submission.update({ where: { milestoneId }, data: { ...fields, lateAt }, include: SUBMISSION_INCLUDE });
     return { sub: updated, lockedMilestone };
   });
 

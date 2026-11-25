@@ -78,7 +78,7 @@ export function validateSubmissionInput(input: unknown): SubmissionValidationRes
 }
 
 // BR-13 (F-07): closedAt !== null -> MILESTONE_CLOSED (checked first);
-// BR-06: now >= dueAt -> DEADLINE_PASSED; BR-07: current version has feedback -> SUBMISSION_LOCKED.
+// BR-06 v2 (Lab 7 CR-01): now >= dueAt + 24 h (version 1) -> DEADLINE_PASSED; BR-07: current version has feedback -> SUBMISSION_LOCKED.
 // BR-11 (F-06): version >= 2 uses the revision due of the request on the previous version instead of the milestone due.
 export function canChangeSubmission(
   milestone: { dueAt: Date | string; closedAt: Date | string | null },
@@ -100,10 +100,18 @@ export function canChangeSubmission(
   return { allowed: true };
 }
 
+// BR-06 v2: version 1 may still be saved for 24 h after the milestone due time (marked late).
+export const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
+
+export function graceEndsAt(dueAt: Date | string): Date {
+  return new Date(new Date(dueAt).getTime() + GRACE_PERIOD_MS);
+}
+
+// Last instant (exclusive) a save is accepted: revision due for v>=2 (no grace, BR-11), else dueAt + grace.
 export function effectiveDueAt(
   milestone: { dueAt: Date | string },
   submission?: { versionNumber?: number; revisionDueAt?: Date | null } | null,
 ): Date {
   const revisionDue = (submission?.versionNumber ?? 1) >= 2 ? submission?.revisionDueAt : null;
-  return new Date(revisionDue ?? milestone.dueAt);
+  return revisionDue ? new Date(revisionDue) : graceEndsAt(milestone.dueAt);
 }

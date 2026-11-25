@@ -70,6 +70,10 @@ export type Milestone = {
   closedAt: string | null;
   closedBy: { id: string; name: string } | null;
   status: MilestoneStatus;
+  /** Lab 7 BR-06 v2: dueAt + 24 h, last moment a late version 1 is accepted. */
+  graceEndsAt: string;
+  /** Team list only: lateAt of the submission (null = none or on time). */
+  lateAt?: string | null;
 };
 
 export type Feedback = {
@@ -112,8 +116,10 @@ export type Submission = {
   submittedAt: string;
   updatedAt: string;
   currentVersion: number;
-  /** End of the edit window of the current version: milestone due for v1, revision due for v >= 2 (BR-11). */
+  /** End of the edit window of the current version: milestone due + 24 h grace for v1, revision due for v >= 2 (BR-11). */
   editableUntil: string;
+  /** Lab 7 BR-06 v2: first save at or after the due time; null = on time. */
+  lateAt: string | null;
   feedback: Feedback | null;
   revisionRequest: RevisionRequest | null;
   grade: Grade | null;

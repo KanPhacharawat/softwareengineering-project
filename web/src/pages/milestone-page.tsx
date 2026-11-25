@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Lo
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
 import { ClosedBadge } from '@/components/closed-badge';
+import { LateBadge } from '@/components/late-badge';
 import { SubmissionHistoryList } from '@/components/submission-history';
 import { EmptyState, ErrorState } from '@/components/page-states';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -90,7 +91,9 @@ function MilestoneDetailContent({
   const isStudent = user?.role === 'STUDENT';
   const isClosed = milestone.closedAt !== null;
   // F-06: the server gives the edit window of the current version (revision due for v >= 2), so the browser does not recompute it
-  const deadlinePassed = Date.now() >= new Date(submission?.editableUntil ?? milestone.dueAt).getTime();
+  // Lab 7 BR-06 v2: version 1 stays editable until graceEndsAt (dueAt + 24 h); v >= 2 uses editableUntil (revision due)
+  const deadlinePassed = Date.now() >= new Date(submission?.editableUntil ?? milestone.graceEndsAt).getTime();
+  const inGrace = !deadlinePassed && (submission?.currentVersion ?? 1) === 1 && Date.now() >= new Date(milestone.dueAt).getTime();
   const canEdit = isStudent && !isClosed && !deadlinePassed && !submission?.feedback;
   const canResubmit = isStudent && !isClosed && submission?.revisionRequest?.status === 'OPEN';
 
@@ -129,6 +132,7 @@ function MilestoneDetailContent({
             <div className="flex flex-wrap items-center gap-2">
               <MilestoneStatusBadge status={milestone.status} />
               {isClosed && <ClosedBadge />}
+              {submission?.lateAt && <LateBadge />}
               {!isStudent && !isClosed && !isEditingMilestone && (
                 <>
                   <Button
@@ -225,6 +229,13 @@ function MilestoneDetailContent({
             <Info className="size-4" />
             <AlertDescription>Submission closed: deadline passed</AlertDescription>
           </Alert>
+        ) : isStudent && inGrace ? (
+          <Alert>
+            <CalendarClock className="size-4" />
+            <AlertDescription>
+              Due date passed. Late submissions accepted until {formatBangkokDateTime(milestone.graceEndsAt)} (Bangkok time).
+            </AlertDescription>
+          </Alert>
         ) : null}
 
         {/* Existing Submission */}
@@ -240,6 +251,9 @@ function MilestoneDetailContent({
                   <CardDescription className="mt-1">
                     Submitted by {submission.createdBy.name} at {formatBangkokDateTime(submission.submittedAt)} · Last
                     updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
+                    {submission.lateAt && (
+                      <span className="block">Submitted late at {formatBangkokDateTime(submission.lateAt)} (Bangkok time)</span>
+                    )}
                   </CardDescription>
                 </div>
                 {canEdit && (
