@@ -1,31 +1,65 @@
 import { prisma } from '../db.js';
-import { CURRENT_VERSION, currentState } from './submission-service.js';
-import { computeMilestoneStatus, type MilestoneStatus, type ValidatedMilestoneData } from '../domain/milestone.js';
+import { AppError } from '../errors.js';
+import { CURRENT_VERSION, currentState, loadMilestoneInScope } from './submission-service.js';
+import {
+  computeMilestoneStatus,
+  validateMilestoneUpdate,
+  type MilestoneStatus,
+  type ValidatedMilestoneData,
+} from '../domain/milestone.js';
+import type { PublicUser } from './auth-service.js';
+
+const USER = { select: { id: true, name: true } } as const;
 
 export type MilestoneView = {
   id: string;
   title: string;
   description: string | null;
   dueAt: string;
+  closedAt: string | null;
+  closedBy: { id: string; name: string } | null;
   status: MilestoneStatus;
 };
 
-export type CreatedMilestoneView = {
-  id: string;
+export type CreatedMilestoneView = MilestoneView & {
   teamId: string;
-  title: string;
-  description: string | null;
-  dueAt: string;
   createdById: string;
   createdAt: string;
-  status: MilestoneStatus;
 };
+
+export type ManagedMilestoneView = MilestoneView & {
+  teamId: string;
+};
+
+function toMilestoneView(
+  m: {
+    id: string;
+    title: string;
+    description: string | null;
+    dueAt: Date;
+    closedAt: Date | null;
+    closedBy: { id: string; name: string } | null;
+    submission: Parameters<typeof currentState>[0] | null;
+  },
+  now: Date,
+): MilestoneView {
+  return {
+    id: m.id,
+    title: m.title,
+    description: m.description,
+    dueAt: m.dueAt.toISOString(),
+    closedAt: m.closedAt ? m.closedAt.toISOString() : null,
+    closedBy: m.closedBy,
+    status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
+  };
+}
 
 // FR-06: lists milestones of a team, sorted by due date ascending, with calculated status.
 export async function listTeamMilestones(teamId: string, now: Date = new Date()): Promise<MilestoneView[]> {
   const milestones = await prisma.milestone.findMany({
     where: { teamId },
     include: {
+      closedBy: USER,
       submission: {
         select: { versions: CURRENT_VERSION },
       },
@@ -33,13 +67,7 @@ export async function listTeamMilestones(teamId: string, now: Date = new Date())
     orderBy: { dueAt: 'asc' },
   });
 
-  return milestones.map((m) => ({
-    id: m.id,
-    title: m.title,
-    description: m.description,
-    dueAt: m.dueAt.toISOString(),
-    status: computeMilestoneStatus(m, m.submission && currentState(m.submission, now), now),
-  }));
+  return milestones.map((m) => toMilestoneView(m, now));
 }
 
 // FR-05: stores a new milestone for an assigned team.
@@ -60,14 +88,74 @@ export async function createMilestone(
   });
 
   return {
-    id: milestone.id,
+    ...toMilestoneView({ ...milestone, closedBy: null, submission: null }, now),
     teamId: milestone.teamId,
-    title: milestone.title,
-    description: milestone.description,
-    dueAt: milestone.dueAt.toISOString(),
     createdById: milestone.createdById,
     createdAt: milestone.createdAt.toISOString(),
-    status: computeMilestoneStatus(milestone, null, now),
   };
 }
 
+// PATCH /api/milestones/:milestoneId (FR-14, BR-04, BR-13, AC-36..AC-38, AC-40, AC-42)
+export async function updateMilestone(
+  user: PublicUser,
+  milestoneId: string,
+  input: unknown,
+  now: Date = new Date(),
+): Promise<ManagedMilestoneView> {
+  await loadMilestoneInScope(user, milestoneId);
+
+  const validation = validateMilestoneUpdate(input, now);
+  if (!validation.success) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid', validation.fields);
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
+    const locked = await tx.milestone.findUniqueOrThrow({ where: { id: milestoneId }, select: { closedAt: true } });
+    if (locked.closedAt !== null) {
+      throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+    }
+
+    return tx.milestone.update({
+      where: { id: milestoneId },
+      data: validation.data,
+      include: {
+        closedBy: USER,
+        submission: { select: { versions: CURRENT_VERSION } },
+      },
+    });
+  });
+
+  return { ...toMilestoneView(updated, now), teamId: updated.teamId };
+}
+
+// POST /api/milestones/:milestoneId/close (FR-14, BR-13, AC-38, AC-40)
+export async function closeMilestone(
+  user: PublicUser,
+  milestoneId: string,
+  now: Date = new Date(),
+): Promise<ManagedMilestoneView> {
+  await loadMilestoneInScope(user, milestoneId);
+
+  const closed = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
+    const locked = await tx.milestone.findUniqueOrThrow({ where: { id: milestoneId }, select: { closedAt: true } });
+    if (locked.closedAt !== null) {
+      throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+    }
+
+    // Use DB clock_timestamp() *after* acquiring FOR UPDATE so closedAt is always >= any submission committed before close.
+    const [{ closedAt }] = await tx.$queryRaw<[{ closedAt: Date }]>`SELECT clock_timestamp() AS "closedAt"`;
+
+    return tx.milestone.update({
+      where: { id: milestoneId },
+      data: { closedAt, closedById: user.id },
+      include: {
+        closedBy: USER,
+        submission: { select: { versions: CURRENT_VERSION } },
+      },
+    });
+  });
+
+  return { ...toMilestoneView(closed, now), teamId: closed.teamId };
+}

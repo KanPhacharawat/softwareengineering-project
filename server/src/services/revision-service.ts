@@ -26,7 +26,10 @@ export async function createRevisionRequest(
 
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
-    include: { milestone: { select: { team: { select: { supervisorId: true } } } }, versions: CURRENT_VERSION },
+    include: {
+      milestone: { select: { id: true, closedAt: true, team: { select: { supervisorId: true } } } },
+      versions: CURRENT_VERSION,
+    },
   });
   if (!submission || submission.milestone.team.supervisorId !== user.id) throw NOT_FOUND();
 
@@ -35,13 +38,23 @@ export async function createRevisionRequest(
     throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid', validation.fields);
   }
 
+  if (submission.milestone.closedAt !== null) {
+    throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+  }
+
   const check = canRequestRevision(currentState(submission));
   if (!check.allowed) rejectState(check.reason);
 
+  const milestoneId = submission.milestone.id;
   try {
     const created = await prisma.$transaction(async (tx) => {
-      // Same row lock as feedback/PUT, so the current version cannot change between the check and the insert
+      // Lock order: Milestone first, then Submission (F-07 concurrency rule, prevents deadlocks)
+      await tx.$queryRaw`SELECT 1 FROM "Milestone" WHERE id = ${milestoneId}::uuid FOR UPDATE`;
       await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
+      const lockedMilestone = await tx.milestone.findUniqueOrThrow({ where: { id: milestoneId }, select: { closedAt: true } });
+      if (lockedMilestone.closedAt !== null) {
+        throw new AppError(409, 'MILESTONE_CLOSED', 'This milestone is closed');
+      }
       const locked = await tx.submission.findUniqueOrThrow({ where: { id: submissionId }, include: { versions: CURRENT_VERSION } });
       const recheck = canRequestRevision(currentState(locked));
       if (!recheck.allowed) rejectState(recheck.reason);

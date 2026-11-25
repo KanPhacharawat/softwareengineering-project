@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { ArrowLeft, CalendarClock, CircleAlert, Flag, Loader2, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
+import { ClosedBadge } from '@/components/closed-badge';
 import { EmptyState, ErrorState } from '@/components/page-states';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -139,7 +140,10 @@ function TeamDetail({ team }: { team: Team }) {
                             </span>
                           </TableCell>
                           <TableCell className="px-6">
-                            <MilestoneStatusBadge status={m.status} />
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <MilestoneStatusBadge status={m.status} />
+                              {m.closedAt && <ClosedBadge />}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -167,7 +171,10 @@ function TeamDetail({ team }: { team: Team }) {
                           <CalendarClock className="size-3.5 text-muted-foreground" />
                           Due {formatBangkokDateTime(m.dueAt)}
                         </span>
-                        <MilestoneStatusBadge status={m.status} />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <MilestoneStatusBadge status={m.status} />
+                          {m.closedAt && <ClosedBadge />}
+                        </div>
                       </div>
                     </div>
                   ))}
