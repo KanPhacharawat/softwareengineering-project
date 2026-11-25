@@ -293,8 +293,8 @@ function MilestoneDetailContent({
           </Card>
         )}
 
-        {/* Revision request (F-06): hidden when closed (F-07) or graded (F-08) */}
-        {!isClosed && submission?.revisionRequest && (
+        {/* Revision request (F-06): hidden for students when closed (F-07); kept visible for supervisors as grading context (F-08) */}
+        {(!isClosed || !isStudent) && submission?.revisionRequest && (
           <RevisionRequestNotice request={submission.revisionRequest} isStudent={isStudent} />
         )}
         {!isClosed && submission && submission.feedback && !submission.revisionRequest && !submission.grade && !isStudent && (
@@ -482,6 +482,9 @@ function GradeForm({
         setErrors(err.fields);
       } else {
         setErrors({ form: err instanceof Error ? err.message : 'Could not save grade' });
+        if (err instanceof ApiError && err.status === 409) {
+          onSaved();
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -805,6 +808,9 @@ function RevisionRequestForm({ submissionId, onSaved }: { submissionId: string; 
         setErrors(err.fields);
       } else {
         setErrors({ form: err instanceof Error ? err.message : 'Could not request revision' });
+        if (err instanceof ApiError && err.status === 409) {
+          onSaved();
+        }
       }
     } finally {
       setIsSubmitting(false);

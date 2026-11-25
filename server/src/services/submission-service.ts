@@ -52,12 +52,12 @@ export function currentState(sub: { versions: CurrentVersionRow[] }, now: Date =
     revisionRequest: v?.revisionRequest ?? null,
     feedbackView: v?.feedback
       ? {
-        id: v.feedback.id,
-        comment: v.feedback.comment,
-        author: v.feedback.author,
-        createdAt: v.feedback.createdAt.toISOString(),
-        versionNumber: v.versionNumber,
-      }
+          id: v.feedback.id,
+          comment: v.feedback.comment,
+          author: v.feedback.author,
+          createdAt: v.feedback.createdAt.toISOString(),
+          versionNumber: v.versionNumber,
+        }
       : null,
     revisionRequestView: v?.revisionRequest ? toRevisionRequestView(v.revisionRequest, v.versionNumber, now) : null,
   };
@@ -87,6 +87,22 @@ export type GradeView = {
   gradedAt: string;
   updatedAt: string;
 };
+
+export function toGradeView(g: {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: Date;
+  updatedAt: Date;
+}): GradeView {
+  return {
+    score: g.score,
+    versionNumber: g.versionNumber,
+    gradedBy: g.gradedBy,
+    gradedAt: g.gradedAt.toISOString(),
+    updatedAt: g.updatedAt.toISOString(),
+  };
+}
 
 export type SubmissionView = {
   id: string;
@@ -161,15 +177,7 @@ function toSubmissionView(
     editableUntil: effectiveDueAt(milestone, current).toISOString(),
     feedback: current.feedbackView,
     revisionRequest: current.revisionRequestView,
-    grade: sub.grade
-      ? {
-        score: sub.grade.score,
-        versionNumber: sub.grade.versionNumber,
-        gradedBy: sub.grade.gradedBy,
-        gradedAt: sub.grade.gradedAt.toISOString(),
-        updatedAt: sub.grade.updatedAt.toISOString(),
-      }
-      : null,
+    grade: sub.grade ? toGradeView(sub.grade) : null,
   };
 }
 

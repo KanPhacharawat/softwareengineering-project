@@ -3,7 +3,7 @@ import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
 import { canGrade, validateGradeInput } from '../domain/grade.js';
 import { UUID } from './team-service.js';
-import { CURRENT_VERSION, currentState, type GradeView } from './submission-service.js';
+import { CURRENT_VERSION, currentState, toGradeView, type GradeView } from './submission-service.js';
 import type { PublicUser } from './auth-service.js';
 
 const NOT_FOUND = () => new AppError(404, 'NOT_FOUND', 'Not found or you do not have access');
@@ -76,11 +76,5 @@ export async function setGrade(
     });
   });
 
-  return {
-    score: grade.score,
-    versionNumber: grade.versionNumber,
-    gradedBy: grade.gradedBy,
-    gradedAt: grade.gradedAt.toISOString(),
-    updatedAt: grade.updatedAt.toISOString(),
-  };
+  return toGradeView(grade);
 }

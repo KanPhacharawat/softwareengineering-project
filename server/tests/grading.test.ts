@@ -228,6 +228,20 @@ describe('TEST-45..TEST-50 Grading API (AC-43..AC-48)', () => {
       expect(gradeRes.status).toBe(409);
       expect(gradeRes.body.error.code).toBe('REVISION_PENDING');
     }
+
+    // (e) Parallel PUT grade + POST versions (resubmit) serialize on Submission lock: grade never lands on a replaced version
+    const resubmitRace = await createRevisionRequestedSubmission(app, { sup1, s1 });
+    const [raceGrade, raceResubmit] = await Promise.all([
+      put(gradeUrl(resubmitRace.submissionId), sup1, { score: 88 }),
+      post(`/api/submissions/${resubmitRace.submissionId}/versions`, s2, {
+        title: 'Race v2',
+        link: 'https://example.com/race-v2',
+      }),
+    ]);
+    expect(raceResubmit.status).toBe(201);
+    expect(raceGrade.status).toBe(409);
+    expect(['REVISION_PENDING', 'FEEDBACK_REQUIRED']).toContain(raceGrade.body.error.code);
+    expect(await prisma.grade.count({ where: { submissionId: resubmitRace.submissionId } })).toBe(0);
   });
 
   it('TEST-48 (AC-46) updating grade 85 -> 90 keeps one row with later updatedAt; parallel PUTs keep one row', async () => {
