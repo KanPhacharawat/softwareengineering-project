@@ -13,17 +13,22 @@ enum Role {
 }
 
 model User {
-  id           String       @id @default(uuid()) @db.Uuid
-  email        String       @unique
-  name         String
-  role         Role
-  passwordHash String
-  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
-  supervises   Team[]       @relation("TeamSupervisor")
-  memberships  TeamMember[]
-  milestones   Milestone[]
-  submissions  Submission[]
-  feedbacks    Feedback[]
+  id                 String              @id @default(uuid()) @db.Uuid
+  email              String              @unique
+  name               String
+  role               Role
+  passwordHash       String
+  createdAt          DateTime            @default(now()) @db.Timestamptz(3)
+  supervises         Team[]              @relation("TeamSupervisor")
+  memberships        TeamMember[]
+  milestones         Milestone[]         @relation("MilestoneCreatedBy")
+  closedMilestones   Milestone[]         @relation("MilestoneClosedBy")
+  submissions        Submission[]        @relation("SubmissionSubmittedBy")
+  createdSubmissions Submission[]        @relation("SubmissionCreatedBy")
+  feedbacks          Feedback[]
+  submittedVersions  SubmissionVersion[] @relation("VersionSubmittedBy")
+  revisionRequests   RevisionRequest[]   @relation("RevisionRequestedBy")
+  grades             Grade[]             @relation("GradeGradedBy")
 }
 
 model Team {
@@ -46,44 +51,109 @@ model TeamMember {
 }
 
 model Milestone {
-  id          String   @id @default(uuid()) @db.Uuid
-  teamId      String   @db.Uuid
+  id          String      @id @default(uuid()) @db.Uuid
+  teamId      String      @db.Uuid
   title       String
   description String?
-  dueAt       DateTime @db.Timestamptz(3)
-  createdById String   @db.Uuid
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  createdBy   User        @relation(fields: [createdById], references: [id])
+  dueAt       DateTime    @db.Timestamptz(3)
+  createdById String      @db.Uuid
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  closedAt    DateTime?   @db.Timestamptz(3)
+  closedById  String?     @db.Uuid
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User        @relation("MilestoneCreatedBy", fields: [createdById], references: [id])
+  closedBy    User?       @relation("MilestoneClosedBy", fields: [closedById], references: [id], onDelete: Restrict)
   submission  Submission?
 
   @@index([teamId])
 }
 
 model Submission {
-  id            String    @id @default(uuid()) @db.Uuid
-  milestoneId   String    @unique @db.Uuid
-  title         String
-  description   String?
-  link          String
-  submittedById String    @db.Uuid
-  submittedAt   DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
-  milestone     Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
-  submittedBy   User      @relation(fields: [submittedById], references: [id])
-  feedback      Feedback?
+  id               String              @id @default(uuid()) @db.Uuid
+  milestoneId      String              @unique @db.Uuid
+  title            String
+  description      String?
+  link             String
+  /// Last student who saved it (AC-16). createdById is the original submitter and never changes (#55).
+  submittedById    String              @db.Uuid
+  createdById      String              @db.Uuid
+  submittedAt      DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime            @updatedAt @db.Timestamptz(3)
+  milestone        Milestone           @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  submittedBy      User                @relation("SubmissionSubmittedBy", fields: [submittedById], references: [id])
+  createdBy        User                @relation("SubmissionCreatedBy", fields: [createdById], references: [id])
+  /// F-06: number of the latest SubmissionVersion; the title/description/link above mirror that version.
+  currentVersion   Int                 @default(1)
+  /// Lab 7 BR-06 v2: server time of the first save at or after dueAt (version 1). Never cleared.
+  lateAt           DateTime?           @db.Timestamptz(3)
+  versions         SubmissionVersion[]
+  revisionRequests RevisionRequest[]
+  feedbacks        Feedback[]
+  grade            Grade?
+}
+
+/// F-06: one row per (re)submitted version. Only the current version is ever updated.
+model SubmissionVersion {
+  id              String           @id @default(uuid()) @db.Uuid
+  submissionId    String           @db.Uuid
+  versionNumber   Int
+  title           String
+  description     String?
+  link            String
+  submittedById   String           @db.Uuid
+  submittedAt     DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+  submission      Submission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submittedBy     User             @relation("VersionSubmittedBy", fields: [submittedById], references: [id])
+  feedback        Feedback?
+  revisionRequest RevisionRequest?
+
+  @@unique([submissionId, versionNumber])
+}
+
+/// F-06: at most one revision request per version (unique versionId), status is derived.
+model RevisionRequest {
+  id            String            @id @default(uuid()) @db.Uuid
+  submissionId  String            @db.Uuid
+  versionId     String            @unique @db.Uuid
+  reason        String
+  dueAt         DateTime          @db.Timestamptz(3)
+  requestedById String            @db.Uuid
+  createdAt     DateTime          @default(now()) @db.Timestamptz(3)
+  submission    Submission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  version       SubmissionVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  requestedBy   User              @relation("RevisionRequestedBy", fields: [requestedById], references: [id])
+
+  @@index([submissionId])
 }
 
 model Feedback {
-  id           String     @id @default(uuid()) @db.Uuid
-  submissionId String     @unique @db.Uuid
-  authorId     String     @db.Uuid
+  id           String            @id @default(uuid()) @db.Uuid
+  submissionId String            @db.Uuid
+  /// F-06 BR-08: one feedback per version.
+  versionId    String            @unique @db.Uuid
+  authorId     String            @db.Uuid
   comment      String
-  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  author       User       @relation(fields: [authorId], references: [id])
+  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
+  submission   Submission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  version      SubmissionVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  author       User              @relation(fields: [authorId], references: [id])
 
   @@index([authorId])
+  @@index([submissionId])
+}
+
+/// F-08: one grade per submission (BR-12), score 0..100 enforced by API and DB CHECK.
+model Grade {
+  id            String     @id @default(uuid()) @db.Uuid
+  submissionId  String     @unique @db.Uuid
+  score         Int
+  versionNumber Int
+  gradedById    String     @db.Uuid
+  gradedAt      DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(3)
+  submission    Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  gradedBy      User       @relation("GradeGradedBy", fields: [gradedById], references: [id], onDelete: Restrict)
 }
 
 /// Session store table used by connect-pg-simple (F-01). Shape must match that library.

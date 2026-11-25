@@ -1,0 +1,48 @@
+# TDD green for #68 F-06b resubmission. Also: npm run typecheck OK, npm run build OK, Playwright E2E 18/18 passed, manual UI check as s2 (Resubmit form -> Version 2).
+
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+6 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 5631ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  472ms
+     ✓ accepts the email in any letter case  406ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  366ms
+     ✓ unknown email gives the same 401 response as a wrong password  753ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  385ms
+     ✓ deletes the session row from the database  362ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2863ms
+ ✓ tests/resubmission.test.ts (10 tests) 2175ms
+ ✓ tests/submissions.test.ts (16 tests) 1859ms
+ ✓ tests/feedback.test.ts (12 tests) 1763ms
+ ✓ tests/teams.test.ts (13 tests) 1688ms
+ ✓ tests/revision-request.test.ts (9 tests) 1633ms
+ ✓ tests/milestones.test.ts (11 tests) 926ms
+ ✓ tests/seed.test.ts (4 tests) 842ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  765ms
+ ✓ tests/health.test.ts (6 tests) 127ms
+ ✓ tests/authorization.test.ts (9 tests) 100ms
+
+ Test Files  10 passed (10)
+      Tests  104 passed (104)
+   Start at  18:07:45
+   Duration  21.60s (transform 324ms, setup 148ms, import 1.96s, tests 16.74s, environment 1ms)
+

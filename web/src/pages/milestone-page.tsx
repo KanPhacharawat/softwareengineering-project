@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, Send } from 'lucide-react';
+import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, FileText, Info, Loader2, Lock, MessageSquare, Pencil, RotateCcw, Send } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
+import { ClosedBadge } from '@/components/closed-badge';
+import { LateBadge } from '@/components/late-badge';
+import { SubmissionHistoryList } from '@/components/submission-history';
 import { EmptyState, ErrorState } from '@/components/page-states';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -11,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { api, ApiError, formatBangkokDateTime, type MilestoneDetail, type Submission } from '@/lib/api';
+import { api, ApiError, formatBangkokDateTime, toBangkokDateTimeLocal, type Grade, type Milestone, type MilestoneDetail, type RevisionRequest, type Submission } from '@/lib/api';
 import { useApi } from '@/lib/use-api';
 
 // `/milestones/:milestoneId` (F-04): milestone details, team submission and editing.
@@ -80,10 +83,38 @@ function MilestoneDetailContent({
   const { user } = useAuth();
   const { milestone, submission } = detail;
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingMilestone, setIsEditingMilestone] = useState(false);
+  const [isConfirmingClose, setIsConfirmingClose] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   const isStudent = user?.role === 'STUDENT';
-  const deadlinePassed = Date.now() >= new Date(milestone.dueAt).getTime();
-  const canEdit = isStudent && !deadlinePassed && !submission?.feedback;
+  const isClosed = milestone.closedAt !== null;
+  // F-06: the server gives the edit window of the current version (revision due for v >= 2), so the browser does not recompute it
+  // Lab 7 BR-06 v2: version 1 stays editable until graceEndsAt (dueAt + 24 h); v >= 2 uses editableUntil (revision due)
+  const deadlinePassed = Date.now() >= new Date(submission?.editableUntil ?? milestone.graceEndsAt).getTime();
+  const inGrace = !deadlinePassed && (submission?.currentVersion ?? 1) === 1 && Date.now() >= new Date(milestone.dueAt).getTime();
+  const canEdit = isStudent && !isClosed && !deadlinePassed && !submission?.feedback;
+  const canResubmit = isStudent && !isClosed && submission?.revisionRequest?.status === 'OPEN';
+
+  async function handleConfirmClose() {
+    setCloseError(null);
+    setIsClosing(true);
+    try {
+      await api(`/milestones/${encodeURIComponent(milestone.id)}/close`, { method: 'POST' });
+      setIsConfirmingClose(false);
+      onReload();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'MILESTONE_CLOSED') {
+        setIsConfirmingClose(false);
+        onReload();
+        return;
+      }
+      setCloseError(err instanceof Error ? err.message : 'Could not close milestone');
+    } finally {
+      setIsClosing(false);
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -98,8 +129,36 @@ function MilestoneDetailContent({
                 Due {formatBangkokDateTime(milestone.dueAt)} (Bangkok time)
               </p>
             </div>
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
               <MilestoneStatusBadge status={milestone.status} />
+              {isClosed && <ClosedBadge />}
+              {submission?.lateAt && <LateBadge />}
+              {!isStudent && !isClosed && !isEditingMilestone && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsConfirmingClose(false);
+                      setIsEditingMilestone(true);
+                    }}
+                  >
+                    <Pencil className="size-4" />
+                    Edit milestone
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCloseError(null);
+                      setIsConfirmingClose((prev) => !prev);
+                    }}
+                  >
+                    <Lock className="size-4" />
+                    Close milestone
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -112,12 +171,55 @@ function MilestoneDetailContent({
         )}
       </Card>
 
+      {/* Inline Close Confirmation (F-07, no window.confirm) */}
+      {!isStudent && !isClosed && isConfirmingClose && (
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <p className="text-sm font-medium">
+              Close this milestone? Students will no longer be able to submit or edit.
+            </p>
+            {closeError && (
+              <Alert variant="destructive">
+                <CircleAlert className="size-4" />
+                <AlertDescription>{closeError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="flex items-center gap-3">
+              <Button variant="destructive" onClick={handleConfirmClose} disabled={isClosing}>
+                {isClosing && <Loader2 className="animate-spin size-4" />}
+                Close milestone
+              </Button>
+              <Button variant="outline" onClick={() => setIsConfirmingClose(false)} disabled={isClosing}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Inline Edit Milestone Form (F-07) */}
+      {!isStudent && !isClosed && isEditingMilestone && (
+        <EditMilestoneForm
+          milestone={milestone}
+          onSaved={() => {
+            setIsEditingMilestone(false);
+            onReload();
+          }}
+          onCancel={() => setIsEditingMilestone(false)}
+        />
+      )}
+
       {/* Submission Section */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Submission</h2>
 
-        {/* Status Notices (F-04 / F-05) */}
-        {isStudent && submission?.feedback ? (
+        {/* Status Notices (F-04 / F-05 / F-07: closed wins for students) */}
+        {isStudent && isClosed ? (
+          <Alert>
+            <Lock className="size-4" />
+            <AlertDescription>This milestone is closed.</AlertDescription>
+          </Alert>
+        ) : canResubmit ? null : isStudent && submission?.feedback ? (
           <Alert>
             <Lock className="size-4" />
             <AlertDescription>Locked after feedback</AlertDescription>
@@ -127,6 +229,13 @@ function MilestoneDetailContent({
             <Info className="size-4" />
             <AlertDescription>Submission closed: deadline passed</AlertDescription>
           </Alert>
+        ) : isStudent && inGrace ? (
+          <Alert>
+            <CalendarClock className="size-4" />
+            <AlertDescription>
+              Due date passed. Late submissions accepted until {formatBangkokDateTime(milestone.graceEndsAt)} (Bangkok time).
+            </AlertDescription>
+          </Alert>
         ) : null}
 
         {/* Existing Submission */}
@@ -135,9 +244,16 @@ function MilestoneDetailContent({
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-lg font-medium">{submission.title}</CardTitle>
+                  <CardTitle className="text-lg font-medium">
+                    {submission.title}{' '}
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">Version {submission.currentVersion}</span>
+                  </CardTitle>
                   <CardDescription className="mt-1">
-                    Last updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
+                    Submitted by {submission.createdBy.name} at {formatBangkokDateTime(submission.submittedAt)} · Last
+                    updated by {submission.submittedBy.name} at {formatBangkokDateTime(submission.updatedAt)}
+                    {submission.lateAt && (
+                      <span className="block">Submitted late at {formatBangkokDateTime(submission.lateAt)} (Bangkok time)</span>
+                    )}
                   </CardDescription>
                 </div>
                 {canEdit && (
@@ -191,6 +307,27 @@ function MilestoneDetailContent({
           </Card>
         )}
 
+        {/* Revision request (F-06): hidden for students when closed (F-07); kept visible for supervisors as grading context (F-08) */}
+        {(!isClosed || !isStudent) && submission?.revisionRequest && (
+          <RevisionRequestNotice request={submission.revisionRequest} isStudent={isStudent} />
+        )}
+        {!isClosed && submission && submission.feedback && !submission.revisionRequest && !submission.grade && !isStudent && (
+          <RevisionRequestForm submissionId={submission.id} onSaved={onReload} />
+        )}
+        {submission && canResubmit && (
+          <SubmissionForm milestoneId={milestone.id} initialValues={submission} resubmitId={submission.id} onSaved={onReload} />
+        )}
+
+        {/* Grade Section (F-08) */}
+        {submission && (
+          <GradeSection
+            submission={submission}
+            isStudent={isStudent}
+            milestoneClosed={isClosed}
+            onSaved={onReload}
+          />
+        )}
+
         {/* Supervisor Feedback Form (F-05) */}
         {submission && !submission.feedback && !isStudent && (
           <FeedbackForm
@@ -229,7 +366,320 @@ function MilestoneDetailContent({
           </>
         )}
       </section>
+
+      {/* History (F-06c): the key changes on every write, so the list re-fetches after onReload */}
+      {submission && (
+        <section className="space-y-4" aria-labelledby="history-heading">
+          <h2 id="history-heading" className="text-lg font-semibold">History</h2>
+          <SubmissionHistoryList
+            key={[submission.id, submission.currentVersion, submission.updatedAt, submission.feedback?.id, submission.revisionRequest?.id].join()}
+            submissionId={submission.id}
+          />
+        </section>
+      )}
     </div>
+  );
+}
+
+function GradeSection({
+  submission,
+  isStudent,
+  milestoneClosed,
+  onSaved,
+}: {
+  submission: Submission;
+  isStudent: boolean;
+  milestoneClosed: boolean;
+  onSaved: () => void;
+}) {
+  const [isEditingGrade, setIsEditingGrade] = useState(false);
+
+  if (isStudent) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Grade</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            {submission.grade ? `Grade: ${submission.grade.score} / 100` : 'Not graded yet'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Supervisor: no Grade card until the current version has feedback
+  if (!submission.feedback) return null;
+
+  const hasActiveOpenRevision = submission.revisionRequest?.status === 'OPEN' && !milestoneClosed;
+  if (hasActiveOpenRevision) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Grade</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Grading is available after the team resubmits and you give feedback.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (submission.grade && !isEditingGrade) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-lg font-medium">Grade</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => setIsEditingGrade(true)}>
+              <Pencil className="size-4" />
+              Edit grade
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            Grade: {submission.grade.score} / 100 · Graded by {submission.grade.gradedBy.name} at{' '}
+            {formatBangkokDateTime(submission.grade.updatedAt)}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <GradeForm
+      submissionId={submission.id}
+      initialGrade={submission.grade}
+      onSaved={() => {
+        setIsEditingGrade(false);
+        onSaved();
+      }}
+      onCancel={submission.grade ? () => setIsEditingGrade(false) : undefined}
+    />
+  );
+}
+
+function GradeForm({
+  submissionId,
+  initialGrade,
+  onSaved,
+  onCancel,
+}: {
+  submissionId: string;
+  initialGrade: Grade | null;
+  onSaved: () => void;
+  onCancel?: () => void;
+}) {
+  const [scoreInput, setScoreInput] = useState(initialGrade ? String(initialGrade.score) : '');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      // F-08 UI rule: never coerce empty input to 0; send null so server returns 400 fields.score, and never round decimals.
+      const trimmed = scoreInput.trim();
+      const score = trimmed === '' ? null : Number(trimmed);
+      await api(`/submissions/${encodeURIComponent(submissionId)}/grade`, {
+        method: 'PUT',
+        body: { score },
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
+        setErrors(err.fields);
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not save grade' });
+        if (err instanceof ApiError && err.status === 409) {
+          onSaved();
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Grade</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="grade-score">Score (0–100)</Label>
+            <Input
+              id="grade-score"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={scoreInput}
+              onChange={(e) => setScoreInput(e.target.value)}
+              aria-invalid={!!errors.score}
+            />
+            {errors.score && <p className="text-sm text-destructive">{errors.score}</p>}
+          </div>
+
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="animate-spin size-4" />}
+              {isSubmitting ? 'Saving…' : 'Save grade'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EditMilestoneForm({
+  milestone,
+  onSaved,
+  onCancel,
+}: {
+  milestone: Milestone;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
+  const initialDueAt = toBangkokDateTimeLocal(milestone.dueAt);
+  const [title, setTitle] = useState(milestone.title);
+  const [description, setDescription] = useState(milestone.description ?? '');
+  const [dueAt, setDueAt] = useState(initialDueAt);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // F-07 Decision 6: send only dirty fields (minute-precision Bangkok comparison for dueAt)
+  function buildPatchBody(): Record<string, unknown> {
+    const body: Record<string, unknown> = {};
+    if (title.trim() !== milestone.title) {
+      body.title = title.trim();
+    }
+    const normalizedDesc = description.trim() || null;
+    if (normalizedDesc !== (milestone.description ?? null)) {
+      body.description = normalizedDesc;
+    }
+    if (dueAt !== initialDueAt) {
+      body.dueAt = dueAt ? (dueAt.length === 16 ? `${dueAt}:00+07:00` : `${dueAt}+07:00`) : '';
+    }
+    return body;
+  }
+
+  const isDirty = Object.keys(buildPatchBody()).length > 0;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const body = buildPatchBody();
+    if (Object.keys(body).length === 0) {
+      setErrors({ form: 'At least one field is required' });
+      return;
+    }
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      await api(`/milestones/${encodeURIComponent(milestone.id)}`, {
+        method: 'PATCH',
+        body,
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'MILESTONE_CLOSED') {
+        onSaved();
+        return;
+      }
+      if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
+        setErrors(err.fields);
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not update milestone' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Edit milestone</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-milestone-title">Title</Label>
+            <Input
+              id="edit-milestone-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              aria-invalid={!!errors.title}
+            />
+            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-milestone-description">Description</Label>
+            <Textarea
+              id="edit-milestone-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              aria-invalid={!!errors.description}
+            />
+            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-milestone-due">Due date</Label>
+            <Input
+              id="edit-milestone-due"
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              aria-invalid={!!errors.dueAt}
+            />
+            <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
+            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+          </div>
+
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isSubmitting || !isDirty}>
+              {isSubmitting && <Loader2 className="animate-spin size-4" />}
+              Save changes
+            </Button>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -321,16 +771,132 @@ function FeedbackForm({
   );
 }
 
+function RevisionRequestNotice({ request, isStudent }: { request: RevisionRequest; isStudent: boolean }) {
+  const due = formatBangkokDateTime(request.dueAt);
+  const expired = request.status === 'EXPIRED';
+  if (isStudent) {
+    return (
+      <Alert>
+        <RotateCcw className="size-4" />
+        <AlertDescription>
+          {expired ? 'Revision due date has passed.' : `Revision requested: ${request.reason}. Resubmit by ${due}.`}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  return (
+    <Alert>
+      <RotateCcw className="size-4" />
+      <AlertDescription>
+        <p>
+          Revision requested by {request.requestedBy.name}: {request.reason}. Due {due}
+        </p>
+        <p className="text-muted-foreground">
+          {expired ? 'Not resubmitted: revision due date has passed' : 'Waiting for the team to resubmit'}
+        </p>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function RevisionRequestForm({ submissionId, onSaved }: { submissionId: string; onSaved: () => void }) {
+  const [reason, setReason] = useState('');
+  const [dueAt, setDueAt] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+    try {
+      // datetime-local gives "YYYY-MM-DDTHH:mm" with no zone: entered in Asia/Bangkok, same as team-page.tsx
+      const bangkokIso = dueAt ? (dueAt.length === 16 ? `${dueAt}:00+07:00` : `${dueAt}+07:00`) : undefined;
+      await api(`/submissions/${encodeURIComponent(submissionId)}/revision-request`, {
+        method: 'POST',
+        body: { reason, dueAt: bangkokIso },
+      });
+      onSaved();
+    } catch (err) {
+      if (err instanceof ApiError && err.fields && Object.keys(err.fields).length > 0) {
+        setErrors(err.fields);
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : 'Could not request revision' });
+        if (err instanceof ApiError && err.status === 409) {
+          onSaved();
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h3 className="text-base font-medium">Request revision</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="revision-reason">Reason</Label>
+            <Textarea
+              id="revision-reason"
+              value={reason}
+              maxLength={1000}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="What should the team change?"
+              aria-invalid={!!errors.reason}
+            />
+            <p className="text-xs text-muted-foreground">{reason.length} / 1000</p>
+            {errors.reason && <p className="text-sm text-destructive">{errors.reason}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="revision-due">Revision due</Label>
+            <Input
+              id="revision-due"
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              aria-invalid={!!errors.dueAt}
+            />
+            <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
+            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+          </div>
+
+          {errors.form && (
+            <Alert variant="destructive">
+              <CircleAlert className="size-4" />
+              <AlertDescription>{errors.form}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="animate-spin size-4" />}
+            {isSubmitting ? 'Requesting…' : 'Request revision'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SubmissionForm({
   milestoneId,
   initialValues,
   isEdit = false,
+  resubmitId,
   onSaved,
   onCancel,
 }: {
   milestoneId: string;
   initialValues?: Submission;
   isEdit?: boolean;
+  /** F-06: post a new version of this submission instead of creating/editing (button "Resubmit") */
+  resubmitId?: string;
   onSaved: () => void;
   onCancel?: () => void;
 }) {
@@ -377,7 +943,10 @@ function SubmissionForm({
     setErrors({});
     setIsSubmitting(true);
     try {
-      await api(`/milestones/${encodeURIComponent(milestoneId)}/submission`, {
+      const path = resubmitId
+        ? `/submissions/${encodeURIComponent(resubmitId)}/versions`
+        : `/milestones/${encodeURIComponent(milestoneId)}/submission`;
+      await api(path, {
         method: isEdit ? 'PUT' : 'POST',
         body: {
           title: trimmedTitle,
@@ -405,7 +974,7 @@ function SubmissionForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          <h3 className="text-base font-medium">{isEdit ? 'Edit submission' : 'Submit work'}</h3>
+          <h3 className="text-base font-medium">{resubmitId ? 'Resubmit' : isEdit ? 'Edit submission' : 'Submit work'}</h3>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -457,7 +1026,7 @@ function SubmissionForm({
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="animate-spin" /> : isEdit ? null : <Send className="size-4" />}
-              {isEdit ? 'Save changes' : 'Submit'}
+              {resubmitId ? (isSubmitting ? 'Resubmitting…' : 'Resubmit') : isEdit ? 'Save changes' : 'Submit'}
             </Button>
             {isEdit && onCancel && (
               <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>

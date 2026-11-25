@@ -1,0 +1,60 @@
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+ RUN  v4.0.18 C:/Users/CPE KMUTT/Documents/GitHub/softwareengineering-project/server
+
+node.exe : warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please 
+migrate to a Prisma config file (e.g., `prisma.config.ts`).
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warn The config...ma.config.ts`).:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+For more information, see: https://pris.ly/prisma-config
+
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+Environment variables loaded from .env
+
+8 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 7547ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  698ms
+     ✓ accepts the email in any letter case  601ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  522ms
+     ✓ unknown email gives the same 401 response as a wrong password  971ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  474ms
+     ✓ deletes the session row from the database  443ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  3793ms
+ ✓ tests/grading.test.ts (8 tests) 4236ms
+     ✓ TEST-45 (AC-43) Sup1 PUTs grade 85 on open, closed, expired-revision, and closed+open-revision milestones -> 200  575ms
+     ✓ TEST-47 (AC-45) FEEDBACK_REQUIRED, REVISION_PENDING, SUBMISSION_GRADED, and parallel grade vs revision-request  428ms
+ ✓ tests/resubmission.test.ts (10 tests) 3070ms
+ ✓ tests/milestone-management.test.ts (9 tests) 3324ms
+     ✓ TEST-42 (AC-39) closed milestone blocks submit, edit, resubmit, revision-request (409 MILESTONE_CLOSED) but allows feedback (201)  665ms
+ ✓ tests/history.test.ts (2 tests) 2949ms
+ ✓ tests/revision-request.test.ts (9 tests) 2694ms
+     ✓ TEST-29 (AC-25) invalid bodies -> 400 VALIDATION_ERROR with fields, nothing stored; 1 and 1000 chars -> 201  376ms
+ ✓ tests/submissions.test.ts (16 tests) 2532ms
+ ✓ tests/feedback.test.ts (12 tests) 2583ms
+ ✓ tests/teams.test.ts (13 tests) 2127ms
+ ✓ tests/milestones.test.ts (11 tests) 1223ms
+ ✓ tests/seed.test.ts (4 tests) 969ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  919ms
+ ✓ tests/health.test.ts (6 tests) 106ms
+ ✓ tests/authorization.test.ts (9 tests) 78ms
+
+ Test Files  13 passed (13)
+      Tests  123 passed (123)
+   Start at  22:06:45
+   Duration  50.75s (transform 640ms, setup 373ms, import 7.87s, tests 33.44s, environment 3ms)
+

@@ -1,4 +1,4 @@
-// F-05 Supervisor feedback: TEST-21..TEST-25 (AC-17..AC-20, FR-09, FR-10, BR-02, BR-03, BR-07, BR-08, D-05)
+// F-05 Supervisor feedback: TEST-21..TEST-25, TEST-27 (AC-17..AC-20, FR-09, FR-10, BR-02, BR-03, BR-07, BR-08, D-05)
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
@@ -85,9 +85,20 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
       data: {
         milestoneId: milestone.id,
         submittedById: S1.id,
+        createdById: S1.id,
         title: 'Initial Submission',
         link: 'https://example.com/repo',
         description: 'Initial draft for review',
+        // F-06: every submission has its version 1
+        versions: {
+          create: {
+            versionNumber: 1,
+            title: 'Initial Submission',
+            link: 'https://example.com/repo',
+            description: 'Initial draft for review',
+            submittedById: S1.id,
+          },
+        },
       },
     });
 
@@ -117,7 +128,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(getRes.body.submission.feedback.author).toEqual({ id: SUP1.id, name: SUP1.name });
 
     // DB verification (STS Expected)
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).not.toBeNull();
@@ -137,7 +148,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('FORBIDDEN');
 
     // DB verification
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -155,7 +166,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(res.body.error?.code).toBe('NOT_FOUND');
 
     // DB verification
-    const feedbackInDb = await prisma.feedback.findUnique({
+    const feedbackInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(feedbackInDb).toBeFalsy();
@@ -188,6 +199,34 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(subInDb?.link).toBe('https://example.com/repo');
   });
 
+  it('TEST-27 (AC-18, BR-07) Alpha submission by S1 with feedback, before due -> teammate S2 PUT submission -> 409 SUBMISSION_LOCKED, row unchanged', async () => {
+    // Lab 6 controlled defect exercise (#46): the lock must apply to every student of the team,
+    // not only to the student who submitted. TEST-24 covers the submitter; this covers a teammate.
+    const future = new Date(Date.now() + 7 * 86400000);
+    const { milestone, submission } = await createMilestoneWithSubmission(ALPHA.id, future);
+
+    const fbRes = await post(`/api/submissions/${submission.id}/feedback`, sup1, {
+      comment: 'Reviewed, locked.',
+    });
+    expect(fbRes.status).toBe(201);
+
+    // S2 is in Team Alpha but did not submit
+    const putRes = await put(`/api/milestones/${milestone.id}/submission`, s2, {
+      title: 'Changed after feedback',
+      link: 'https://example.com/changed',
+    });
+
+    expect(putRes.status).toBe(409);
+    expect(putRes.body.error?.code).toBe('SUBMISSION_LOCKED');
+
+    // DB verification: submission row remains unchanged, still attributed to S1
+    const subInDb = await prisma.submission.findUnique({ where: { id: submission.id } });
+    expect(subInDb?.title).toBe('Initial Submission');
+    expect(subInDb?.link).toBe('https://example.com/repo');
+    expect(subInDb?.submittedById).toBe(S1.id);
+    expect(subInDb?.createdById).toBe(S1.id);
+  });
+
   it('TEST-25 (AC-20, BR-08) Sup1 POST comment "   " -> 400; then valid -> 201; then valid again -> 409 FEEDBACK_EXISTS', async () => {
     const future = new Date(Date.now() + 7 * 86400000);
     const { submission } = await createMilestoneWithSubmission(ALPHA.id, future);
@@ -199,7 +238,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(resWhitespace.status).toBe(400);
     expect(resWhitespace.body.error?.code).toBe('VALIDATION_ERROR');
 
-    const noFbInDb = await prisma.feedback.findUnique({
+    const noFbInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(noFbInDb).toBeFalsy();
@@ -267,7 +306,7 @@ describe('TEST-21..TEST-25 Feedback API and integration tests', () => {
     expect(fbRes.status).toBe(201);
     expect([200, 409]).toContain(putRes.status);
 
-    const fbInDb = await prisma.feedback.findUnique({
+    const fbInDb = await prisma.feedback.findFirst({
       where: { submissionId: submission.id },
     });
     expect(fbInDb).not.toBeNull();

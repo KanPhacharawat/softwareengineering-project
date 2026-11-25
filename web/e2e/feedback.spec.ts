@@ -46,7 +46,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
   await page.getByLabel('Description').fill('Ready for review');
   await page.getByRole('button', { name: 'Submit' }).click();
 
-  await expect(page.getByText('Initial Delivery Report')).toBeVisible();
+  await expect(page.getByText('Initial Delivery Report').first()).toBeVisible();
   await expect(page.getByText('SUBMITTED', { exact: true })).toBeVisible();
 
   // 3. Sup1 logs in, views submission and records feedback
@@ -54,7 +54,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
   await login(page, 'sup1@cpms.test');
   await page.goto(milestoneUrl);
 
-  await expect(page.getByText('Initial Delivery Report')).toBeVisible();
+  await expect(page.getByText('Initial Delivery Report').first()).toBeVisible();
   const feedbackInput = page.getByLabel('Feedback');
   await expect(feedbackInput).toBeVisible();
   await feedbackInput.fill('Well structured deliverable. All core requirements satisfied.');
@@ -62,7 +62,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
 
   // Supervisor sees feedback card and updated status, but no student locked notice
   await expect(page.getByText('FEEDBACK_GIVEN', { exact: true })).toBeVisible();
-  await expect(page.getByText('Well structured deliverable. All core requirements satisfied.')).toBeVisible();
+  await expect(page.getByText('Well structured deliverable. All core requirements satisfied.').first()).toBeVisible();
   await expect(page.getByText('Locked after feedback')).toHaveCount(0);
 
   // 4. S1 logs in, reloads and sees feedback card and locked notice
@@ -72,7 +72,7 @@ test('TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card
 
   await expect(page.getByText('FEEDBACK_GIVEN', { exact: true })).toBeVisible();
   await expect(page.getByText('Locked after feedback')).toBeVisible();
-  await expect(page.getByText('Well structured deliverable. All core requirements satisfied.')).toBeVisible();
+  await expect(page.getByText('Well structured deliverable. All core requirements satisfied.').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Edit submission' })).toHaveCount(0);
 });
 

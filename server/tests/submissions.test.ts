@@ -1,4 +1,5 @@
 // F-04 Team submission with deadline rule: TEST-13..TEST-20, TEST-U02, TEST-U03 (AC-11..AC-16, AC-09, FR-07..FR-09, BR-01, BR-03, BR-05, BR-06, BR-09, NFR-09)
+// F-06 (#55): TEST-26 (AC-23) original submitter kept.
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
@@ -31,32 +32,33 @@ const post = (path: string, cookie: string, body: unknown) =>
 const put = (path: string, cookie: string, body: unknown) =>
   request(app).put(path).set('Cookie', cookie).send(body as object);
 
-describe('TEST-U02 (AC-13, AC-18) canChangeSubmission unit tests', () => {
+describe('TEST-U02 (AC-49 was AC-13, AC-18) canChangeSubmission unit tests', () => {
   const fixedNow = new Date('2026-11-06T12:00:00.000Z');
   const futureDue = new Date('2026-11-13T12:00:00.000Z');
-  const pastDue = new Date('2026-11-05T12:00:00.000Z');
-  const equalDue = new Date('2026-11-06T12:00:00.000Z');
+  // Lab 7 BR-06 v2 (CR-01, #82): the deadline is now dueAt + 24 h, so "past" means more than 24 h ago and "equal" means the grace end equals now
+  const pastDue = new Date('2026-11-04T12:00:00.000Z');
+  const equalDue = new Date('2026-11-05T12:00:00.000Z');
 
   it('allows submission when now < dueAt and no feedback', () => {
-    const res = canChangeSubmission({ dueAt: futureDue }, null, fixedNow);
+    const res = canChangeSubmission({ dueAt: futureDue, closedAt: null }, null, fixedNow);
     expect(res.allowed).toBe(true);
 
-    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: null }, fixedNow);
+    const resWithSubNoFeedback = canChangeSubmission({ dueAt: futureDue, closedAt: null }, { feedback: null }, fixedNow);
     expect(resWithSubNoFeedback.allowed).toBe(true);
   });
 
-  it('rejects with DEADLINE_PASSED when now >= dueAt', () => {
-    const resPast = canChangeSubmission({ dueAt: pastDue }, null, fixedNow);
+  it('rejects with DEADLINE_PASSED when now >= dueAt + 24 h', () => {
+    const resPast = canChangeSubmission({ dueAt: pastDue, closedAt: null }, null, fixedNow);
     expect(resPast.allowed).toBe(false);
     if (!resPast.allowed) expect(resPast.reason).toBe('DEADLINE_PASSED');
 
-    const resEqual = canChangeSubmission({ dueAt: equalDue }, null, fixedNow);
+    const resEqual = canChangeSubmission({ dueAt: equalDue, closedAt: null }, null, fixedNow);
     expect(resEqual.allowed).toBe(false);
     if (!resEqual.allowed) expect(resEqual.reason).toBe('DEADLINE_PASSED');
   });
 
   it('rejects with SUBMISSION_LOCKED when submission has feedback, even before due', () => {
-    const resFeedback = canChangeSubmission({ dueAt: futureDue }, { feedback: { id: 'x' } }, fixedNow);
+    const resFeedback = canChangeSubmission({ dueAt: futureDue, closedAt: null }, { feedback: { id: 'x' } }, fixedNow);
     expect(resFeedback.allowed).toBe(false);
     if (!resFeedback.allowed) expect(resFeedback.reason).toBe('SUBMISSION_LOCKED');
   });
@@ -208,8 +210,9 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     expect(count).toBe(1);
   });
 
-  it('TEST-16 (AC-13, BR-06) past dueAt returns 422 DEADLINE_PASSED on POST and PUT', async () => {
-    const past = new Date(Date.now() - 3600000); // 1 hour ago
+  it('TEST-16 (AC-49 was AC-13, BR-06) dueAt more than 24 h ago returns 422 DEADLINE_PASSED on POST and PUT', async () => {
+    // Lab 7 BR-06 v2 (CR-01, #82): was 1 hour ago; inside the grace window that is now accepted
+    const past = new Date(Date.now() - 25 * 3600000); // 25 hours ago
     const milestone = await createMilestone(ALPHA.id, past);
 
     // POST on expired milestone
@@ -234,7 +237,7 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     // Move milestone to past in database
     await prisma.milestone.update({
       where: { id: milestoneForPut.id },
-      data: { dueAt: new Date(Date.now() - 1000) },
+      data: { dueAt: new Date(Date.now() - 25 * 3600000) }, // Lab 7 BR-06 v2 (CR-01, #82): was 1 s ago
     });
 
     const putRes = await put(`/api/milestones/${milestoneForPut.id}/submission`, s1, {
@@ -338,6 +341,27 @@ describe('TEST-13..TEST-20 (AC-11..AC-16, AC-09) Submission API tests', () => {
     const afterRow = await prisma.submission.findUniqueOrThrow({ where: { milestoneId: milestone.id } });
     expect(afterRow.updatedAt.getTime()).toBeGreaterThan(beforeRow.updatedAt.getTime());
     expect(afterRow.submittedById).toBe(S2.id);
+  });
+
+  it('TEST-26 (AC-23) original submitter is kept after a teammate edits', async () => {
+    const future = new Date(Date.now() + 7 * 86400000);
+    const milestone = await createMilestone(ALPHA.id, future);
+
+    const postRes = await post(`/api/milestones/${milestone.id}/submission`, s1, {
+      title: 'Version 1',
+      link: 'https://example.com/v1',
+    });
+    expect(postRes.body.submission.createdBy).toEqual({ id: S1.id, name: S1.name });
+
+    await put(`/api/milestones/${milestone.id}/submission`, s2, {
+      title: 'Version 2',
+      link: 'https://example.com/v2',
+    });
+
+    const getRes = await get(`/api/milestones/${milestone.id}`, sup1);
+    expect(getRes.body.submission.createdBy).toEqual({ id: S1.id, name: S1.name });
+    expect(getRes.body.submission.submittedBy.id).toBe(S2.id);
+    expect(getRes.body.submission.submittedAt).toBe(postRes.body.submission.submittedAt);
   });
 
   it('TEST-20 (AC-09, BR-03) supervisor cannot create or edit a submission (403 FORBIDDEN)', async () => {

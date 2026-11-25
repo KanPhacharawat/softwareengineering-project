@@ -2,11 +2,12 @@
 
 Product: Course Project Management System (CPMS)
 Theme: 6, Course Project Management System
-Version: 1.0 (Sprint 1 baseline), 2026-11-05
+Version: 1.1, 2026-11-25 (Lab 7 CR-01: BR-06 grace window). Baseline 1.0, 2026-11-05
 
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | 1.0 | 2026-11-05 | Initial baseline for Deliverable 1 | Project launch |
+| 1.1 | 2026-11-25 | BR-06 v2: 24-hour late submission grace window, late time stored (D-10) | Lab 7 CR-01 (#82, #83), approved by the team in PR #90 |
 
 ## 1. Stakeholder problem and context
 
@@ -88,7 +89,7 @@ Explicit exclusions:
 | BR-03 | Only supervisors create milestones and record feedback; students cannot. Only students create or edit submissions; supervisors cannot. | 1 |
 | BR-04 | A milestone needs a title of 3 to 120 characters and a due date/time in the future at the moment of creation. Description is at most 2000 characters. | 1 |
 | BR-05 | A team has at most one submission per milestone. A second submit attempt is rejected; changes go through edit. | 1 |
-| BR-06 | A submission can be created or edited only before the milestone due date/time, judged by server time. | 1 |
+| BR-06 | **v2 (Lab 7 CR-01):** The first version of a submission can be created or edited until 24 hours after the milestone due date/time (exclusive), judged by server time. A save at or after the due date/time marks the submission late: its late time (`lateAt`) is set once and never cleared. Resubmissions (BR-11) have no grace period. *(v1, Sprint 1: "only before the milestone due date/time".)* | 1 (v2 in Lab 7) |
 | BR-07 | Once feedback is recorded on a submission, the submission is locked and cannot be edited (until a revision request in Sprint 2). | 1 |
 | BR-08 | Feedback is 1 to 2000 characters, is recorded once per submission version, and stays linked to that version. | 1 |
 | BR-09 | A submission needs a title of 3 to 120 characters, a description of at most 2000 characters and a link that is an absolute http or https URL of at most 500 characters. | 1 |
@@ -133,3 +134,4 @@ Explicit exclusions:
 | D-07 | What does the submission contain? | Title, description and link. File upload is excluded. | 2026-11-05 |
 | D-08 | Can a supervisor see feedback/grades of other teams? | No; only assigned teams (BR-02). Students see feedback and grades of their own team only. | 2026-11-05 |
 | D-09 | Where does Sprint 1 start? | From an empty repository: F-00 Project setup is the first Sprint 1 feature, then F-01 to F-05. | 2026-11-05 |
+| D-10 | How are late submissions handled? (Lab 7) | 24-hour grace window after the due date for the first version; late saves are accepted and stored with `lateAt`; a milestone with no submission becomes `MISSED` only after the grace window. Replaces the strict deadline of D-02 for version 1. | 2026-11-25 |

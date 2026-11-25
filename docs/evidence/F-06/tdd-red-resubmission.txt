@@ -1,0 +1,240 @@
+# TDD red for #68 F-06b resubmission. canResubmit, the POST /versions route, editableUntil and the v>=2 deadline do not exist yet.
+# TEST-U05 computeMilestoneStatus passes already: open vs expired status was implemented in #67.
+
+
+> test
+> npm test -w server
+
+
+> test
+> vitest run
+
+
+ RUN  v4.0.18 /home/user/softwareengineering-project/server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+6 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ✓ tests/auth.test.ts (14 tests) 5564ms
+     ✓ returns the user without passwordHash, sets an httpOnly session cookie, and /me returns the same user  466ms
+     ✓ accepts the email in any letter case  357ms
+     ✓ wrong password gives 401 INVALID_CREDENTIALS and no session cookie  359ms
+     ✓ unknown email gives the same 401 response as a wrong password  711ms
+     ✓ returns 204, clears the cookie, and the old cookie is rejected afterwards  372ms
+     ✓ deletes the session row from the database  375ms
+     ✓ every passwordHash is bcrypt with cost >= 10 and is not the plain password  2899ms
+ ✓ tests/submissions.test.ts (16 tests) 1871ms
+ ✓ tests/teams.test.ts (13 tests) 1633ms
+ ✓ tests/feedback.test.ts (12 tests) 1728ms
+ ❯ tests/resubmission.test.ts (10 tests | 9 failed) 1892ms
+     × TEST-U05 canResubmit: no request, answered request, open, due -1 s / = / +1 s 5ms
+     × TEST-U05 canChangeSubmission uses the revision due for v >= 2 (BR-11) and locks on current feedback (BR-07) 7ms
+     ✓ TEST-U05 computeMilestoneStatus: open request -> REVISION_REQUESTED, expired -> FEEDBACK_GIVEN 1ms
+     × TEST-32 (AC-28) S2 resubmits before revision due -> 201 v2, createdBy S1, v1 + v1 feedback unchanged 74ms
+     × TEST-33 (AC-29) at/after revision due -> 422 REVISION_DUE_PASSED, status FEEDBACK_GIVEN, request EXPIRED 50ms
+     × TEST-33 (AC-29) milestone due passed but revision due in the future -> 201 47ms
+     × TEST-34 (AC-30) no request 409, second 409 RESUBMISSION_EXISTS, Sup1 403, S3 404, malformed 404 30ms
+     × TEST-34 (AC-30) two parallel resubmissions store exactly one version 40ms
+     × TEST-34 (AC-30) S1 PUT edits v2 only before feedback; after revision due -> 422 DEADLINE_PASSED 49ms
+     × TEST-35 (AC-31) feedback on v2 is stored on v2 and locks it; second feedback 409; v1 feedback unchanged 39ms
+ ✓ tests/revision-request.test.ts (9 tests) 1622ms
+ ✓ tests/seed.test.ts (4 tests) 904ms
+     ✓ keeps app data and does not duplicate demo rows when run again without reset  809ms
+ ✓ tests/milestones.test.ts (11 tests) 940ms
+ ✓ tests/health.test.ts (6 tests) 106ms
+ ✓ tests/authorization.test.ts (9 tests) 101ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-U05 canResubmit / canChangeSubmission / computeMilestoneStatus (AC-29, AC-30) > TEST-U05 canResubmit: no request, answered request, open, due -1 s / = / +1 s
+TypeError: (0 , __vite_ssr_import_6__.canResubmit) is not a function
+ ❯ tests/resubmission.test.ts:43:12
+     41| 
+     42|   it('TEST-U05 canResubmit: no request, answered request, open, due -1…
+     43|     expect(canResubmit({ revisionDueAt: null, previousHadRequest: fals…
+       |            ^
+     44|     expect(canResubmit({ revisionDueAt: null, previousHadRequest: true…
+     45|     expect(canResubmit({ revisionDueAt: at(1000), previousHadRequest: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-U05 canResubmit / canChangeSubmission / computeMilestoneStatus (AC-29, AC-30) > TEST-U05 canChangeSubmission uses the revision due for v >= 2 (BR-11) and locks on current feedback (BR-07)
+AssertionError: expected { allowed: false, …(1) } to deeply equal { allowed: true }
+
+- Expected
++ Received
+
+  {
+-   "allowed": true,
++   "allowed": false,
++   "reason": "DEADLINE_PASSED",
+  }
+
+ ❯ tests/resubmission.test.ts:53:99
+     51|     const pastMilestone = { dueAt: at(-DAY) };
+     52|     expect(canChangeSubmission(pastMilestone, { feedback: null }, now)…
+     53|     expect(canChangeSubmission(pastMilestone, { versionNumber: 2, revi…
+       |                                                                                                   ^
+     54|     expect(canChangeSubmission(pastMilestone, { versionNumber: 2, revi…
+     55|     expect(canChangeSubmission({ dueAt: at(DAY) }, { versionNumber: 2,…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-32 (AC-28) S2 resubmits before revision due -> 201 v2, createdBy S1, v1 + v1 feedback unchanged
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/resubmission.test.ts:74:24
+     72| 
+     73|     const res = await post(versionsUrl(submissionId), s2, v2Body);
+     74|     expect(res.status).toBe(201);
+       |                        ^
+     75|     const sub = res.body.submission;
+     76|     expect(sub.currentVersion).toBe(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-33 (AC-29) at/after revision due -> 422 REVISION_DUE_PASSED, status FEEDBACK_GIVEN, request EXPIRED
+AssertionError: expected 404 to be 422 // Object.is equality
+
+- Expected
++ Received
+
+- 422
++ 404
+
+ ❯ tests/resubmission.test.ts:103:24
+    101| 
+    102|     const res = await post(versionsUrl(submissionId), s1, v2Body);
+    103|     expect(res.status).toBe(422);
+       |                        ^
+    104|     expect(res.body.error.code).toBe('REVISION_DUE_PASSED');
+    105|     expect(res.body.error.message).toBe('Revision due date has passed'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-33 (AC-29) milestone due passed but revision due in the future -> 201
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/resubmission.test.ts:118:24
+    116| 
+    117|     const res = await post(versionsUrl(submissionId), s1, v2Body);
+    118|     expect(res.status).toBe(201);
+       |                        ^
+    119|     expect(res.body.submission.currentVersion).toBe(2);
+    120|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-34 (AC-30) no request 409, second 409 RESUBMISSION_EXISTS, Sup1 403, S3 404, malformed 404
+AssertionError: expected 404 to be 409 // Object.is equality
+
+- Expected
++ Received
+
+- 409
++ 404
+
+ ❯ tests/resubmission.test.ts:125:25
+    123|     const noRequest = await fixture({ withRequest: false });
+    124|     const res1 = await post(versionsUrl(noRequest.submissionId), s1, v…
+    125|     expect(res1.status).toBe(409);
+       |                         ^
+    126|     expect(res1.body.error).toMatchObject({ code: 'NO_REVISION_REQUEST…
+    127| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-34 (AC-30) two parallel resubmissions store exactly one version
+AssertionError: expected [ 404, 404 ] to deeply equal [ 201, 409 ]
+
+- Expected
++ Received
+
+  [
+-   201,
+-   409,
++   404,
++   404,
+  ]
+
+ ❯ tests/resubmission.test.ts:145:49
+    143|     const { submissionId } = await fixture();
+    144|     const results = await Promise.all([post(versionsUrl(submissionId),…
+    145|     expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+       |                                                 ^
+    146|     expect(results.find((r) => r.status === 409)!.body.error.code).toB…
+    147|     expect(await prisma.submissionVersion.count({ where: { submissionI…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-34 (AC-30) S1 PUT edits v2 only before feedback; after revision due -> 422 DEADLINE_PASSED
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/resubmission.test.ts:152:72
+    150|   it('TEST-34 (AC-30) S1 PUT edits v2 only before feedback; after revi…
+    151|     const { milestoneId, submissionId } = await fixture();
+    152|     expect((await post(versionsUrl(submissionId), s2, v2Body)).status)…
+       |                                                                        ^
+    153|     const v1Before = await version(submissionId, 1);
+    154| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  tests/resubmission.test.ts > TEST-32..TEST-35 Resubmission API (AC-28..AC-31) > TEST-35 (AC-31) feedback on v2 is stored on v2 and locks it; second feedback 409; v1 feedback unchanged
+AssertionError: expected 404 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 404
+
+ ❯ tests/resubmission.test.ts:171:72
+    169|   it('TEST-35 (AC-31) feedback on v2 is stored on v2 and locks it; sec…
+    170|     const { milestoneId, submissionId } = await fixture();
+    171|     expect((await post(versionsUrl(submissionId), s2, v2Body)).status)…
+       |                                                                        ^
+    172|     const v1Before = await version(submissionId, 1);
+    173| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  9 failed | 95 passed (104)
+   Start at  18:04:14
+   Duration  21.16s (transform 276ms, setup 149ms, import 1.91s, tests 16.36s, environment 1ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /home/user/softwareengineering-project/server
+npm error workspace @cpms/server
+npm error location /home/user/softwareengineering-project/server
+npm error command failed
+npm error command sh -c vitest run

@@ -87,6 +87,7 @@ describe('TEST-U01 (AC-07, BR-04) milestone input and status unit tests', () => 
   it('computes milestone status: OPEN, MISSED, SUBMITTED, FEEDBACK_GIVEN', () => {
     expect(computeMilestoneStatus({ dueAt: futureIso }, null, fixedNow)).toBe('OPEN');
     expect(computeMilestoneStatus({ dueAt: equalIso }, null, fixedNow)).toBe('OPEN');
+    // Lab 7 BR-06 v2 (CR-01, #82): MISSED only from dueAt + 24 h; pastIso is exactly 24 h before fixedNow (grace end = now)
     expect(computeMilestoneStatus({ dueAt: pastIso }, null, fixedNow)).toBe('MISSED');
     expect(computeMilestoneStatus({ dueAt: futureIso }, { feedback: null }, fixedNow)).toBe('SUBMITTED');
     expect(computeMilestoneStatus({ dueAt: futureIso }, { feedback: { id: 'f1' } }, fixedNow)).toBe('FEEDBACK_GIVEN');

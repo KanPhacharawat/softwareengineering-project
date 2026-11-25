@@ -4,7 +4,7 @@ import { AppError } from '../errors.js';
 import { validateFeedbackInput } from '../domain/feedback.js';
 import { UUID } from './team-service.js';
 import type { PublicUser } from './auth-service.js';
-import type { FeedbackView } from './submission-service.js';
+import { CURRENT_VERSION, currentState, type FeedbackView } from './submission-service.js';
 
 export async function createFeedback(
   user: PublicUser,
@@ -26,7 +26,7 @@ export async function createFeedback(
           },
         },
       },
-      feedback: { select: { id: true } },
+      versions: CURRENT_VERSION,
     },
   });
 
@@ -45,8 +45,8 @@ export async function createFeedback(
     throw new AppError(400, 'VALIDATION_ERROR', 'Some fields are invalid', validation.fields);
   }
 
-  // BR-08: single feedback per submission
-  if (submission.feedback) {
+  // BR-08: single feedback per version (F-06: the current version)
+  if (currentState(submission).feedback) {
     throw new AppError(409, 'FEEDBACK_EXISTS', 'Feedback already exists for this submission');
   }
 
@@ -54,18 +54,24 @@ export async function createFeedback(
     const feedback = await prisma.$transaction(async (tx) => {
       // BR-07: serialize feedback creation with concurrent student edits via row lock on Submission
       await tx.$queryRaw`SELECT 1 FROM "Submission" WHERE id = ${submissionId}::uuid FOR UPDATE`;
-      const existing = await tx.feedback.findUnique({ where: { submissionId } });
-      if (existing) {
+      const { currentVersion } = await tx.submission.findUniqueOrThrow({ where: { id: submissionId } });
+      const version = await tx.submissionVersion.findUniqueOrThrow({
+        where: { submissionId_versionNumber: { submissionId, versionNumber: currentVersion } },
+        include: { feedback: true },
+      });
+      if (version.feedback) {
         throw new AppError(409, 'FEEDBACK_EXISTS', 'Feedback already exists for this submission');
       }
       return tx.feedback.create({
         data: {
           submissionId,
+          versionId: version.id,
           authorId: user.id,
           comment: validation.data.comment,
         },
         include: {
           author: { select: { id: true, name: true } },
+          version: { select: { versionNumber: true } },
         },
       });
     });
@@ -75,6 +81,7 @@ export async function createFeedback(
       comment: feedback.comment,
       author: feedback.author,
       createdAt: feedback.createdAt.toISOString(),
+      versionNumber: feedback.version.versionNumber,
     };
   } catch (err: unknown) {
     // P2002: unique constraint violation under concurrent requests (BR-08)

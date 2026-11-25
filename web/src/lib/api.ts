@@ -60,14 +60,20 @@ export type Team = {
   members: TeamMember[];
 };
 
-export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'MISSED';
+export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'REVISION_REQUESTED' | 'MISSED';
 
 export type Milestone = {
   id: string;
   title: string;
   description: string | null;
   dueAt: string;
+  closedAt: string | null;
+  closedBy: { id: string; name: string } | null;
   status: MilestoneStatus;
+  /** Lab 7 BR-06 v2: dueAt + 24 h, last moment a late version 1 is accepted. */
+  graceEndsAt: string;
+  /** Team list only: lateAt of the submission (null = none or on time). */
+  lateAt?: string | null;
 };
 
 export type Feedback = {
@@ -75,6 +81,28 @@ export type Feedback = {
   comment: string;
   createdAt: string;
   author: { id: string; name: string };
+  versionNumber: number;
+};
+
+// F-06: revision request on the current version; status is derived by the server.
+export type RevisionRequest = {
+  id: string;
+  submissionId: string;
+  versionNumber: number;
+  reason: string;
+  dueAt: string;
+  status: 'OPEN' | 'EXPIRED' | 'RESUBMITTED';
+  requestedBy: { id: string; name: string };
+  createdAt: string;
+};
+
+// F-08: one grade per submission (BR-12).
+export type Grade = {
+  score: number;
+  versionNumber: number;
+  gradedBy: { id: string; name: string };
+  gradedAt: string;
+  updatedAt: string;
 };
 
 export type Submission = {
@@ -83,10 +111,36 @@ export type Submission = {
   title: string;
   description: string | null;
   link: string;
+  createdBy: { id: string; name: string };
   submittedBy: { id: string; name: string };
   submittedAt: string;
   updatedAt: string;
+  currentVersion: number;
+  /** End of the edit window of the current version: milestone due + 24 h grace for v1, revision due for v >= 2 (BR-11). */
+  editableUntil: string;
+  /** Lab 7 BR-06 v2: first save at or after the due time; null = on time. */
+  lateAt: string | null;
   feedback: Feedback | null;
+  revisionRequest: RevisionRequest | null;
+  grade: Grade | null;
+};
+
+// F-06c: GET /api/submissions/:id/history, versions oldest first
+export type SubmissionVersionView = {
+  versionNumber: number;
+  title: string;
+  description: string | null;
+  link: string;
+  submittedBy: { id: string; name: string };
+  submittedAt: string;
+  updatedAt: string;
+  feedback: Omit<Feedback, 'versionNumber'> | null;
+  revisionRequest: Omit<RevisionRequest, 'submissionId' | 'versionNumber'> | null;
+};
+
+export type SubmissionHistory = {
+  submission: { id: string; milestoneId: string; createdBy: { id: string; name: string } };
+  versions: SubmissionVersionView[];
 };
 
 export type MilestoneDetail = {
@@ -110,4 +164,23 @@ export function formatBangkokDateTime(isoString: string): string {
 
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
   return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')}`;
+}
+
+// F-07: converts a UTC ISO string to "YYYY-MM-DDTHH:mm" in Asia/Bangkok for <input type="datetime-local"> prefill & dirty checks.
+export function toBangkokDateTimeLocal(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Bangkok',
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  const hour = get('hour') === '24' ? '00' : get('hour');
+  return `${get('year')}-${get('month')}-${get('day')}T${hour}:${get('minute')}`;
 }
