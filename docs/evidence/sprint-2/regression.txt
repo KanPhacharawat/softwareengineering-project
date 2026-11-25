@@ -4,7 +4,7 @@ tools: Node v22.23.5, npm 10.9.9, Vitest 4.0.18, Playwright 1.63.0 (chromium), P
 result: npm test 15 files / 132 tests passed, 0 failed, 0 skipped; npm run test:e2e 24 passed, 0 failed, 0 skipped; typecheck ok; build ok
 skips: none. Existing tests changed: none (Sprint 1 specs auth, teams, milestones, submissions, feedback, smoke ran unchanged).
 defects found: none
-CI run: <link to test-and-docker run on the PR, added when the PR is opened>
+CI run: https://github.com/KanPhacharawat/softwareengineering-project/actions/runs/45657112182 (test-and-docker on PR #94, head 5d77b05: success)
 
 $ npm run typecheck
 
