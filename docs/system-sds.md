@@ -1,6 +1,6 @@
 # System-Level Software Design Specification (SDS)
 
-Product: Course Project Management System (CPMS). Version 1.0, 2026-11-05.
+Product: Course Project Management System (CPMS). Version 1.1, 2026-11-25 (Lab 7 CR-01, #83: `Submission.lateAt`, `DEADLINE_PASSED` = grace end for version 1). Version 1.0, 2026-11-05.
 
 ## 1. Architecture and stack
 
@@ -61,7 +61,7 @@ erDiagram
 | Team | id, name, supervisorId -> User | name unique. supervisorId must be a SUPERVISOR. Owner of all team data. |
 | TeamMember | teamId -> Team, userId -> User | PK (teamId, userId); userId unique (AS-01: one team per student). |
 | Milestone | id, teamId -> Team, title, description, dueAt (timestamptz), createdById -> User, createdAt | title 3..120, description <= 2000 (validated in API). Belongs to one team. |
-| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User (last saved by), createdById -> User (original submitter, F-06), submittedAt, updatedAt | milestoneId unique (BR-05, NFR-09). Team derived through milestone. |
+| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User (last saved by), createdById -> User (original submitter, F-06), submittedAt, updatedAt, lateAt (nullable; first save at or after the due date, Lab 7 CR-01, BR-06 v2) | milestoneId unique (BR-05, NFR-09). Team derived through milestone. |
 | Feedback | id, submissionId -> Submission, authorId -> User, comment, createdAt | submissionId unique (BR-08). Its presence locks the submission (BR-07). |
 | session | sid, sess (json), expire | Managed by connect-pg-simple, created by migration. |
 
@@ -104,7 +104,7 @@ Dates are shown in Asia/Bangkok time.
 | 403 | FORBIDDEN | wrong role for the operation (BR-03) or acting on an unassigned team that is visible by ID |
 | 404 | NOT_FOUND | resource missing or outside the user's team scope (D-05) |
 | 409 | SUBMISSION_EXISTS / SUBMISSION_LOCKED / FEEDBACK_EXISTS | BR-05, BR-07, BR-08 |
-| 422 | DEADLINE_PASSED | BR-06 |
+| 422 | DEADLINE_PASSED | BR-06 v2: version 1 at or after `dueAt + 24 h`; BR-11: version >= 2 at or after the revision due |
 | 500 | INTERNAL_ERROR | unexpected; message is generic, details only in server log |
 
 Validation uses zod schemas per endpoint. Unknown fields are ignored; a client-provided user id, role or team
