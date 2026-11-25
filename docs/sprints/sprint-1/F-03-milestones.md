@@ -14,7 +14,7 @@ Linked requirements: FR-05, FR-06, BR-02, BR-03, BR-04, BR-06 (v2, status only).
 1. Supervisor opens `/teams/:teamId` of an assigned team and fills "New milestone": title, description, due date/time.
 2. API checks role SUPERVISOR (else 403), team in scope (else 404), validates input and BR-04, stores the milestone.
 3. The milestone appears in the team list for the supervisor and all team members, sorted by due date,
-   each with a status: `OPEN` (no submission, before due), `SUBMITTED`, `FEEDBACK_GIVEN`, `MISSED` (no submission, at or after the grace end `dueAt + 24 h`; before that the milestone stays `OPEN`, BR-06 v2).
+   each with a status: `OPEN` (no submission, before the grace end `dueAt + 24 h`; v1.0: "before due"), `SUBMITTED`, `FEEDBACK_GIVEN`, `MISSED` (no submission, at or after the grace end `dueAt + 24 h`; before that the milestone stays `OPEN`, BR-06 v2).
    *(v1.0: "`MISSED` (no submission, past due)".)*
 
 Validation: title trimmed 3..120 chars; description optional, max 2000; `dueAt` ISO 8601 date-time and later than

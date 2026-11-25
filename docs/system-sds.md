@@ -1,6 +1,6 @@
 # System-Level Software Design Specification (SDS)
 
-Product: Course Project Management System (CPMS). Version 1.0, 2026-11-05.
+Product: Course Project Management System (CPMS). Version 1.1, 2026-11-25 (Lab 7 CR-01, #83: `Submission.lateAt`, `DEADLINE_PASSED` = grace end for version 1). Version 1.0, 2026-11-05.
 
 ## 1. Architecture and stack
 

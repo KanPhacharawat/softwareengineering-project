@@ -9,6 +9,7 @@
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-11-25 | Impact table, unchanged-behavior list and contract revision list, written before any CR-01 code |
+| 1.1 | 2026-11-25 | PR #91 review: system SDS versioned 1.1; TEST-53 covers `lateAt` after an F-07 due-date extension |
 
 ## 1. Impact table
 
@@ -76,6 +77,7 @@ to students' own submissions (supervisors still get 403 on POST/PUT).
 | Original submitter `createdById` is kept | #55 | TEST-26 | |
 | Feedback/revision/grade flows | F-05, F-06, F-08 | all F-05..F-08 API tests | |
 | Existing rows read unchanged | NFR-05 | | TEST-56 |
+| A stored `lateAt` is not cleared or recomputed when F-07 extends `dueAt` | CR-01 decision 3 | | TEST-53 (extension step) |
 
 Regression suite for #84: the whole server suite (`npm test`), `npm run typecheck`, `npm run build`, and all
 Playwright specs. Only the expectations listed in section 3 change; each changed line gets the comment
@@ -101,7 +103,7 @@ Playwright specs. Only the expectations listed in section 3 change; each changed
 | `docs/sprints/sprint-1/sts.md` | 1.0 → 1.1 | Lab 7 section: TEST-U08, TEST-52..56, TEST-E2E-08; revised TEST-16 / TEST-U02 rows |
 | `docs/sprints/sprint-2/F-06-revision-history.md` | 0.2 → 0.3 | note: version >= 2 has no grace; status rule refers to BR-06 v2 |
 | `docs/sprints/sprint-2/F-07-milestone-management.md` | 0.1 → 0.2 | note: closed wins in grace; stored `lateAt` not recomputed on due change; AC-42/TEST-44 fixture past grace |
-| `docs/system-sds.md` | data model + error table | `Submission.lateAt`; `DEADLINE_PASSED` meaning |
+| `docs/system-sds.md` | 1.0 → 1.1 | `Submission.lateAt`; `DEADLINE_PASSED` meaning |
 | `docs/traceability.md` | 1.6 → 1.7 | BR-06 → AC-49..52, TEST-U08, TEST-52..56, TEST-E2E-08; FR-18 forward note |
 
 ## 5. Old and new excerpts (for the Lab 7 report)
