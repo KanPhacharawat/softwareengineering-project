@@ -5,6 +5,7 @@ Version history
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-22 | Initial contract: edit milestone (title, description, due date) and close milestone (FR-14, BR-13). Written before any F-07 code (D2 Part B). |
+| 0.2 | 2026-11-25 | Lab 7 CR-01 (#82, #83) notes: closed still wins inside the 24 h grace window; a due-date change never recomputes a stored `lateAt`; "past due" in AC-42 / TEST-44 means past the grace end (`dueAt + 24 h`). |
 
 Linked requirements: FR-14, BR-13, BR-04, BR-06, BR-02, BR-03, NFR-02, NFR-03, NFR-05, NFR-07.
 Depends on: F-03, F-04.
@@ -199,7 +200,7 @@ The role check (`403`) runs before the team scope check (`404`), matching F-03 a
 | AC-39 | On a closed milestone, student submit, edit and resubmit and supervisor revision request return 409 `MILESTONE_CLOSED` and change nothing; parallel close + submit never stores a submission created after `closedAt`; supervisor feedback still succeeds. |
 | AC-40 | A student PATCH or close returns 403; Sup2 on an Alpha milestone gets 404; a malformed id gets 404; no session gets 401. |
 | AC-41 | In the UI the supervisor edits and closes a milestone; the team page and milestone page show `"Closed"` and the student sees `"This milestone is closed."` with no submission or resubmit form. |
-| AC-42 | A milestone whose due date has passed, extended by Sup1 to a future due date, accepts a student submission again; patching only `title` on a past-due milestone returns 200, keeps `dueAt` unchanged, keeps status `MISSED`, and student submit still returns 422 `DEADLINE_PASSED`. |
+| AC-42 | A milestone whose due date has passed, extended by Sup1 to a future due date, accepts a student submission again; patching only `title` on a past-due milestone returns 200, keeps `dueAt` unchanged, keeps status `MISSED`, and student submit still returns 422 `DEADLINE_PASSED`. *(v0.2, Lab 7 CR-01: "past" = more than 24 h after `dueAt`, so the milestone is outside the grace window.)* |
 
 ## STS (test design)
 

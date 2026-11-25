@@ -6,6 +6,7 @@ Version history
 |---|---|---|
 | 0.1 | 2026-11-19 | Part 1 only: keep the original submitter (#55, from Lab 6 UAT finding UF-03). Revision request, resubmission and version history follow in later parts. |
 | 0.2 | 2026-11-21 | Parts 2–4: revision request, resubmission as versions, history (FR-11..FR-13, BR-10, BR-11). Feedback moves to versions. |
+| 0.3 | 2026-11-25 | Lab 7 CR-01 (#82, #83) note: the 24 h grace window (BR-06 v2) applies only to version 1; resubmissions keep the revision due with no grace; `MISSED` now starts at `dueAt + 24 h`. No other F-06 rule changes. |
 
 Linked requirements: FR-11, FR-12, FR-13, BR-07 (revised: lock per version), BR-08 (per version), BR-09, BR-10, BR-11, BR-01, BR-02, BR-03, NFR-02, NFR-03, NFR-05, NFR-07.
 Depends on: F-04, F-05. Hooks used by: F-07 (`MILESTONE_CLOSED`), F-08 (`SUBMISSION_GRADED`, `REVISION_PENDING`).
@@ -77,7 +78,7 @@ stateDiagram-v2
   FEEDBACK_GIVEN --> [*]: graded (F-08) / closed (F-07)
 ```
 
-Milestone status (`computeMilestoneStatus`), checked in this order: no submission → `OPEN` / `MISSED` (unchanged);
+Milestone status (`computeMilestoneStatus`), checked in this order: no submission → `OPEN` / `MISSED` (v0.3: `MISSED` only from `dueAt + 24 h`, BR-06 v2, Lab 7 CR-01);
 open request on the current version → `REVISION_REQUESTED`; feedback on the current version → `FEEDBACK_GIVEN`;
 else `SUBMITTED`. The F-07 "Closed" badge is separate and does not change this status.
 

@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 1.7, 2026-11-25 (Lab 7 CR-01: BR-06 v2 grace window, AC-49 to AC-52 planned, #83). Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 Sprint 1 AC and TEST IDs are defined in [sprints/sprint-1/](sprints/sprint-1/). Later sprints have feature and
 sprint allocation now; their AC/tests are elaborated in their own contracts.
 
@@ -30,7 +30,7 @@ sprint allocation now; their AC/tests are elaborated in their own contracts.
 | BR-03 | F-02, F-03, F-04, F-05 | 1 | AC-09, AC-19 | TEST-10, TEST-20, TEST-22 | Implemented (F-02 check, applied in F-03..F-05, tests pass) |
 | BR-04 | F-03 | 1 | AC-07 | TEST-08, TEST-U01 | Implemented (F-03, tests pass) |
 | BR-05 | F-04 | 1 | AC-12 | TEST-14, TEST-15 | Implemented (F-04, tests pass) |
-| BR-06 | F-04 | 1 | AC-13 | TEST-16, TEST-U02 | Implemented (F-04, tests pass) |
+| BR-06 | F-04 (v2: F-03 status, F-04 window + late mark) | 1, v2 in Lab 7 | AC-13 (superseded), AC-49, AC-50, AC-51, AC-52 | TEST-16, TEST-U02 (revised), TEST-U08, TEST-52 to TEST-56, TEST-E2E-08 | v1 implemented (Sprint 1). v2 specified (Lab 7 CR-01, #83); implementation planned in #84. Sprint 3 FR-18 report will read `lateAt` |
 | BR-07 | F-05 | 1 | AC-18 | TEST-24, TEST-27, TEST-U02 | Implemented (F-05, tests pass) |
 | BR-08 | F-05 | 1 | AC-20 | TEST-25 | Implemented (F-05, tests pass) |
 | BR-09 | F-04 | 1 | AC-14 | TEST-17, TEST-U03 | Implemented (F-04, tests pass) |
@@ -61,3 +61,4 @@ NFR-08 is verified by a manual check in Sprint 1 and becomes an automated CI che
 | 2026-11-05 | Baseline created | all |
 | 2026-11-07 | F-04 Team submission implemented | FR-07, FR-08, FR-09, BR-05, BR-06, BR-09, NFR-09 |
 | 2026-11-09 | F-05 Supervisor feedback implemented (migration 20261109145639_feedback adds Feedback table) | FR-09, FR-10, BR-07, BR-08 |
+| 2026-11-25 | Lab 7 CR-01 approved (PR #90): BR-06 v2 24 h late grace window, `Submission.lateAt` | BR-06, FR-06, FR-07, FR-08, FR-09 |
