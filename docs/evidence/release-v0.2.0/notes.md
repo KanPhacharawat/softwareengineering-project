@@ -25,7 +25,7 @@
 | F-07 Milestone management | Supervisor edits title, description and due date, and closes a milestone; a closed milestone blocks all student writes | #64 (PR #77), #70 (PR #89) |
 | F-08 Grading | Supervisor saves and edits a 0–100 grade after feedback; students see "Grade: N / 100" | #66 (PR #78), #71 (PR #92) |
 | Lab 7 CR-01, BR-06 v2 late grace window | v1 can be submitted or edited until 24 h after the due date and is marked Late | #82 (PR #90), #83 (PR #91), #84 (PR #93) |
-| Tests | TEST-27 port (#72, PR #65); Sprint 2 cross-feature regression (#73, PR #94) | |
+| Tests | TEST-27 port; Sprint 2 cross-feature regression | #72 (PR #65), #73 (PR #94) |
 
 Also in this release (docs only, from Lab 6): PR #50, #51, #53, #56, #57.
 
@@ -76,6 +76,8 @@ forbidden call (S1 `PUT /grade` → 403) and the Sprint 1 data shown as Version 
    Read the `cpms-migrate` logs and fix forward on `staging`. Restore the Cloud SQL backup taken before the
    release only together with James.
 2. **Broken deploy after a successful migration:** prefer a fix forward. An image rollback
-   (run `deploy.yml` with `image_tag` = `a11fdc0…`) does not undo migrations. v0.1.0 code can still read,
-   but creating feedback fails because `Feedback.versionId` is NOT NULL, so use it only to restore a site that is down.
+   (run `deploy.yml` with `image_tag` = `a11fdc0…`) does not undo migrations. v0.1.0 code can still read, but:
+   creating feedback fails (`Feedback.versionId` is NOT NULL), creating a submission fails (`Submission.createdById`
+   is NOT NULL with no default), and editing a submission updates `Submission` but not its `SubmissionVersion` v1,
+   so the history drifts. Use it only to restore a site that is down.
 3. Either way, open a `defect` issue.
