@@ -11,8 +11,8 @@
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-24 | First draft in #82: BR-09 link must be https only. |
-| 0.3 | 2026-11-25 | Review fixes from PR #90 (section reference, exact-`D` status note) and team approval recorded. |
 | 0.2 | 2026-11-25 | Replaced by the BR-06 late grace window (this document). The https-only change was judged too small for the Lab 7 criterion that the change must be complex enough and cover the Sprint 1 slice. Open questions 1 to 5 answered by Kan (section 3.3). |
+| 0.3 | 2026-11-25 | Review fixes from PR #90 (section reference, exact-`D` status note) and team approval recorded. |
 
 ## 1. Summary
 
