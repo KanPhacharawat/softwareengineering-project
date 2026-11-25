@@ -1,0 +1,71 @@
+# v0.2.0 migration rehearsal (S2-08 #74): main schema + Sprint 1 data -> staging migrations
+date: 2026-11-25T17:41Z   from: main a11fdc0 (v0.1.0 schema, 4 migrations)   to: staging c9b2d2b   PostgreSQL 16.15 (local, not prod)
+
+Steps: 1) prisma migrate deploy with main's migrations on an empty DB; 2) insert Sprint 1 shaped rows (below);
+3) prisma migrate deploy with staging's migrations (the same command cpms-migrate runs on Cloud Run); 4) verify queries.
+
+## 2. Sprint 1 data inserted
+-- Sprint 1 shaped data (v0.1.0 schema): 3 milestones; submission with feedback (edited by S2), submission without feedback, no submission
+INSERT INTO "User"(id,role,email,name,"passwordHash") VALUES
+ ('00000000-0000-4000-8000-000000000001','SUPERVISOR','sup1@x','Sup One','x'),
+ ('00000000-0000-4000-8000-000000000003','STUDENT','s1@x','S One','x'),
+ ('00000000-0000-4000-8000-000000000004','STUDENT','s2@x','S Two','x');
+INSERT INTO "Team"(id,"supervisorId",name) VALUES ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-000000000001','Alpha');
+INSERT INTO "TeamMember" VALUES ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-000000000003'),('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-000000000004');
+INSERT INTO "Milestone"(id,"teamId",title,"dueAt","createdById") VALUES
+ ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-0000000000a1','M1 with feedback',now()-interval '3 days','00000000-0000-4000-8000-000000000001'),
+ ('10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-0000000000a1','M2 no feedback',now()+interval '3 days','00000000-0000-4000-8000-000000000001'),
+ ('10000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-0000000000a1','M3 empty',now()+interval '5 days','00000000-0000-4000-8000-000000000001');
+INSERT INTO "Submission"(id,"milestoneId",title,description,link,"submittedById","submittedAt","updatedAt") VALUES
+ ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Report v1','desc','https://e.x/1','00000000-0000-4000-8000-000000000004',now()-interval '4 days',now()-interval '4 days'),
+ ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','Draft',NULL,'https://e.x/2','00000000-0000-4000-8000-000000000003',now()-interval '1 day',now()-interval '1 day');
+INSERT INTO "Feedback"(id,"submissionId","authorId",comment) VALUES ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','Good work');
+
+## 3. Pending migrations applied
+20261119150000_submission_created_by
+20261123180000_revision_versions
+20261124140000_milestone_close
+20261125120000_submission_late_at
+20261125164000_grade
+
+## 4. Verify
+```
+   title   | created_eq_submitter | currentVersion | lateAt | versionNumber | v1_title_ok | v1_submitter_ok |  comment  | fb_linked_v1 
+-----------+----------------------+----------------+--------+---------------+-------------+-----------------+-----------+--------------
+ Draft     | t                    |              1 |        |             1 | t           | t               |           | 
+ Report v1 | t                    |              1 |        |             1 | t           | t               | Good work | t
+(2 rows)
+
+ milestones | unclosed 
+------------+----------
+          3 |        3
+(1 row)
+
+ grades 
+--------
+      0
+(1 row)
+
+ feedback_without_version 
+--------------------------
+                        0
+(1 row)
+
+            migration_name            
+--------------------------------------
+ 20261105180947_init
+ 20261106171857_milestone
+ 20261107092737_submission
+ 20261109145639_feedback
+ 20261119150000_submission_created_by
+ 20261123180000_revision_versions
+ 20261124140000_milestone_close
+ 20261125120000_submission_late_at
+ 20261125164000_grade
+(9 rows)
+
+```
+
+Result: both existing submissions became version 1 with identical title and submitter; the existing feedback is linked
+to version 1; no feedback without versionId; createdById = last saver (known: v0.1.0 never stored the original submitter);
+milestones stay unclosed; lateAt NULL; Grade table empty. No row lost.
