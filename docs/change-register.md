@@ -1,6 +1,6 @@
 # Change and defect register
 
-Version 1.0, 2026-11-29 (S2-09 #75, D2 Part A). One row per change or finding received since release v0.1.0.
+Version 1.0, 2026-11-26 (S2-09 #75, D2 Part A). One row per change or finding received since release v0.1.0.
 Sources: Lab 5 deployment guide ([labs/lab-05/deployment.md](labs/lab-05/deployment.md)), Lab 6 triage issues
 #45, #54, #55, #61 and their PRs, the S2-07 regression ([evidence/sprint-2/regression.txt](evidence/sprint-2/regression.txt)),
 Lab 7 CR-01 ([labs/lab-07/change-request.md](labs/lab-07/change-request.md)) and release v0.2.0

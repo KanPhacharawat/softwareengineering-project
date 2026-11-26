@@ -1,6 +1,6 @@
 # Sprint 2 completion table
 
-Version 1.0, 2026-11-29 (S2-09 #75, D2 Part B). Sources: feature contracts in this folder, merged PRs, the S2-07
+Version 1.0, 2026-11-26 (S2-09 #75, D2 Part B). Sources: feature contracts in this folder, merged PRs, the S2-07
 regression ([../../evidence/sprint-2/regression.txt](../../evidence/sprint-2/regression.txt)) and release v0.2.0
 ([../../evidence/release-v0.2.0/notes.md](../../evidence/release-v0.2.0/notes.md)).
 

@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 2.0, 2026-11-29 (Sprint 2 baseline, S2-09 #75: new columns, actual test files, result and release per row). Version 1.7, 2026-11-25 (Lab 7 CR-01: BR-06 v2 grace window, AC-49 to AC-52 planned, #83). Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 2.0, 2026-11-26 (Sprint 2 baseline, S2-09 #75: new columns, actual test files, result and release per row). Version 1.7, 2026-11-25 (Lab 7 CR-01: BR-06 v2 grace window, AC-49 to AC-52 planned, #83). Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 
 Version 2.0 replaces the matrix layout. The 1.x matrix is kept in Git history (`git show 4b4b7e0:docs/traceability.md`).
 Requirement IDs are in [srs.md](srs.md), features in [features.md](features.md). Sprint 1 AC/TEST IDs are in
@@ -184,13 +184,13 @@ Generated with `grep -rnoE "(it|test)\('TEST-[^']*'" server/tests web/e2e`. Test
 | 2026-11-05 | Baseline created | all |
 | 2026-11-07 | F-04 Team submission implemented | FR-07, FR-08, FR-09, BR-05, BR-06, BR-09, NFR-09 |
 | 2026-11-09 | F-05 Supervisor feedback implemented (migration 20261109145639_feedback adds Feedback table) | FR-09, FR-10, BR-07, BR-08 |
-| 2026-11-25 | Lab 7 CR-01 approved (PR #90): BR-06 v2 24 h late grace window, `Submission.lateAt` | BR-06, FR-06, FR-07, FR-08, FR-09 |
 | 2026-11-19 | F-06 part 1, original submitter `createdBy` (#55, PR #58, from Lab 6 UAT UF-03); migration `submission_created_by` | FR-13, AC-23 |
 | 2026-11-23 | TEST-27 ported from `lab6-exercise` to `staging` (#72, PR #65, Lab 6 UF-EX-01) | BR-07 |
-| 2026-11-24 | F-06 parts 1 to 4 implemented (#67 PR #79, #68 PR #80, #69 PR #81); migration `revision_versions` | FR-11, FR-12, FR-13, BR-07, BR-08, BR-10, BR-11 |
+| 2026-11-24 | F-06 parts 2 to 4 implemented (#67 PR #79, #68 PR #80, #69 PR #81); migration `revision_versions` | FR-11, FR-12, FR-13, BR-07, BR-08, BR-10, BR-11 |
+| 2026-11-25 | Lab 7 CR-01 approved (PR #90): BR-06 v2 24 h late grace window, `Submission.lateAt` | BR-06, FR-06, FR-07, FR-08, FR-09 |
 | 2026-11-25 | F-07 milestone edit and close implemented (#70, PR #89); migration `milestone_close` | FR-14, BR-13 |
 | 2026-11-25 | Lab 7 CR-01 implemented (#84, PR #93); migration `submission_late_at` | BR-06, FR-06, FR-07, FR-08 |
 | 2026-11-25 | F-08 grading implemented (#71, PR #92); migration `grade` | FR-15, FR-16, BR-12 |
 | 2026-11-26 | Sprint 2 regression TEST-51, TEST-E2E-06, TEST-E2E-07 added (#73, PR #94) | all Sprint 1 and 2 rows |
 | 2026-11-26 | Release v0.2.0 (`4b4b7e0`, PR #96, #74) deployed as `cpms-00007-7sf` | all Sprint 2 rows, BR-06 v2 |
-| 2026-11-29 | SRS v1.2: BR-07, BR-08, BR-10..BR-13 reworded to the contracts; matrix v2.0 (S2-09 #75) | BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 |
+| 2026-11-26 | SRS v1.2: BR-07, BR-08, BR-10..BR-13 reworded to the contracts; matrix v2.0 (S2-09 #75) | BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 |

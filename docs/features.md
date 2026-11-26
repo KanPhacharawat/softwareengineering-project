@@ -1,6 +1,6 @@
 # Feature Inventory
 
-Version 1.1, 2026-11-29 (Sprint 2: Status column, F-06 parts 1 to 4, change-log rows, S2-09 #75). Version 1.0, 2026-11-05. Requirement IDs refer to [srs.md](srs.md).
+Version 1.1, 2026-11-26 (Sprint 2: Status column, F-06 parts 1 to 4, change-log rows, S2-09 #75). Version 1.0, 2026-11-05. Requirement IDs refer to [srs.md](srs.md).
 
 | ID | Feature | Description | Requirements | Depends on | Sprint | Status |
 |---|---|---|---|---|---|---|
@@ -10,7 +10,7 @@ Version 1.1, 2026-11-29 (Sprint 2: Status column, F-06 parts 1 to 4, change-log 
 | F-03 | Milestone creation | Supervisor creates a milestone for an assigned team; members list team milestones with status. | FR-05, FR-06, BR-04 | F-01, F-02 | 1 | Accepted v0.1.0 (status rule v2 in v0.2.0) |
 | F-04 | Team submission | Student submits and edits the team's work before the deadline; members and supervisor view it. | FR-07, FR-08, FR-09, BR-05, BR-06, BR-09, NFR-09 | F-03 | 1 | Accepted v0.1.0 (BR-06 v2 grace window in v0.2.0) |
 | F-05 | Supervisor feedback | Supervisor records feedback on a submission; feedback locks the submission and is visible to the team. | FR-09, FR-10, BR-07, BR-08 | F-04 | 1 | Accepted v0.1.0 (lock per version in v0.2.0) |
-| F-06 | Revision and history | Part 1: original submitter kept (`createdBy`, #55). Part 2: revision request with reason and revision due date. Part 3: resubmission as a new version. Part 4: version history with feedback, revision request and grade per version. | FR-11, FR-12, FR-13, BR-07, BR-08, BR-10, BR-11 | F-05 | 2 | Accepted v0.2.0 |
+| F-06 | Revision and history | Part 1: original submitter kept (`createdBy`, #55). Part 2: revision request with reason and revision due date. Part 3: resubmission as a new version. Part 4: version history with feedback and revision request per version, and the submission grade (with the graded version). | FR-11, FR-12, FR-13, BR-07, BR-08, BR-10, BR-11 | F-05 | 2 | Accepted v0.2.0 |
 | F-07 | Milestone management | Edit milestone details and due date; close a milestone. | FR-14, BR-13 | F-03 | 2 | Accepted v0.2.0 |
 | F-08 | Grading | Supervisor grades a submission with feedback; team views grades. | FR-15, FR-16, BR-12 | F-05 | 2 | Accepted v0.2.0 |
 | F-09 | Team progress board | Board of the team's milestones by status (open, submitted, feedback given, revision requested, missed). | FR-17, FR-19 | F-06, F-07, F-08 | 3 | Planned Sprint 3 |

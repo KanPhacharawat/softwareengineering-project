@@ -2,13 +2,13 @@
 
 Product: Course Project Management System (CPMS)
 Theme: 6, Course Project Management System
-Version: 1.2, 2026-11-29 (Sprint 2 baseline revision, S2-09 #75). Version 1.1, 2026-11-25 (Lab 7 CR-01: BR-06 grace window). Baseline 1.0, 2026-11-05
+Version: 1.2, 2026-11-26 (Sprint 2 baseline revision, S2-09 #75). Version 1.1, 2026-11-25 (Lab 7 CR-01: BR-06 grace window). Baseline 1.0, 2026-11-05
 
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | 1.0 | 2026-11-05 | Initial baseline for Deliverable 1 | Project launch |
 | 1.1 | 2026-11-25 | BR-06 v2: 24-hour late submission grace window, late time stored (D-10) | Lab 7 CR-01 (#82, #83), approved by the team in PR #90 |
-| 1.2 | 2026-11-29 | Sprint 2 baseline revision: BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 reworded to the contracts; decisions D-11 to D-15 | F-06/F-07/F-08 contract decisions (#63, #64, #66), released in v0.2.0 (S2-09 #75) |
+| 1.2 | 2026-11-26 | Sprint 2 baseline revision: BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 reworded to the contracts; decisions D-11 to D-15 | F-06/F-07/F-08 contract decisions (#63, #64, #66), released in v0.2.0 (S2-09 #75) |
 
 ## 1. Stakeholder problem and context
 
