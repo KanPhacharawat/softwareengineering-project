@@ -1,0 +1,156 @@
+MC-01 secret check for release v0.2.0 (NFR-08, AC-00c), re-run of the v0.1.0 check in docs/evidence/release-v0.1.0/manual-checks-MC-00-MC-01.txt
+commit: 4b4b7e0 (tag v0.2.0 on main)   date: 2026-11-26   run by: S2-09 #75   tools: git, Node v22, npm ci + vite build
+
+== 1. secret/password grep on the release commit (same command and exclusions as v0.1.0)
+$ git grep -n -i -E 'secret|password' 4b4b7e0 -- . ':!package-lock.json' ':!docs' ':!*.test.ts' ':!web/e2e' ':!web/src/pages/login-page.tsx' ':!web/src/auth'
+.github/ISSUE_TEMPLATE/uat-defect.md:19:<!-- accounts by label only, synthetic data. NO passwords -->
+.github/workflows/ci-docker.yml:24:    # Throw-away test database (CI values, not secrets). Test code only accepts a *_test database.
+.github/workflows/ci-docker.yml:30:          POSTGRES_PASSWORD: app
+.github/workflows/deploy.yml:89:          # Optional login check: set BOTH (environment variable + secret) or neither.
+.github/workflows/deploy.yml:91:          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+README.md:27:[`docker-compose.yml`](docker-compose.yml) runs PostgreSQL 16 on host port **5433** with user `app` / password `app`
+README.md:42:cp server/.env.example server/.env     # then set SESSION_SECRET
+README.md:84:Locally all accounts use the password `password123` (the default when `SEED_PASSWORD` is unset).
+README.md:85:In production the seed refuses to run unless `SEED_PASSWORD` is set to a non-default value,
+deploy/deploy.sh:18:#   5 runtime SA+IAM  6 DB user + secret   7 seed password       8 session secret
+deploy/deploy.sh:19:#   (secret access)   9 build image        10 migrate+seed job   11 Cloud Run service
+deploy/deploy.sh:24:#   - Idempotent: existing resources/secrets are reused, never overwritten
+deploy/deploy.sh:26:#   - Passwords are generated with openssl and live only in Secret Manager;
+deploy/deploy.sh:27:#     they are never printed (run_cmd redacts --password=...).
+deploy/deploy.sh:36:#   - Secret Manager    : https://cloud.google.com/secret-manager/docs
+deploy/deploy.sh:58:# ⭐ IMPORTANT: --password=... is redacted in the log; keep this behaviour.
+deploy/deploy.sh:69:      --password=*) printf '%s ' '--password=<REDACTED>' ;;
+deploy/deploy.sh:107:# Secret Manager secret names (values are never stored in this repo).
+deploy/deploy.sh:108:SECRET_DB_URL="cpms-database-url"
+deploy/deploy.sh:109:SECRET_SEED_PASS="cpms-seed-password"
+deploy/deploy.sh:110:SECRET_SESSION="cpms-session-secret"
+deploy/deploy.sh:127:  secretmanager.googleapis.com \
+deploy/deploy.sh:188:#    cloudsql.client (connect to the DB); access to individual secrets is
+deploy/deploy.sh:189:#    granted later, per secret, after they exist.
+deploy/deploy.sh:209:# 6. Create DB User & Store DATABASE_URL in Secret Manager (only if secret does not exist yet)
+deploy/deploy.sh:210:#    ⭐ IMPORTANT: the DB user's password and the password inside DATABASE_URL
+deploy/deploy.sh:216:  run_cmd gcloud secrets describe "$SECRET_DB_URL" --project "$PROJECT_ID"
+deploy/deploy.sh:218:  run_cmd gcloud sql users create "$DB_USER" --instance="$SQL_INSTANCE" --password="<GENERATED_HEX_PASSWORD>" --project "$PROJECT_ID"
+deploy/deploy.sh:219:  run_cmd gcloud secrets create "$SECRET_DB_URL" --replication-policy="automatic" --project "$PROJECT_ID"
+deploy/deploy.sh:220:  run_cmd gcloud secrets versions add "$SECRET_DB_URL" --data-file=- --project "$PROJECT_ID"
+deploy/deploy.sh:222:  if ! gcloud secrets describe "$SECRET_DB_URL" --project "$PROJECT_ID" >/dev/null 2>&1; then
+deploy/deploy.sh:225:      run_cmd gcloud sql users set-password "$DB_USER" --instance="$SQL_INSTANCE" --password="$DB_PASS" --project "$PROJECT_ID"
+deploy/deploy.sh:227:      run_cmd gcloud sql users create "$DB_USER" --instance="$SQL_INSTANCE" --password="$DB_PASS" --project "$PROJECT_ID"
+deploy/deploy.sh:230:    run_cmd gcloud secrets create "$SECRET_DB_URL" --replication-policy="automatic" --project "$PROJECT_ID"
+deploy/deploy.sh:231:    printf "%s" "$DB_URL_VALUE" | gcloud secrets versions add "$SECRET_DB_URL" --data-file=- --project "$PROJECT_ID"
+deploy/deploy.sh:236:# 7-8. SEED_PASSWORD (demo accounts, migrate job) and SESSION_SECRET (service)
+deploy/deploy.sh:238:#    gcloud secrets versions access latest --secret=<name>
+deploy/deploy.sh:240:for secret in "$SECRET_SEED_PASS" "$SECRET_SESSION"; do
+deploy/deploy.sh:242:    run_cmd gcloud secrets describe "$secret" --project "$PROJECT_ID"
+deploy/deploy.sh:243:    run_cmd gcloud secrets create "$secret" --replication-policy="automatic" --project "$PROJECT_ID"
+deploy/deploy.sh:244:    run_cmd gcloud secrets versions add "$secret" --data-file=- --project "$PROJECT_ID"
+deploy/deploy.sh:245:  elif ! gcloud secrets describe "$secret" --project "$PROJECT_ID" >/dev/null 2>&1; then
+deploy/deploy.sh:246:    run_cmd gcloud secrets create "$secret" --replication-policy="automatic" --project "$PROJECT_ID"
+deploy/deploy.sh:247:    openssl rand -hex 32 | tr -d '\n' | gcloud secrets versions add "$secret" --data-file=- --project "$PROJECT_ID"
+deploy/deploy.sh:252:# Secret access (per secret, NOT project-wide)
+deploy/deploy.sh:253:# ⭐ IMPORTANT: test_deploy_stub.sh fails if a project-wide secretAccessor
+deploy/deploy.sh:254:#    binding is added — keep access limited to this app's own secrets.
+deploy/deploy.sh:256:for secret in "$SECRET_DB_URL" "$SECRET_SEED_PASS" "$SECRET_SESSION"; do
+deploy/deploy.sh:257:  run_cmd gcloud secrets add-iam-policy-binding "$secret" \
+deploy/deploy.sh:259:    --role="roles/secretmanager.secretAccessor" \
+deploy/deploy.sh:284:  --set-secrets "DATABASE_URL=${SECRET_DB_URL}:latest,SEED_PASSWORD=${SECRET_SEED_PASS}:latest" \
+deploy/deploy.sh:315:  --set-secrets "DATABASE_URL=${SECRET_DB_URL}:latest,SESSION_SECRET=${SECRET_SESSION}:latest" \
+deploy/deploy.sh:331:# Summary output (URLs; passwords stay in Secret Manager and are not printed)
+deploy/deploy.sh:340:' "Demo logins   : *@cpms.test, password in Secret Manager: ${SECRET_SEED_PASS} (not printed)."
+deploy/release.sh:6:#   Update pre-provisioned resources only. Does not create SQL, IAM or secrets.
+deploy/smoke_test.py:9:  4. Optional, only if SMOKE_EMAIL and SMOKE_PASSWORD are both set: login, /api/auth/me, logout.
+deploy/smoke_test.py:49:    email, password = os.getenv('SMOKE_EMAIL'), os.getenv('SMOKE_PASSWORD')
+deploy/smoke_test.py:50:    if bool(email) != bool(password):
+deploy/smoke_test.py:51:        raise RuntimeError('Set both SMOKE_EMAIL and SMOKE_PASSWORD, or neither.')
+deploy/smoke_test.py:57:        request(base, '/api/auth/login', {'email': email, 'password': password})
+deploy/teardown.sh:17:#   SQL, Artifact Registry, secrets, service account) to stop billing.
+deploy/teardown.sh:25:#   - gcloud secrets delete       : https://cloud.google.com/sdk/gcloud/reference/secrets/delete
+deploy/teardown.sh:64:SECRET_DB_URL="cpms-database-url"
+deploy/teardown.sh:65:SECRET_SEED_PASS="cpms-seed-password"
+deploy/teardown.sh:66:SECRET_SESSION="cpms-session-secret"
+deploy/teardown.sh:77:echo "  - Secrets           : ${SECRET_DB_URL}, ${SECRET_SEED_PASS}, ${SECRET_SESSION}"
+deploy/teardown.sh:99:run_cmd gcloud secrets delete "$SECRET_DB_URL" --project "$PROJECT_ID" --quiet || true
+deploy/teardown.sh:100:run_cmd gcloud secrets delete "$SECRET_SEED_PASS" --project "$PROJECT_ID" --quiet || true
+deploy/teardown.sh:101:run_cmd gcloud secrets delete "$SECRET_SESSION" --project "$PROJECT_ID" --quiet || true
+deploy/tests/test_deploy_stub.sh:9:#     partial   : DB secret missing   -> DB user password reset + secret created
+deploy/tests/test_deploy_stub.sh:11:#   It also checks: `--edition=enterprise`, no project-wide secretAccessor role,
+deploy/tests/test_deploy_stub.sh:12:#   DB password == password inside DATABASE_URL, and that no password/secret
+deploy/tests/test_deploy_stub.sh:19:# ⭐ CHANGE ME: if you rename resources in deploy/deploy.sh (e.g. the secret
+deploy/tests/test_deploy_stub.sh:20:#    names cpms-database-url / -seed-password / -session-secret, the DB
+deploy/tests/test_deploy_stub.sh:37:  printf '%s\n' 'TESTONLYGENERATEDPASSWORD'
+deploy/tests/test_deploy_stub.sh:41:# --- Fake `gcloud`: logs each call (password redacted), answers per $STUB_MODE
+deploy/tests/test_deploy_stub.sh:48:    --password=*)
+deploy/tests/test_deploy_stub.sh:49:      printf '%s' "${arg#--password=}" > "$TEST_STATE_DIR/sql-pass"
+deploy/tests/test_deploy_stub.sh:50:      redacted+=("--password=<REDACTED>") ;;
+deploy/tests/test_deploy_stub.sh:67:if [ "${1:-} ${2:-} ${3:-}" = 'secrets versions add' ]; then
+deploy/tests/test_deploy_stub.sh:84:        if [ "${1:-} ${3:-}" = 'secrets cpms-database-url' ]; then
+deploy/tests/test_deploy_stub.sh:117:  if grep -q '^projects add-iam-policy-binding .*roles/secretmanager.secretAccessor' "$GCLOUD_LOG"; then
+deploy/tests/test_deploy_stub.sh:118:    echo 'FAIL: runtime has project-wide secret access'; exit 1
+deploy/tests/test_deploy_stub.sh:120:  for secret in cpms-database-url cpms-seed-password cpms-session-secret; do
+deploy/tests/test_deploy_stub.sh:121:    grep -q "^secrets add-iam-policy-binding $secret .*roles/secretmanager.secretAccessor" "$GCLOUD_LOG"
+deploy/tests/test_deploy_stub.sh:127:    partial) grep -q '^sql users set-password ' "$GCLOUD_LOG" ;;
+deploy/tests/test_deploy_stub.sh:129:      if grep -Eq '^(secrets create|sql users (create|set-password)) ' "$GCLOUD_LOG"; then
+deploy/tests/test_deploy_stub.sh:138:      *) echo 'FAIL: DB password differs from secret'; exit 1 ;;
+deploy/tests/test_deploy_stub.sh:141:      echo 'FAIL: DB password leaked to output'; exit 1
+deploy/tests/test_deploy_stub.sh:144:  for secret_file in "$TEST_STATE_DIR"/payload-*; do
+deploy/tests/test_deploy_stub.sh:145:    [ -f "$secret_file" ] || continue
+deploy/tests/test_deploy_stub.sh:146:    secret_value="$(cat "$secret_file")"
+deploy/tests/test_deploy_stub.sh:147:    if [ -n "$secret_value" ] && grep -Fq "$secret_value" "$TEST_STATE_DIR/output"; then
+deploy/tests/test_deploy_stub.sh:148:      echo 'FAIL: secret payload leaked to output'; exit 1
+deploy/tests/test_deploy_stub.sh:151:  echo "PASS: $MODE (exit, migration gate, credential handling, secret redaction)"
+deploy/tests/test_smoke.py:45:    @patch.dict('os.environ', {'SMOKE_EMAIL': 'smoke@example.test', 'SMOKE_PASSWORD': 'test-only'}, clear=True)
+docker-compose.yml:4:# Creates cpms_dev (dev) and cpms_test (used by `npm test`), user app / password app.
+docker-compose.yml:13:      POSTGRES_PASSWORD: app
+docker-compose.yml:35:      SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-not-for-production-0000}
+docker-compose.yml:36:      SEED_PASSWORD: ${SEED_PASSWORD:-}
+docker-compose.yml:38:      # and the seed uses the README demo password. Cloud Run runs the image's NODE_ENV=production.
+server/.env.example:2:# Every variable the server reads is listed here. Production values live in Secret Manager / Cloud Run,
+server/.env.example:5:# PostgreSQL connection string (Prisma + session store). Secret in production.
+server/.env.example:9:# Random string of 32+ characters, e.g. `openssl rand -hex 32`. Secret in production.
+server/.env.example:10:SESSION_SECRET=change-me-to-a-random-32-plus-character-string
+server/.env.example:11:# Password for the seeded demo accounts. Optional locally (defaults to the README demo password);
+server/.env.example:12:# required in production (not the default). Secret in production.
+server/.env.example:13:SEED_PASSWORD=
+server/prisma/migrations/20261105180947_init/migration.sql:10:    "passwordHash" TEXT NOT NULL,
+server/prisma/schema.prisma:20:  passwordHash       String
+server/prisma/seed.ts:2:// All demo accounts share one password, read from SEED_PASSWORD. Outside production it falls back to a
+server/prisma/seed.ts:3:// well-known local default so `npm test` and e2e work without setup; in production it must be set (Secret Manager).
+server/prisma/seed.ts:7:const LOCAL_DEFAULT_PASSWORD = 'password123';
+server/prisma/seed.ts:9:function seedPassword(): string {
+server/prisma/seed.ts:10:  const fromEnv = process.env.SEED_PASSWORD;
+server/prisma/seed.ts:12:    if (!fromEnv || fromEnv === LOCAL_DEFAULT_PASSWORD) {
+server/prisma/seed.ts:13:      throw new Error('SEED_PASSWORD must be set to a non-default value in production');
+server/prisma/seed.ts:17:  return fromEnv || LOCAL_DEFAULT_PASSWORD;
+server/prisma/seed.ts:20:export const SEED_PASSWORD = seedPassword();
+server/prisma/seed.ts:44:  const passwordHash = await bcrypt.hash(SEED_PASSWORD, BCRYPT_COST);
+server/prisma/seed.ts:54:      await tx.user.upsert({ where: { id: u.id }, create: { ...u, passwordHash }, update: { ...u, passwordHash } });
+server/src/config.ts:12:const sessionSecret = required('SESSION_SECRET');
+server/src/config.ts:13:if (nodeEnv === 'production' && sessionSecret.length < 32) {
+server/src/config.ts:14:  throw new Error('SESSION_SECRET must be at least 32 characters in production');
+server/src/config.ts:22:  sessionSecret,
+server/src/routes/auth.ts:10:  password: z.string({ error: 'Enter your password' }).min(1, 'Enter your password').max(200, 'Password is too long'),
+server/src/routes/auth.ts:20:  const user = await verifyCredentials(parsed.data.email, parsed.data.password);
+server/src/services/auth-service.ts:8:// passwordHash is never selected into anything that leaves the service (NFR-01).
+server/src/services/auth-service.ts:15:export async function verifyCredentials(email: string, password: string): Promise<PublicUser> {
+server/src/services/auth-service.ts:17:  const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
+server/src/services/auth-service.ts:19:    // Same response for unknown email and wrong password (AC-02).
+server/src/services/auth-service.ts:20:    throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid email or password');
+server/src/services/team-service.ts:8:// Only these fields leave the API: no password hashes, no membership internals.
+server/src/session.ts:22:    secret: config.sessionSecret,
+server/tests/helpers.ts:3:import { SEED_PASSWORD, seedTeams } from '../prisma/seed.js';
+server/tests/helpers.ts:7:  const res = await request(app).post('/api/auth/login').send({ email, password: SEED_PASSWORD });
+server/tests/test-env.ts:12:  // Tests need a session secret even without a .env file (e.g. in CI). Not a real secret.
+server/tests/test-env.ts:13:  process.env.SESSION_SECRET ??= 'test-only-session-secret-not-used-anywhere-else';
+
+Review: 138 hits. Files that were already reviewed for v0.1.0 show the same kinds of hits (placeholder in
+.env.example, env reads in config.ts/session.ts, synthetic seed password 'password123', local Docker DB app/app,
+test-only fallback secret). New since v0.1.0 (Lab 5 delivery): .github/workflows (CI throw-away DB password 'app',
+`${{ secrets.SMOKE_PASSWORD }}` reference), deploy/*.sh and deploy/tests (Secret Manager secret NAMES, generated
+passwords piped to Secret Manager and redacted in logs, stub test value 'TESTONLYGENERATEDPASSWORD'), and the UAT
+issue template comment. None is a real credential value.
+
+== 2. web bundle must not contain a secret, DB URL or the seed password
+$ npm ci && npm run build -w web && grep -rlE 'SESSION_SECRET|DATABASE_URL|password123' web/dist
+(no match)
+
+Result: PASS.

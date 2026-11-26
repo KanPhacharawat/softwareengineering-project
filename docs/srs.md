@@ -2,12 +2,13 @@
 
 Product: Course Project Management System (CPMS)
 Theme: 6, Course Project Management System
-Version: 1.1, 2026-11-25 (Lab 7 CR-01: BR-06 grace window). Baseline 1.0, 2026-11-05
+Version: 1.2, 2026-11-26 (Sprint 2 baseline revision, S2-09 #75). Version 1.1, 2026-11-25 (Lab 7 CR-01: BR-06 grace window). Baseline 1.0, 2026-11-05
 
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | 1.0 | 2026-11-05 | Initial baseline for Deliverable 1 | Project launch |
 | 1.1 | 2026-11-25 | BR-06 v2: 24-hour late submission grace window, late time stored (D-10) | Lab 7 CR-01 (#82, #83), approved by the team in PR #90 |
+| 1.2 | 2026-11-26 | Sprint 2 baseline revision: BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 reworded to the contracts; decisions D-11 to D-15 | F-06/F-07/F-08 contract decisions (#63, #64, #66), released in v0.2.0 (S2-09 #75) |
 
 ## 1. Stakeholder problem and context
 
@@ -29,8 +30,8 @@ assignments are prepared by course staff before the semester and loaded as seed 
 
 | Actor | Responsibilities | Access scope |
 |---|---|---|
-| Student | Member of exactly one team. Views the team's milestones, submits and edits the team's work before the deadline, reads the supervisor's feedback (and later grades). | Own team only |
-| Supervisor | Assigned to one or more teams. Creates milestones for assigned teams, reviews submissions, records feedback (later: requests revisions, grades, views reports). | Assigned teams only |
+| Student | Member of exactly one team. Views the team's milestones, submits and edits the team's work before the deadline, reads the supervisor's feedback and grades, resubmits after a revision request (Sprint 2). | Own team only |
+| Supervisor | Assigned to one or more teams. Creates milestones for assigned teams, reviews submissions, records feedback, requests revisions, closes milestones and grades (Sprint 2), views reports (Sprint 3). | Assigned teams only |
 | Course staff (offline) | Prepares accounts, teams, membership and supervisor assignment as seed data. Not a system user in this product. | n/a |
 
 ## 3. Scope
@@ -90,13 +91,13 @@ Explicit exclusions:
 | BR-04 | A milestone needs a title of 3 to 120 characters and a due date/time in the future at the moment of creation. Description is at most 2000 characters. | 1 |
 | BR-05 | A team has at most one submission per milestone. A second submit attempt is rejected; changes go through edit. | 1 |
 | BR-06 | **v2 (Lab 7 CR-01):** The first version of a submission can be created or edited until 24 hours after the milestone due date/time (exclusive), judged by server time. A save at or after the due date/time marks the submission late: its late time (`lateAt`) is set once and never cleared. Resubmissions (BR-11) have no grace period. *(v1, Sprint 1: "only before the milestone due date/time".)* | 1 (v2 in Lab 7) |
-| BR-07 | Once feedback is recorded on a submission, the submission is locked and cannot be edited (until a revision request in Sprint 2). | 1 |
-| BR-08 | Feedback is 1 to 2000 characters, is recorded once per submission version, and stays linked to that version. | 1 |
+| BR-07 | **v2 (Sprint 2):** Once feedback is recorded on the current version of a submission, that version is locked and cannot be edited. A revision request lets the team add a new version (BR-10); locked versions never change. *(v1, Sprint 1: "the submission is locked and cannot be edited (until a revision request in Sprint 2)".)* | 1 (v2 in 2) |
+| BR-08 | Feedback is 1 to 2000 characters, is recorded once per submission version, and stays linked to that version. *(Sprint 1 had one version per submission, so "once per version" meant once per submission; Sprint 2 stores the link as `Feedback.versionId`.)* | 1 (per version in 2) |
 | BR-09 | A submission needs a title of 3 to 120 characters, a description of at most 2000 characters and a link that is an absolute http or https URL of at most 500 characters. | 1 |
-| BR-10 | A revision request needs a reason (1 to 1000 characters) and a revision due date in the future. Resubmission creates a new version; earlier versions and their feedback are kept unchanged. | 2 |
-| BR-11 | After a revision request, resubmission is accepted only before the revision due date. | 2 |
-| BR-12 | A grade is an integer 0 to 100, can be recorded only on a submission that has feedback, and only by the assigned supervisor. | 2 |
-| BR-13 | A closed milestone accepts no new submissions, edits or resubmissions. A due date can only be changed to a future date. | 2 |
+| BR-10 | A revision request needs feedback on the current version, a reason (1 to 1000 characters) and a revision due date in the future; at most one request per version. Resubmission creates a new version; earlier versions and their feedback are kept unchanged. | 2 |
+| BR-11 | After a revision request, one resubmission is accepted only before the revision due date. For version 2 and later the revision due date replaces the milestone due date as the edit deadline, even when the milestone due date has passed; there is no grace period (BR-06 applies to version 1 only). A request whose due date passes unanswered expires. | 2 |
+| BR-12 | A grade is an integer 0 to 100, can be recorded only on a submission whose current version has feedback, and only by the assigned supervisor. No grade while a revision request is open; no revision request after a grade exists. The supervisor may change the grade. | 2 |
+| BR-13 | A closed milestone accepts no new submissions, edits or resubmissions, and no revision request or milestone edit. Close is final (no reopen). Feedback and grading are still allowed after close. A due date can only be changed to a future date. | 2 |
 
 ## 6. Non-functional requirements
 
@@ -118,7 +119,7 @@ Explicit exclusions:
 |---|---|
 | AS-01 | Each student belongs to exactly one team in this course; each team has exactly one supervisor. |
 | AS-02 | All times are stored in UTC; the UI shows them in Asia/Bangkok time. |
-| AS-03 | Any member of a team may submit or edit the team's submission; the system records who did it last. |
+| AS-03 | Any member of a team may submit or edit the team's submission; the system records who did it last and, since v0.2.0, who submitted first (D-14). |
 | AS-04 | Seeded demo accounts with synthetic data are sufficient for all assessments. |
 
 ## 8. Decisions, questions and resolutions
@@ -135,3 +136,8 @@ Explicit exclusions:
 | D-08 | Can a supervisor see feedback/grades of other teams? | No; only assigned teams (BR-02). Students see feedback and grades of their own team only. | 2026-11-05 |
 | D-09 | Where does Sprint 1 start? | From an empty repository: F-00 Project setup is the first Sprint 1 feature, then F-01 to F-05. | 2026-11-05 |
 | D-10 | How are late submissions handled? (Lab 7) | 24-hour grace window after the due date for the first version; late saves are accepted and stored with `lateAt`; a milestone with no submission becomes `MISSED` only after the grace window. Replaces the strict deadline of D-02 for version 1. | 2026-11-25 |
+| D-11 | Is a grade per version or per submission? (F-08) | One grade per submission. It stores the version number that was graded. The supervisor can change it; no grade history. | 2026-11-23 |
+| D-12 | Can a closed milestone be reopened? (F-07) | No. Close is final in Sprint 2; there is no reopen or delete endpoint. Feedback and grading still work so the supervisor can finish marking. | 2026-11-22 |
+| D-13 | How does a revision request show in the milestone status? (F-06) | New status `REVISION_REQUESTED`. After the resubmission the status is `SUBMITTED` again; after an expired request it returns to `FEEDBACK_GIVEN`. Closed is a separate flag, not a status. | 2026-11-21 |
+| D-14 | Who is "the submitter" when a teammate edits? (#55, Lab 6 UAT UF-03) | `createdBy` = original submitter, never changes. `submittedBy` = last saved by (AC-16 unchanged). Each resubmitted version stores its own submitter. | 2026-11-19 |
+| D-15 | How many revision rounds? (F-06) | Not limited: each version can get one feedback and one revision request, until the submission is graded or the milestone is closed. | 2026-11-21 |
