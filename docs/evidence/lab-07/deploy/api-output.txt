@@ -6,3 +6,23 @@
 #   GET  /api/milestones/:id ; POST /api/milestones/:id/submission {title:"L7-DEP-03 too late",...} ; GET again
 # DEP-04: "UAT-Alpha-05 Persistence Milestone" ca6100ad-4fe9-4f59-a6bb-b3835025baf6, Sprint 1 submission of 17 Nov
 {"t":"2026-11-26T06:12:23.182Z","dep03":{"dueAt":"2026-11-22T07:00:00.000Z","graceEndsAt":"2026-11-23T07:00:00.000Z","status":"MISSED","post":[422,"DEADLINE_PASSED"],"submissionAfter":null},"dep04":{"status":"FEEDBACK_GIVEN","submittedAt":"2026-11-17T06:58:24.059Z","lateAt":null,"version":1}}
+
+## Setup, user sup1, 2026-11-26T06:15:31Z (13:15 Bangkok)
+# POST /api/teams/<Alpha>/milestones {title:"L7 grace check 2026-11-26", dueAt: now + ~3 min}
+201 {"milestone":{"id":"248d720b-62a5-42d8-8afa-b8f192043be5","title":"L7 grace check 2026-11-26","dueAt":"2026-11-26T06:19:00.000Z","closedAt":null,"status":"OPEN","graceEndsAt":"2026-11-27T06:19:00.000Z","lateAt":null,"teamId":"00000000-0000-4000-8000-0000000000a1"}}
+
+## L7-DEP-02, user s1, 2026-11-26T06:21:00Z (13:21 Bangkok), due passed 2 min ago, no submission
+{"t":"2026-11-26T06:21:00.918Z","me":"s1@cpms.test","status":"OPEN","dueAt":"2026-11-26T06:19:00.000Z","graceEndsAt":"2026-11-27T06:19:00.000Z","submission":null}
+
+## L7-DEP-01, user s1, submitted through the UI form at 06:21:17Z, then GET detail + team list
+{"t":"2026-11-26T06:21:26.379Z","me":"s1","status":"SUBMITTED","dueAt":"2026-11-26T06:19:00.000Z","submittedAt":"2026-11-26T06:21:17.175Z","lateAt":"2026-11-26T06:21:17.132Z","editableUntil":"2026-11-27T06:19:00.000Z","teamList":{"status":"SUBMITTED","lateAt":"2026-11-26T06:21:17.132Z","graceEndsAt":"2026-11-27T06:19:00.000Z"}}
+
+## L7-DEP-01 (supervisor side) + L7-DEP-06 setup, user sup1, feedback saved through the UI at 06:22:22Z (13:22 Bangkok)
+{"t":"2026-11-26T06:22:25.152Z","me":"sup1","status":"FEEDBACK_GIVEN","lateAt":"2026-11-26T06:21:17.132Z","feedbackAt":"2026-11-26T06:22:22.780Z"}
+
+## L7-DEP-01 (teammate) + L7-DEP-06, user s2 (Alpha), 2026-11-26T06:24:00Z (13:24 Bangkok), inside grace
+# PUT /api/milestones/:id/submission {title:"L7-DEP-06 edit after feedback",...}, then GET
+{"t":"2026-11-26T06:24:00.540Z","me":"s2@cpms.test","put":[409,"SUBMISSION_LOCKED"],"after":{"title":"L7-DEP-01 late report","lateAt":"2026-11-26T06:21:17.132Z","status":"FEEDBACK_GIVEN"}}
+
+## L7-DEP-05, user s3 (Beta), 2026-11-26T06:25:03Z (13:25 Bangkok): Alpha milestone 248d720b-...
+{"t":"2026-11-26T06:25:03.451Z","me":"s3@cpms.test","get":[404,{"error":{"code":"NOT_FOUND","message":"Not found or you do not have access"}}],"put":[404,"NOT_FOUND"]}
