@@ -5,7 +5,7 @@
 * **Category**: Business rule / boundary
 * **Requirements Traceability**: `FR-05`, `FR-07`
 * **Business Rules**: `BR-04`, `BR-06`, `BR-09`
-* **Acceptance Criteria**: `AC-07`, `AC-13`, `AC-14`
+* **Acceptance Criteria**: `AC-07`, `AC-49` (replaces `AC-13` since Lab 7 CR-01, BR-06 v2), `AC-14`
 * **Execution Order**: **Independent** (Can be executed at any time)
 
 ---
@@ -78,9 +78,10 @@ Verify system resilience and business rule enforcement on input boundaries and d
     * Click **"Submit"**. Observe error.
 17. Verify that no submission was created (status remains **`OPEN`**).
 
-### Test 2.3: Deadline Passed Rejection
-18. Navigate to any milestone whose deadline is in the past (or verify UI behavior on past-due milestone).
+### Test 2.3: Deadline Passed Rejection (BR-06 v2, updated for Lab 7 CR-01)
+18. Navigate to a milestone with no submission whose due date passed **more than 24 hours ago** (the grace window has ended).
 19. Observe the submission section.
+20. *(Grace window)* Navigate to a milestone whose due date passed **less than 24 hours ago** and submit as in Test 2.2 with valid data.
 
 ---
 
@@ -89,11 +90,13 @@ Verify system resilience and business rule enforcement on input boundaries and d
 * **Step 6–7**: Form is blocked; error message indicates: *"Due date must be in the future"*. No milestone is created.
 * **Step 14**: Form validation blocks submission; inline error indicates title must be at least 3 characters.
 * **Step 15–16**: Form validation blocks submission; inline error indicates link must be a valid `http://` or `https://` URL. The status remains **`OPEN`**.
-* **Step 18–19**: When deadline has passed, the submit form is disabled/hidden and displays a clear message (e.g., *"Deadline passed: submissions are closed"* per AC-13).
+* **Step 18–19**: Status is **`MISSED`**; the submit form is hidden and the page shows *"Submission closed: deadline passed"* (AC-49).
+* **Step 20**: Before submitting, status is **`OPEN`** with *"Due date passed. Late submissions accepted until <time> (Bangkok time)."*; after submitting, the submission is saved with a **Late** badge and *"Submitted late at <time> (Bangkok time)"* (AC-50, AC-51).
 
 ---
 
 ## 8. Evidence to Capture
 * **Screenshot E-B02a**: Milestone form rejecting past due date / short title with validation alerts.
 * **Screenshot E-B02b**: Submission form rejecting FTP / non-URL deliverable links with field validation errors.
-* **Screenshot E-B02c**: Past-due milestone view showing deadline closure notice.
+* **Screenshot E-B02c**: Past-due milestone view (grace ended) showing deadline closure notice.
+* **Screenshot E-B02d**: Grace-window milestone after a late submission showing the Late badge.

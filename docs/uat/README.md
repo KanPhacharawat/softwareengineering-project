@@ -25,7 +25,7 @@ CPMS provides a centralized platform for academic project milestones, student su
 * **F-01**: Authentication (login, logout, session lifecycle, current user).
 * **F-02**: Authorization (role check, tenant/team ownership checks, visible-team listing).
 * **F-03**: Milestone creation by assigned supervisors; team milestone listing.
-* **F-04**: Team submission (title, description, link) and editing before deadline.
+* **F-04**: Team submission (title, description, link) and editing before deadline (version 1: until due + 24 h grace, Lab 7 CR-01).
 * **F-05**: Written supervisor feedback; submission lock upon feedback.
 
 ### 1.3 Out-of-Scope (Sprint 2 / 3 — DO NOT ACCEPT OR TEST AS DEFECTS)
@@ -68,7 +68,7 @@ CPMS provides a centralized platform for academic project milestones, student su
 | Case ID | Case Title | Category | Requirements / AC | Target Role(s) | Execution Order |
 |---|---|---|---|---|---|
 | [**UAT-01**](UAT-01-normal-journey.md) | End-to-End Milestone Lifecycle | Normal journey | FR-01, FR-05, FR-06, FR-07, FR-09, FR-10; BR-03, BR-04, BR-05, BR-07, BR-08; AC-01, AC-06, AC-10, AC-11, AC-17, AC-21 | Supervisor One, Student One | Ordered (Sequential flow) |
-| [**UAT-02**](UAT-02-business-rule-boundary-validation.md) | Boundary Validation & Deadline Enforcement | Business rule / boundary | FR-05, FR-07, BR-04, BR-06, BR-09; AC-07, AC-13, AC-14 | Supervisor One, Student One | Independent |
+| [**UAT-02**](UAT-02-business-rule-boundary-validation.md) | Boundary Validation & Deadline Enforcement | Business rule / boundary | FR-05, FR-07, BR-04, BR-06, BR-09; AC-07, AC-49 (was AC-13), AC-14 | Supervisor One, Student One | Independent |
 | [**UAT-03**](UAT-03-business-rule-submission-lifecycle.md) | Single Submission & Feedback Immutability Lock | Business rule / boundary | FR-08, FR-09, FR-10, BR-05, BR-07, BR-08; AC-12, AC-16, AC-17, AC-18, AC-20 | Student One, Student Two, Supervisor One | Independent (or follows UAT-01) |
 | [**UAT-04**](UAT-04-forbidden-role-ownership.md) | Tenant Isolation & Unauthorized Role Access Denial | Forbidden role / ownership | FR-04, FR-05, FR-07, FR-10, BR-01, BR-02, BR-03; AC-08, AC-09, AC-10, AC-15, AC-19, NFR-03 | Student Three (Beta), Supervisor Two (Gamma) | Independent |
 | [**UAT-05**](UAT-05-state-persistence-multitenancy.md) | Multi-User Real-Time Persistence & Reload Durability | State / history / persistence | FR-06, FR-09, NFR-05; AC-11, AC-17, AC-21 | Student One, Student Two, Supervisor One | Independent |
