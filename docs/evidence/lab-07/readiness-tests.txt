@@ -1,0 +1,16 @@
+# Lab 7 #87 readiness: automated tests on staging 9e28431 (Merge pull request #97 from KanPhacharawat/release/74-v0.2.0)
+# date: 2026-11-26 13:31:32 Bangkok
+# Node v22.23.5, vitest vitest/4.0.18 linux-x64 node-v22.23.5, Playwright 1.63.0, PostgreSQL 16.15
+
+## npm test (server: Vitest + Supertest)
+ Test Files  15 passed (15)
+      Tests  132 passed (132)
+
+## npm run typecheck
+pass
+
+## npm run build
+pass
+
+## npm run test:e2e (Playwright chromium, 1 worker)
+  24 passed (1.2m)

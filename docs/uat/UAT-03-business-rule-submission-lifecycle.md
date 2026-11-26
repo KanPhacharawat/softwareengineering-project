@@ -14,7 +14,7 @@
 ## 2. Purpose
 Verify the strict lifecycle and immutability rules of submissions and feedback:
 1. **Single Submission Rule (`BR-05`)**: A team can have at most one submission per milestone. After initial submission, the "Submit work" form is replaced by an "Edit submission" option.
-2. **Teammate Collaboration & Editing (`AC-16`)**: Any registered member of the team (e.g., Student Two) can edit the submission before the deadline and before feedback is recorded.
+2. **Teammate Collaboration & Editing (`AC-16`)**: Any registered member of the team (e.g., Student Two) can edit the submission before the deadline (for version 1: until 24 h after the due time, BR-06 v2) and before feedback is recorded.
 3. **Feedback Immutability Lock (`BR-07`, `AC-18`)**: As soon as written feedback is recorded by the supervisor, the submission is strictly locked; students cannot edit the title, description, or link.
 4. **Single Feedback per Submission (`BR-08`, `AC-20`)**: A supervisor cannot append a second feedback to an already reviewed submission.
 
