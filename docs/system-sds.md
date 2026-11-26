@@ -1,6 +1,6 @@
 # System-Level Software Design Specification (SDS)
 
-Product: Course Project Management System (CPMS). Version 1.1, 2026-11-25 (Lab 7 CR-01, #83: `Submission.lateAt`, `DEADLINE_PASSED` = grace end for version 1). Version 1.0, 2026-11-05.
+Product: Course Project Management System (CPMS). Version 1.2, 2026-11-26 (Sprint 2 baseline, S2-09 #75: F-06/F-07/F-08 data model, endpoints, error codes, migration list; matches release v0.2.0). Version 1.1, 2026-11-25 (Lab 7 CR-01, #83: `Submission.lateAt`, `DEADLINE_PASSED` = grace end for version 1). Version 1.0, 2026-11-05.
 
 ## 1. Architecture and stack
 
@@ -49,10 +49,17 @@ erDiagram
   Team ||--o{ TeamMember : has
   User ||--o{ Team : supervises
   Team ||--o{ Milestone : has
+  User ||--o{ Milestone : "creates / closes"
   Milestone ||--o| Submission : "has at most one"
-  Submission ||--o| Feedback : "has at most one"
-  User ||--o{ Submission : "last submitted by"
+  Submission ||--|{ SubmissionVersion : "has versions 1..n"
+  SubmissionVersion ||--o| Feedback : "has at most one"
+  SubmissionVersion ||--o| RevisionRequest : "has at most one"
+  Submission ||--o| Grade : "has at most one"
+  User ||--o{ Submission : "created by / last saved by"
+  User ||--o{ SubmissionVersion : "submitted by"
   User ||--o{ Feedback : authors
+  User ||--o{ RevisionRequest : requests
+  User ||--o{ Grade : grades
 ```
 
 | Entity | Fields | Constraints and ownership |
@@ -60,13 +67,32 @@ erDiagram
 | User | id (uuid), email, name, role (STUDENT, SUPERVISOR), passwordHash, createdAt | email unique, lowercased. passwordHash is bcrypt; never selected into API responses. |
 | Team | id, name, supervisorId -> User | name unique. supervisorId must be a SUPERVISOR. Owner of all team data. |
 | TeamMember | teamId -> Team, userId -> User | PK (teamId, userId); userId unique (AS-01: one team per student). |
-| Milestone | id, teamId -> Team, title, description, dueAt (timestamptz), createdById -> User, createdAt | title 3..120, description <= 2000 (validated in API). Belongs to one team. |
-| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User (last saved by), createdById -> User (original submitter, F-06), submittedAt, updatedAt, lateAt (nullable; first save at or after the due date, Lab 7 CR-01, BR-06 v2) | milestoneId unique (BR-05, NFR-09). Team derived through milestone. |
-| Feedback | id, submissionId -> Submission, authorId -> User, comment, createdAt | submissionId unique (BR-08). Its presence locks the submission (BR-07). |
+| Milestone | id, teamId -> Team, title, description, dueAt (timestamptz), createdById -> User, createdAt, closedAt (nullable, F-07), closedById -> User (nullable, F-07) | title 3..120, description <= 2000 (validated in API). Belongs to one team. CHECK `Milestone_closed_pair_chk`: closedAt and closedById are both null or both set. Close is final (BR-13). |
+| Submission | id, milestoneId -> Milestone, title, description, link, submittedById -> User (last saved by), createdById -> User (original submitter, F-06), submittedAt, updatedAt, currentVersion (int, default 1, F-06), lateAt (nullable; first save at or after the due date, Lab 7 CR-01, BR-06 v2) | milestoneId unique (BR-05, NFR-09). Team derived through milestone. title/description/link mirror the current version. |
+| SubmissionVersion (F-06) | id, submissionId -> Submission, versionNumber, title, description, link, submittedById -> User, submittedAt, updatedAt | unique (submissionId, versionNumber). Only the current version is ever updated; older versions are read-only history (BR-10). |
+| RevisionRequest (F-06) | id, submissionId -> Submission, versionId -> SubmissionVersion, reason, dueAt, requestedById -> User, createdAt | versionId unique (one request per version). Status `OPEN` / `EXPIRED` / `RESUBMITTED` is derived, not stored. |
+| Feedback | id, submissionId -> Submission, versionId -> SubmissionVersion (F-06), authorId -> User, comment, createdAt | versionId unique (BR-08 v2: one feedback per version; the Sprint 1 unique on submissionId was replaced). Feedback on the current version locks it (BR-07). |
+| Grade (F-08) | id, submissionId -> Submission, score, versionNumber (version graded), gradedById -> User, gradedAt, updatedAt | submissionId unique (one grade per submission, SRS section 8). CHECK `Grade_score_range_chk` 0..100 (BR-12). |
 | session | sid, sess (json), expire | Managed by connect-pg-simple, created by migration. |
 
-Sprint 2 extends this model with `SubmissionVersion` (Submission keeps current version), `RevisionRequest`,
-`Grade`, and `Milestone.closedAt`. These are additive migrations.
+Sprint 2 added `SubmissionVersion`, `RevisionRequest`, `Grade`, `Milestone.closedAt/closedById`,
+`Feedback.versionId` and `Submission.currentVersion` (v0.2.0); Lab 7 added `Submission.lateAt`.
+
+Migrations in order (all in `server/prisma/migrations`, applied by `prisma migrate deploy`; v0.2.0 applied the
+last five on production, rehearsed on a copy of the main schema with Sprint 1 rows in
+`docs/evidence/release-v0.2.0/migration-rehearsal.txt`):
+
+| # | Migration | Release | Change | Why it is safe on production data |
+|---|---|---|---|---|
+| 1 | `20261105180947_init` | v0.1.0 | User, Team, TeamMember, session | Empty database. |
+| 2 | `20261106171857_milestone` | v0.1.0 | Milestone | New table. |
+| 3 | `20261107092737_submission` | v0.1.0 | Submission (milestoneId unique) | New table. |
+| 4 | `20261109145639_feedback` | v0.1.0 | Feedback (submissionId unique) | New table. |
+| 5 | `20261119150000_submission_created_by` | v0.2.0 | `Submission.createdById` (#55) | Added nullable, backfilled from `submittedById`, then set NOT NULL; no row lost. |
+| 6 | `20261123180000_revision_versions` | v0.2.0 | SubmissionVersion, RevisionRequest, `Submission.currentVersion`, `Feedback.versionId` | Every existing submission is copied into version 1 and every existing feedback is linked to that version 1 before the column becomes required; old data reads as version 1. |
+| 7 | `20261124140000_milestone_close` | v0.2.0 | `Milestone.closedAt`, `closedById` + pair CHECK | Nullable, no backfill: existing milestones stay open. |
+| 8 | `20261125120000_submission_late_at` | v0.2.0 | `Submission.lateAt` (Lab 7) | Nullable; NULL is correct for old rows because the old rule made late saves impossible. |
+| 9 | `20261125164000_grade` | v0.2.0 | Grade + score CHECK | New table only. |
 
 Database setup: `prisma migrate deploy` applies versioned SQL migrations from `server/prisma/migrations`.
 `npm run db:seed` loads reproducible synthetic data (two supervisors, three teams, six students, sample milestones)
@@ -103,7 +129,15 @@ Dates are shown in Asia/Bangkok time.
 | 401 | UNAUTHENTICATED / INVALID_CREDENTIALS | no valid session / wrong login |
 | 403 | FORBIDDEN | wrong role for the operation (BR-03) or acting on an unassigned team that is visible by ID |
 | 404 | NOT_FOUND | resource missing or outside the user's team scope (D-05) |
-| 409 | SUBMISSION_EXISTS / SUBMISSION_LOCKED / FEEDBACK_EXISTS | BR-05, BR-07, BR-08 |
+| 409 | SUBMISSION_EXISTS / SUBMISSION_LOCKED / FEEDBACK_EXISTS | BR-05, BR-07, BR-08 (FEEDBACK_EXISTS: the current version already has feedback) |
+| 409 | FEEDBACK_REQUIRED | F-06/F-08: revision request or grade before feedback on the current version (BR-10, BR-12) |
+| 409 | REVISION_EXISTS | F-06: the current version already has a revision request |
+| 409 | NO_REVISION_REQUEST | F-06: resubmit without an open revision request |
+| 409 | RESUBMISSION_EXISTS | F-06: the revision request was already answered by a resubmission |
+| 409 | MILESTONE_CLOSED | F-07: any student write, revision request, milestone edit or second close on a closed milestone (BR-13) |
+| 409 | REVISION_PENDING | F-08: grade while a revision request is open (BR-12) |
+| 409 | SUBMISSION_GRADED | F-06: revision request after the submission is graded (BR-12) |
+| 422 | REVISION_DUE_PASSED | F-06: resubmit at or after the revision due date (BR-11) |
 | 422 | DEADLINE_PASSED | BR-06 v2: version 1 at or after `dueAt + 24 h`; BR-11: version >= 2 at or after the revision due |
 | 500 | INTERNAL_ERROR | unexpected; message is generic, details only in server log |
 
@@ -124,7 +158,20 @@ Sprint 1 endpoints (details in the feature contracts):
 | GET | /api/milestones/:milestoneId | F-04, F-05 |
 | POST | /api/milestones/:milestoneId/submission | F-04 |
 | PUT | /api/milestones/:milestoneId/submission | F-04 |
-| POST | /api/submissions/:submissionId/feedback | F-05 |
+| POST | /api/submissions/:submissionId/feedback | F-05 (v0.2.0: on the current version) |
+
+Sprint 2 endpoints (release v0.2.0):
+
+| Method | Path | Feature | Role |
+|---|---|---|---|
+| POST | /api/submissions/:submissionId/revision-request | F-06 | Supervisor |
+| POST | /api/submissions/:submissionId/versions | F-06 (resubmit, new version) | Student |
+| GET | /api/submissions/:submissionId/history | F-06 (all versions with feedback, revision request, grade) | both (scoped) |
+| PATCH | /api/milestones/:milestoneId | F-07 (title, description, dueAt) | Supervisor |
+| POST | /api/milestones/:milestoneId/close | F-07 | Supervisor |
+| PUT | /api/submissions/:submissionId/grade | F-08 (create or change) | Supervisor |
+
+Operations: `GET /api/health` (liveness) and `GET /api/ready` (database check, Lab 5 CH-02) are public.
 
 ## 5. Roles, permissions and ownership
 
@@ -134,12 +181,12 @@ Sprint 1 endpoints (details in the feature contracts):
 | List/view teams | yes | yes | Student: own team. Supervisor: assigned teams. |
 | List/view milestones | yes | yes | team scope as above |
 | Create milestone | no (403) | yes | assigned team only |
-| Edit / close milestone (S2) | no | yes | assigned team only |
+| Edit / close milestone (F-07) | no (403) | yes | assigned team only |
 | Create / edit submission | yes | no (403) | own team; before deadline; not locked |
 | View submission and feedback | yes | yes | team scope |
 | Record feedback | no (403) | yes | assigned team only |
-| Request revision, grade (S2) | no | yes | assigned team only |
-| Resubmit (S2) | yes | no | own team |
+| Request revision (F-06), grade (F-08) | no (403) | yes | assigned team only |
+| Resubmit (F-06) | yes | no (403) | own team |
 | Progress board (S3) | yes | yes | team scope |
 | Summary report (S3) | no | yes | assigned teams |
 
