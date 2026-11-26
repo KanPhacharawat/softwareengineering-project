@@ -22,8 +22,8 @@ CR-01 shipped inside Sprint 2 release **v0.2.0** (#74). Full record: [../../rele
 |---|---|---|---|---|---|---|
 | L7-DEP-01 | Student submits after `dueAt`, inside grace | 201, `lateAt` set, Late badge for student, teammate, supervisor | _pending_ | | `cpms-00007-7sf` | |
 | L7-DEP-02 | No submission, `dueAt` passed, inside grace | `OPEN`, grace message | _pending_ | | `cpms-00007-7sf` | |
-| L7-DEP-03 | Grace ended | POST 422 `DEADLINE_PASSED`, status `MISSED` | _pending_ | | `cpms-00007-7sf` | |
-| L7-DEP-04 | Existing Sprint 1 submission | `lateAt = null`, no Late badge | _pending_ | | `cpms-00007-7sf` | |
+| L7-DEP-03 | Grace ended ("UAT-Alpha-02 Boundary Sandbox", no submission, due 22 Nov 14:00, grace ended 23 Nov 14:00) | POST 422 `DEADLINE_PASSED`, status `MISSED` | s1: status `MISSED`, POST → `[422, "DEADLINE_PASSED"]`, submission still `null` | 2026-11-26 13:12 | `cpms-00007-7sf` | [jpg](L7-DEP-03-missed-after-grace.jpg), [api](api-output.txt) |
+| L7-DEP-04 | Existing Sprint 1 submission ("UAT-Alpha-05", submitted 17 Nov) | `lateAt = null`, no Late badge | `lateAt: null`, version 1, `FEEDBACK_GIVEN`, no Late badge | 2026-11-26 13:12 | `cpms-00007-7sf` | [jpg](L7-DEP-04-sprint1-not-late.jpg), [api](api-output.txt) |
 | L7-DEP-05 | Other-team student opens the milestone | 404, no data | _pending_ | | `cpms-00007-7sf` | |
 | L7-DEP-06 | Edit after feedback inside grace | 409 `SUBMISSION_LOCKED` | _pending_ | | `cpms-00007-7sf` | |
 | L7-DEP-07 | `deploy/smoke_test.py` | health + ready OK | PASS `/api/health`, `/api/ready`, `/` (login skipped: no smoke credentials) | 2026-11-26 01:36 | `cpms-00007-7sf` | [L7-DEP-07-smoke.txt](L7-DEP-07-smoke.txt) |

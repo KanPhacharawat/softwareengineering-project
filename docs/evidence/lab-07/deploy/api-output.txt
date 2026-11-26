@@ -1,0 +1,8 @@
+# L7 post-deploy API output, live https://cpms-wpsgfzameq-as.a.run.app, revision cpms-00007-7sf
+# Run from the browser console of the logged-in user (session cookie). Times UTC; Bangkok = UTC+7.
+
+## L7-DEP-03 and L7-DEP-04, user s1 (Alpha), 2026-11-26T06:12:23Z (13:12 Bangkok)
+# DEP-03: "UAT-Alpha-02 Boundary Sandbox" be96376a-4964-446d-a7c3-e67c26163d95, no submission, due 22 Nov
+#   GET  /api/milestones/:id ; POST /api/milestones/:id/submission {title:"L7-DEP-03 too late",...} ; GET again
+# DEP-04: "UAT-Alpha-05 Persistence Milestone" ca6100ad-4fe9-4f59-a6bb-b3835025baf6, Sprint 1 submission of 17 Nov
+{"t":"2026-11-26T06:12:23.182Z","dep03":{"dueAt":"2026-11-22T07:00:00.000Z","graceEndsAt":"2026-11-23T07:00:00.000Z","status":"MISSED","post":[422,"DEADLINE_PASSED"],"submissionAfter":null},"dep04":{"status":"FEEDBACK_GIVEN","submittedAt":"2026-11-17T06:58:24.059Z","lateAt":null,"version":1}}
