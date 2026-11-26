@@ -2,7 +2,7 @@
 
 Scope: the **maintained Sprint 1 functionality** (F-01 to F-05) plus the approved change CR-01 (BR-06 v2, 24-hour
 late grace window) in the deployed release. Sprint 2 features (F-06 to F-08) are deployed in the same release but
-are not Sprint 1 maintenance evidence. Reviewed 26 Nov 2026 by Kan and James (each reviews the other's part in PR).
+are not Sprint 1 maintenance evidence. Prepared 26 Nov 2026; reviewed by Kan and James in PR #99.
 
 ## 1. Readiness checklist
 
@@ -33,8 +33,18 @@ Debt is a known shortcut or weakness that works today; a defect is behavior that
 
 ## 3. Retrospective
 
-> Draft by Claude from the observed work; Kan and James edit their own wording in the PR review.
-
-- **What helped?** Writing the change request and the reviewed contract (#82, #83) before any code meant the red tests in `081f8a6` came straight from AC-49..52, and James's review of #91 caught the missing "`lateAt` survives an F-07 extension" test before implementation. Next: keep "contract PR reviewed before the red commit" for the Sprint 3 rule change.
-- **What hurt?** Three parallel streams (Lab 7, F-08 #92, release #74) touched the same files (`submission-service.ts`, `api.ts`, `milestone-page.tsx`) and made the release wait for #92 and #73. Post-deploy checks also needed a person to log in on the live site because the dev container cannot reach Cloud Run. Next: agree merge order for shared files at sprint planning, and set `SMOKE_EMAIL`/`SMOKE_PASSWORD` in the deploy workflow so login is part of the automated smoke.
-- **What will change for the final release (13 Dec)?** Run the full readiness checklist (this file as the template) on the release candidate before merging to `main`, close D-1 by moving the edit decision to the API, and record every post-deploy check with revision and Bangkok time as done here.
+- **What helped?** A contract-first sequence: the change request (#82) and the reviewed SRS/SDS/STS update (#83) were
+  merged before the first test was written, so the TDD red commit `081f8a6` maps one-to-one to AC-49..AC-52 and
+  TEST-52..56. Peer review of the contract (#91) found a missing assertion (`lateAt` must persist across an F-07
+  `dueAt` change) before implementation, at zero rework cost. *Action:* keep "contract PR approved before the red
+  commit" as a merge gate for the Sprint 3 rule change.
+- **What hurt?** High change coupling: Lab 7 (#84), F-08 (#92) and the release (#74) modified the same modules
+  (`submission-service.ts`, `api.ts`, `milestone-page.tsx`), which serialized the merge queue and delayed `v0.2.0`
+  until #92 and #73 were in. Post-deploy verification also depended on a manual login, because the dev container
+  has no network route to Cloud Run and the pipeline smoke test skips the authenticated check. *Action:* agree the
+  merge order for shared modules at sprint planning, and set `SMOKE_EMAIL`/`SMOKE_PASSWORD` as deploy-workflow
+  secrets so the authenticated smoke step runs on every deploy.
+- **What will change for the final release (13 Dec)?** Gate the `staging → main` merge on this checklist (used as
+  the template) run against the exact release-candidate SHA; remove debt D-1 by returning a server-computed
+  `canEdit` flag so the UI no longer re-evaluates the deadline; and record every post-deploy check with revision ID,
+  Bangkok timestamp and raw API output, as in [deploy evidence](../../evidence/lab-07/deploy/README.md).
