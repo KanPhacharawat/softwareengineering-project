@@ -1,0 +1,51 @@
+# L7-DEP-07 deploy/smoke_test.py, run by the 'Deploy demo' workflow right after the release
+# Deploy run 45676139537, job 139425393937 (deploy), image cpms:4b4b7e058a70ca0c8b25d8b8c4b9ea0a519232e1
+# Times UTC (= Bangkok - 7 h). Excerpt of the job log, ANSI codes removed:
+
+2026-11-25T18:36:22.7541637Z Creating Revision.....................................................................done
+2026-11-25T18:36:22.7542012Z Routing traffic.....done
+2026-11-25T18:36:24.0921601Z Done.
+2026-11-25T18:36:25.6160494Z Service [cpms] revision [cpms-00007-7sf] has been deployed and is serving 100 percent of traffic.
+2026-11-25T18:36:25.6162313Z Service URL: https://cpms-861207197457.asia-southeast1.run.app
+2026-11-25T18:36:26.0582822Z Updating traffic...
+2026-11-25T18:36:28.6087056Z Done.
+2026-11-25T18:36:28.6666022Z URL: https://cpms-wpsgfzameq-as.a.run.app
+2026-11-25T18:36:28.6666268Z Traffic:
+2026-11-25T18:36:28.6666405Z   100% LATEST (currently cpms-00007-7sf)
+2026-11-25T18:36:29.5778844Z Service URL: https://cpms-wpsgfzameq-as.a.run.app
+2026-11-25T18:36:29.5813421Z ##[group]Run python3 deploy/smoke_test.py "$SERVICE_URL"
+2026-11-25T18:36:29.5813657Z python3 deploy/smoke_test.py "$SERVICE_URL"
+2026-11-25T18:36:29.5840277Z shell: /usr/bin/bash -e {0}
+2026-11-25T18:36:29.5840478Z env:
+2026-11-25T18:36:29.5840606Z   PROJECT_ID: cpe334-pungkung-james
+2026-11-25T18:36:29.5840771Z   REGION: asia-southeast1
+2026-11-25T18:36:29.5840912Z   SERVICE_NAME: cpms
+2026-11-25T18:36:29.5841048Z   MIGRATE_JOB_NAME: cpms-migrate
+2026-11-25T18:36:29.5841225Z   IMAGE_TAG: 4b4b7e058a70ca0c8b25d8b8c4b9ea0a519232e1
+2026-11-25T18:36:29.5841403Z   ROLLBACK: false
+2026-11-25T18:36:29.5841754Z   CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /home/runner/work/softwareengineering-project/softwareengineering-project/gha-creds-6083ff49c7055d7b.json
+2026-11-25T18:36:29.5842297Z   GOOGLE_APPLICATION_CREDENTIALS: /home/runner/work/softwareengineering-project/softwareengineering-project/gha-creds-6083ff49c7055d7b.json
+2026-11-25T18:36:29.5842823Z   GOOGLE_GHA_CREDS_PATH: /home/runner/work/softwareengineering-project/softwareengineering-project/gha-creds-6083ff49c7055d7b.json
+2026-11-25T18:36:29.5843170Z   CLOUDSDK_CORE_PROJECT: cpe334-pungkung-james
+2026-11-25T18:36:29.5843348Z   CLOUDSDK_PROJECT: cpe334-pungkung-james
+2026-11-25T18:36:29.5843514Z   GCLOUD_PROJECT: cpe334-pungkung-james
+2026-11-25T18:36:29.5843675Z   GCP_PROJECT: cpe334-pungkung-james
+2026-11-25T18:36:29.5843846Z   GOOGLE_CLOUD_PROJECT: cpe334-pungkung-james
+2026-11-25T18:36:29.5844050Z   CLOUDSDK_METRICS_ENVIRONMENT: github-actions-setup-gcloud
+2026-11-25T18:36:29.5844257Z   CLOUDSDK_METRICS_ENVIRONMENT_VERSION: 3.0.1
+2026-11-25T18:36:29.5844467Z   SERVICE_URL: https://cpms-wpsgfzameq-as.a.run.app
+2026-11-25T18:36:29.5844870Z   DEPLOYED_IMAGE: asia-southeast1-docker.pkg.dev/cpe334-pungkung-james/cpms/cpms@sha256:6fc6cd1ef52a1c8da867f1363b00f33c7cf4814ce1750108ad3f6ae0b30f5dd9
+2026-11-25T18:36:29.5845236Z   SMOKE_EMAIL: 
+2026-11-25T18:36:29.5845485Z ##[endgroup]
+2026-11-25T18:36:30.8979746Z PASS /api/health
+2026-11-25T18:36:30.8979965Z PASS /api/ready
+2026-11-25T18:36:30.8980140Z PASS /
+2026-11-25T18:36:30.8980366Z SKIP login: optional smoke credentials not configured
+2026-11-25T18:36:30.9107437Z ##[group]Run {
+2026-11-25T18:36:30.9107595Z {
+2026-11-25T18:36:30.9107722Z   echo '### CPMS demo deployment'
+2026-11-25T18:36:30.9107896Z   echo "- Commit image tag: \`$IMAGE_TAG\`"
+2026-11-25T18:36:30.9108073Z   echo "- Digest: \`$DEPLOYED_IMAGE\`"
+2026-11-25T18:36:30.9108238Z   echo "- Rollback: $ROLLBACK"
+2026-11-25T18:36:30.9108528Z   echo "- URL: $SERVICE_URL"
+2026-11-25T18:36:30.9108679Z } >> "$GITHUB_STEP_SUMMARY"
