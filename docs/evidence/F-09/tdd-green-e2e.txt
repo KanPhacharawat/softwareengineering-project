@@ -1,0 +1,32 @@
+# F-09 green E2E + full E2E regression (S3-01 #106), 2026-11-27T10:45:54Z
+# cmd: cd web && npx playwright test --trace off   (24 before F-09 + TEST-E2E-09 = 25)
+
+Running 25 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/auth.spec.ts:4:1 › TEST-E2E-02 unauthenticated visit redirects to /login; after logout / redirects to /login again (1.6s)
+  ✓   2 [chromium] › e2e/auth.spec.ts:25:1 › wrong password shows the error banner and stays on /login (623ms)
+  ✓   3 [chromium] › e2e/auth.spec.ts:35:1 › empty fields show field errors under each input (355ms)
+  ✓   4 [chromium] › e2e/auth.spec.ts:42:1 › a logged-in user who opens /login is sent to / (1.4s)
+  ✓   5 [chromium] › e2e/feedback.spec.ts:20:1 › TEST-E2E-01 (AC-21) supervisor leaves feedback, student sees feedback card and locked notice (3.3s)
+  ✓   6 [chromium] › e2e/grading.spec.ts:26:1 › TEST-E2E-05 (AC-48) supervisor records and edits grade; student sees grade and Not graded yet on ungraded work (4.6s)
+  ✓   7 [chromium] › e2e/late-grace.spec.ts:20:1 › TEST-E2E-08 (AC-50, AC-51) student submits inside the grace window; student and supervisor see Late (1.9s)
+  ✓   8 [chromium] › e2e/milestone-closed.spec.ts:20:1 › TEST-E2E-07 closed milestone: student sees Closed and no form; direct API submit -> 409 MILESTONE_CLOSED (2.0s)
+  ✓   9 [chromium] › e2e/milestone-management.spec.ts:26:1 › TEST-E2E-04 (AC-41) supervisor edits and closes milestone; team page and student view show Closed and no form (2.4s)
+  ✓  10 [chromium] › e2e/milestones.spec.ts:19:1 › shows empty state "No milestones yet" when a team has no milestones (1.4s)
+  ✓  11 [chromium] › e2e/milestones.spec.ts:25:1 › a student sees the milestones table but does NOT see the "New milestone" form (826ms)
+  ✓  12 [chromium] › e2e/milestones.spec.ts:33:1 › a supervisor sees the "New milestone" form and can create a milestone (1.1s)
+  ✓  13 [chromium] › e2e/milestones.spec.ts:55:1 › validation errors appear under form inputs when submitting invalid milestone (1.1s)
+  ✓  14 [chromium] › e2e/progress-board.spec.ts:26:1 › TEST-E2E-09 (AC-57) student and supervisor use the progress board; empty and error states (3.6s)
+  ✓  15 [chromium] › e2e/revision-history.spec.ts:29:1 › TEST-E2E-03 (AC-34) supervisor requests a revision, student resubmits, both see History (7.9s)
+  ✓  16 [chromium] › e2e/smoke.spec.ts:4:1 › login page loads and the API health check answers through the proxy (255ms)
+  ✓  17 [chromium] › e2e/sprint-2-journey.spec.ts:28:1 › TEST-E2E-06 create -> submit -> feedback -> revision -> resubmit -> feedback -> grade; student sees grade and history (5.7s)
+  ✓  18 [chromium] › e2e/submissions.spec.ts:24:1 › student submits to an open milestone, sees the saved submission card, and can edit it (2.1s)
+  ✓  19 [chromium] › e2e/submissions.spec.ts:65:1 › supervisor sees submission read-only without edit button or submission form (3.0s)
+  ✓  20 [chromium] › e2e/submissions.spec.ts:105:1 › validation errors appear under form inputs and prevent submission on invalid data (2.0s)
+  ✓  21 [chromium] › e2e/teams.spec.ts:14:1 › a student sees only their own team with supervisor and members (708ms)
+  ✓  22 [chromium] › e2e/teams.spec.ts:27:1 › a supervisor sees every assigned team and nothing else (1.2s)
+  ✓  23 [chromium] › e2e/teams.spec.ts:37:1 › opening a team card shows the team page with its members (1.2s)
+  ✓  24 [chromium] › e2e/teams.spec.ts:46:1 › a student opening another team's page sees the not-found state (1.4s)
+  ✓  25 [chromium] › e2e/teams.spec.ts:53:1 › a user with no teams sees the empty state (1.2s)
+
+  25 passed (54.8s)

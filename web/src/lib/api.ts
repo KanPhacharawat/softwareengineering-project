@@ -62,6 +62,30 @@ export type Team = {
 
 export type MilestoneStatus = 'OPEN' | 'SUBMITTED' | 'FEEDBACK_GIVEN' | 'REVISION_REQUESTED' | 'MISSED';
 
+// F-09 GET /api/teams/:teamId/board
+export type BoardCard = {
+  id: string;
+  title: string;
+  dueAt: string;
+  status: MilestoneStatus;
+  closedAt: string | null;
+  lateAt: string | null;
+  versionNumber: number | null;
+  score: number | null;
+};
+
+export type ProgressBoard = {
+  team: { id: string; name: string };
+  summary: {
+    total: number;
+    byStatus: Record<MilestoneStatus, number>;
+    closed: number;
+    graded: number;
+    averageScore: number | null;
+  };
+  columns: { status: MilestoneStatus; cards: BoardCard[] }[];
+};
+
 export type Milestone = {
   id: string;
   title: string;

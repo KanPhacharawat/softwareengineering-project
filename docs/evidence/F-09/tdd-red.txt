@@ -1,0 +1,173 @@
+# F-09 TDD red (S3-01 #106), base staging 3b6822d, 2026-11-27T10:42:38Z
+# cmd: cd server && npx vitest run tests/board.test.ts  (domain/board.ts = type-only stub, no route yet)
+# env: Node v22.23.5, PostgreSQL 16 (cpms_test), Linux container
+
+ RUN  v4.0.18 server
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+
+9 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+ ❯ tests/board.test.ts (8 tests | 8 failed) 1773ms
+     × TEST-U09 places each card in its status column, fixed order, sorted by dueAt; closed stays in its column 3ms
+     × TEST-U09 averages graded scores rounded half-up to 1 decimal 0ms
+     × TEST-U09 empty team: zeros, five empty columns, averageScore null 0ms
+     × TEST-57 every Alpha milestone appears once in the column of its status 7ms
+     × TEST-58 counts per status, closed, graded and average; empty Beta board 30ms
+     × TEST-59 resubmitted + graded card, late card, expired revision request card 119ms
+     × TEST-60 members and assigned supervisor 200 with identical bodies; others 404; anonymous 401 12ms
+     × TEST-61 GET board changes no rows 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/board.test.ts > TEST-U09 buildProgressBoard & summarizeProgress (AC-53, AC-54) > TEST-U09 places each card in its status column, fixed order, sorted by dueAt; closed stays in its column
+Error: not implemented
+ ❯ buildProgressBoard src/domain/board.ts:35:9
+     33| 
+     34| export function buildProgressBoard(_cards: BoardCard[]): ProgressBoard…
+     35|   throw new Error('not implemented');
+       |         ^
+     36| }
+     37| 
+ ❯ tests/board.test.ts:96:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-U09 buildProgressBoard & summarizeProgress (AC-53, AC-54) > TEST-U09 averages graded scores rounded half-up to 1 decimal
+Error: not implemented
+ ❯ summarizeProgress src/domain/board.ts:31:9
+     29| 
+     30| export function summarizeProgress(_cards: BoardCard[]): ProgressSummar…
+     31|   throw new Error('not implemented');
+       |         ^
+     32| }
+     33| 
+ ❯ graded tests/board.test.ts:111:7
+ ❯ tests/board.test.ts:112:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-U09 buildProgressBoard & summarizeProgress (AC-53, AC-54) > TEST-U09 empty team: zeros, five empty columns, averageScore null
+Error: not implemented
+ ❯ buildProgressBoard src/domain/board.ts:35:9
+     33| 
+     34| export function buildProgressBoard(_cards: BoardCard[]): ProgressBoard…
+     35|   throw new Error('not implemented');
+       |         ^
+     36| }
+     37| 
+ ❯ tests/board.test.ts:119:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-57 board columns from stored data (AC-53) > TEST-57 every Alpha milestone appears once in the column of its status
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/board.test.ts:134:24
+    132|   it('TEST-57 every Alpha milestone appears once in the column of its …
+    133|     const res = await get(boardUrl(ALPHA.id), s1);
+    134|     expect(res.status).toBe(200);
+       |                        ^
+    135|     expect(res.body.team).toEqual({ id: ALPHA.id, name: 'Alpha' });
+    136|     expect(res.body.columns.map((c: { status: string }) => c.status)).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-58 progress summary (AC-54) > TEST-58 counts per status, closed, graded and average; empty Beta board
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/board.test.ts:155:26
+    153| 
+    154|     const alpha = await get(boardUrl(ALPHA.id), s1);
+    155|     expect(alpha.status).toBe(200);
+       |                          ^
+    156|     expect(alpha.body.summary).toEqual({
+    157|       total: 5,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-59 cards reflect stored versions, grades, lateAt and expiry (AC-55) > TEST-59 resubmitted + graded card, late card, expired revision request card
+TypeError: Cannot read properties of undefined (reading 'flatMap')
+ ❯ cardsOf tests/board.test.ts:47:23
+     45| 
+     46| function cardsOf(body: { columns: { status: MilestoneStatus; cards: Bo…
+     47|   return body.columns.flatMap((c) => c.cards.map((card) => ({ column: …
+       |                       ^
+     48| }
+     49| function find(body: Parameters<typeof cardsOf>[0], id: string) {
+ ❯ find tests/board.test.ts:50:16
+ ❯ tests/board.test.ts:191:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-60 board permissions (AC-56, BR-01, BR-02, NFR-02, NFR-03) > TEST-60 members and assigned supervisor 200 with identical bodies; others 404; anonymous 401
+AssertionError: expected [ 404, 404, 404, 404, 404, 401 ] to deeply equal [ 200, 200, 404, 200, 404, 401 ]
+
+- Expected
++ Received
+
+  [
+-   200,
+-   200,
+    404,
+-   200,
++   404,
++   404,
++   404,
+    404,
+    401,
+  ]
+
+ ❯ tests/board.test.ts:219:88
+    217|       get(boardUrl(ALPHA.id)),
+    218|     ]);
+    219|     expect([r1.status, r2.status, r3.status, rSup1.status, rSup2.statu…
+       |                                                                                        ^
+    220|     expect(r2.body).toEqual(r1.body);
+    221|     expect(rSup1.body).toEqual(r1.body);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/board.test.ts > TEST-61 board is read-only (AC-56) > TEST-61 GET board changes no rows
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ tests/board.test.ts:243:62
+    241|     const before = await counts();
+    242|     for (const cookie of [s1, sup1, s1, sup1, s1, sup1]) {
+    243|       expect((await get(boardUrl(ALPHA.id), cookie)).status).toBe(200);
+       |                                                              ^
+    244|     }
+    245|     expect(await counts()).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  10:41:33
+   Duration  3.72s (transform 182ms, setup 31ms, import 377ms, tests 1.77s, environment 0ms)
+
