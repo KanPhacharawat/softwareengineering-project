@@ -32,7 +32,7 @@ Both students used AI coding assistants under their own direction:
 | Student | Tool | Used for |
 |---|---|---|
 | Phacharawat (Kan) | **Claude Code** (Anthropic) | drafting the change request, impact analysis, contract revisions, readiness checklist and this report; writing the CR-01 tests and implementation; running the test suites and collecting evidence files; drafting review comments that Kan then edited and posted |
-| Chaiyaphoom (James) | **Antigravity** (Google) | James's Lab 7 work: the metrics (#86) and his reviews of the Lab 7 pull requests |
+| Chaiyaphoom (James) | **Antigravity** (Google) | James's Lab 7 work: the metrics (#86) and James's reviews of the Lab 7 pull requests |
 
 - **Not delegated:** choosing the change and the five design decisions (Kan, 25 Nov), approving the contract and code
   (James's reviews in A.4 and B.6), merging, the production release, and typing passwords for the live checks.
