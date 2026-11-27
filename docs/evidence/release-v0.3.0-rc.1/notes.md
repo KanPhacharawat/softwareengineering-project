@@ -37,7 +37,7 @@ Not in this candidate: F-10 supervisor report code (#107, in progress), F-11 har
 
 ## Database migrations
 
-None. `server/prisma/migrations` is unchanged since `v0.2.0` (same 7 migrations); F-09 is read-only.
+None. `server/prisma/migrations` is unchanged since `v0.2.0` (same 9 migration folders; `git diff origin/main -- server/prisma/migrations` is empty); F-09 is read-only.
 
 ## Test results (before release PR)
 
