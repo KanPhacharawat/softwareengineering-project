@@ -5,6 +5,7 @@ import { validateMilestoneInput } from '../domain/milestone.js';
 import { requireRole } from '../middleware/require-role.js';
 import { createMilestone, listTeamMilestones } from '../services/milestone-service.js';
 import { listVisibleTeams, loadTeamInScope } from '../services/team-service.js';
+import { getTeamBoard } from '../services/board-service.js';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -38,6 +39,12 @@ teamsRouter.get('/:teamId', (req, res) => {
 teamsRouter.get('/:teamId/milestones', async (req, res) => {
   const milestones = await listTeamMilestones(req.team!.id);
   res.json({ milestones });
+});
+
+// GET /api/teams/:teamId/board (F-09, FR-17, FR-19, AC-53..AC-56): same body for members and the assigned supervisor.
+teamsRouter.get('/:teamId/board', async (req, res) => {
+  const { id, name } = req.team!;
+  res.json({ team: { id, name }, ...(await getTeamBoard(id)) });
 });
 
 // POST /api/teams/:teamId/milestones (FR-05, BR-03, BR-04, AC-06..AC-09)

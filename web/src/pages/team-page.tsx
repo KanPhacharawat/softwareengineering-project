@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CalendarClock, CircleAlert, Flag, Loader2, Plus, Users } from 'lucide-react';
+import { ArrowLeft, CalendarClock, CircleAlert, Flag, LayoutGrid, Loader2, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/auth/auth-context';
 import { MilestoneStatusBadge } from '@/components/milestone-status-badge';
 import { ClosedBadge } from '@/components/closed-badge';
@@ -70,6 +70,12 @@ function TeamDetail({ team }: { team: Team }) {
           <h1 className="text-2xl font-semibold tracking-tight">{team.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Supervisor: {team.supervisor.name}</p>
         </div>
+        <Button variant="outline" asChild>
+          <Link to={`/teams/${encodeURIComponent(team.id)}/board`}>
+            <LayoutGrid />
+            Progress board
+          </Link>
+        </Button>
       </div>
 
       <section className="space-y-4">

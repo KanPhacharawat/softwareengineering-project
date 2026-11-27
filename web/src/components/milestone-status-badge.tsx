@@ -3,7 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import type { MilestoneStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-const config: Record<
+// F-09 board reuses the colours and icons (not the labels) of this map.
+export const statusStyle: Record<
   MilestoneStatus,
   { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
 > = {
@@ -38,7 +39,7 @@ const config: Record<
 };
 
 export function MilestoneStatusBadge({ status }: { status: MilestoneStatus }) {
-  const item = config[status] ?? config.OPEN;
+  const item = statusStyle[status] ?? statusStyle.OPEN;
   const Icon = item.icon;
 
   return (
