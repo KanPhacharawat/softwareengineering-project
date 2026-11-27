@@ -1,0 +1,30 @@
+# F-09 TDD red E2E (S3-01 #106), 2026-11-27T10:42:38Z
+# cmd: cd web && npx playwright test e2e/progress-board.spec.ts --trace off
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › e2e/progress-board.spec.ts:26:1 › TEST-E2E-09 (AC-57) student and supervisor use the progress board; empty and error states (30.0s)
+
+
+  1) [chromium] › e2e/progress-board.spec.ts:26:1 › TEST-E2E-09 (AC-57) student and supervisor use the progress board; empty and error states 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: 'Progress board' })
+
+
+      46 |   // S1: team page -> Progress board -> card under Submitted -> milestone page.
+      47 |   await page.goto(`/teams/${ALPHA_ID}`);
+    > 48 |   await page.getByRole('link', { name: 'Progress board' }).click();
+         |                                                            ^
+      49 |   await expect(page).toHaveURL(new RegExp(`/teams/${ALPHA_ID}/board$`));
+      50 |   await expect(page.getByRole('heading', { name: 'Progress board' })).toBeVisible();
+      51 |   await expect(page.getByText('Average score')).toBeVisible();
+        at web/e2e/progress-board.spec.ts:48:60
+
+    Error Context: test-results/progress-board-TEST-E2E-09-88549-oard-empty-and-error-states-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/progress-board.spec.ts:26:1 › TEST-E2E-09 (AC-57) student and supervisor use the progress board; empty and error states 
