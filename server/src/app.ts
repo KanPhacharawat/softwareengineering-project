@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from './errors.js';
 import { requireAuth } from './middleware/require-auth.js';
 import { authRouter } from './routes/auth.js';
 import { milestonesRouter } from './routes/milestones.js';
+import { reportsRouter } from './routes/reports.js';
 import { submissionsRouter } from './routes/submissions.js';
 import { teamsRouter } from './routes/teams.js';
 import { sessionMiddleware } from './session.js';
@@ -51,6 +52,7 @@ export function createApp({ checkDatabase = pingDatabase, webDistDir = config.we
   app.use('/api/teams', teamsRouter);
   app.use('/api/milestones', milestonesRouter);
   app.use('/api/submissions', submissionsRouter);
+  app.use('/api/reports', reportsRouter);
 
   app.use('/api', notFoundHandler);
 
