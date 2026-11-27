@@ -5,6 +5,7 @@ Version history
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-27 | Initial contract: performance (NFR-06), screen states (NFR-07), failure handling, CI secret scan (NFR-08), final regression. Written before any F-11 work (D2 Part C). |
+| 0.2 | 2026-11-27 | PR #114 review (maneejames): TEST-REG-01 journey IDs corrected (Sprint 1 = TEST-E2E-01/02, Sprint 2 = TEST-E2E-06/07, Lab 7 = TEST-E2E-08, Sprint 3 = TEST-E2E-09/10); **Try again** only for network errors and 5xx (not 403/404); W1 endpoints use `:teamId`; inventory notes `MilestonesSkeleton` lacks `aria-busy`. Still before any F-11 work. |
 
 Linked requirements: NFR-06, NFR-07, NFR-08, NFR-02, NFR-03, NFR-05 (regression only).
 Depends on: all features; screen-state checks for F-09 and F-10 need those screens (S3-01 #106, S3-02 #107).
@@ -30,7 +31,8 @@ in `docs/traceability.md` v2.0 ("Coverage gaps": NFR-06 not measured, NFR-07 par
 5. **Failure handling**: the server already maps unknown errors to `500 { error: { code: 'INTERNAL_ERROR', message:
    'Something went wrong' } }` (`server/src/errors.ts`). F-11 adds a test that no stack, SQL or error message leaks, and
    a **Try again** button in `ErrorState` that calls the page's `reload()` (already in `useApi`, `web/src/lib/use-api.ts`).
-   A 404 keeps the existing message and shows no Try again (retrying cannot help).
+   **Try again** is shown only when retrying can help: a network error (`status 0`) or a 5xx. A 4xx such as 404 (not found)
+   or 403 (forbidden, e.g. a student opening F-10 `/reports`) keeps its message and shows no Try again.
 6. **NFR-08**: add a secret scan step to `ci-docker.yml` job `test-and-docker`: download a **pinned gitleaks release
    binary, verify its SHA-256**, and run `gitleaks git --redact` over the repository history (checkout with
    `fetch-depth: 0`, keeping `persist-credentials: false`). A binary is used instead of `gitleaks-action` so the job keeps
@@ -47,12 +49,13 @@ in `docs/traceability.md` v2.0 ("Coverage gaps": NFR-06 not measured, NFR-07 par
 |---|---|---|---|---|---|---|
 | Login `/login` | **Log in** button disabled with spinner icon while sending | n/a | form alert | email, password (`aria-describedby` linked) | n/a (form) | `auth.spec.ts` (wrong password) |
 | Home `/` (teams) | `TeamCardsSkeleton` | `EmptyState` | `ErrorState` | n/a | **missing** | empty only (`teams.spec.ts`) |
-| Team `/teams/:id` | `TeamPageSkeleton`, `MilestonesSkeleton` | "No members yet", "No milestones yet" | `ErrorState` | milestone form (text under input, **not** `aria-describedby` linked) | **missing** | **missing** |
+| Team `/teams/:id` | `TeamPageSkeleton` (`aria-busy`), `MilestonesSkeleton` (**no** `aria-busy`) | "No members yet", "No milestones yet" | `ErrorState` | milestone form (text under input, **not** `aria-describedby` linked) | **missing** | **missing** |
 | Milestone `/milestones/:id` | `MilestonePageSkeleton`; history has its own "Loading history" | "No submission yet" | `ErrorState`; history "Could not load history" | submission, feedback, revision request, grade, milestone edit (text under input, **not** `aria-describedby` linked) | **missing** | history only (`revision-history.spec.ts`) |
 | Board `/teams/:id/board` (F-09) | per F-09 contract | "No milestones yet." | `ErrorState` | n/a (read-only) | add | TEST-E2E-09 (500 → error) |
 | Report `/reports` (F-10) | per F-10 contract | per F-10 contract | `ErrorState` | n/a (read-only) | add | TEST-E2E-10 |
 
-Gaps to close in S3-03: Try again on every `ErrorState` except 404; E2E state checks for Home error, Team (loading,
+Gaps to close in S3-03: Try again on every `ErrorState` (network error / 5xx only); `aria-busy="true"` on every
+loading skeleton (`MilestonesSkeleton` in `team-page.tsx` lacks it today, only `TeamPageSkeleton` sets it); E2E state checks for Home error, Team (loading,
 error), Milestone (loading, error); link every form field error to its input with `aria-describedby` (as the login page
 already does) so "next to the field" is testable. S3-03 re-checks this table against the code and updates it in the evidence file.
 
@@ -69,7 +72,7 @@ already does) so "next to the field" is testable. S3-03 re-checks this table aga
 3. Script prints a table (endpoint, requests, p50, p97.5, p99, non-2xx, errors, PASS/FAIL) and writes it to
    `docs/evidence/F-11/load-test-<version>.txt`. Exit code 1 if any endpoint fails.
 
-Endpoints: `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/teams`, `GET /api/teams/:alphaId/milestones`,
+Endpoints: `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/teams`, `GET /api/teams/:teamId/milestones`,
 `GET /api/milestones/:id`, `GET /api/teams/:teamId/board` (F-09), `GET /api/reports/supervisor-summary` (F-10, if released).
 If the chosen team has no milestone, the script exits 2 "Seed data has no milestone" instead of skipping the endpoint.
 
@@ -93,7 +96,8 @@ PR opened → `test-and-docker` runs `gitleaks` on the PR commits → job fails 
 | Load test env vars | any of the four missing | script exits 2 naming the missing variable(s) (`LOAD_TEST_URL`, `LOAD_TEST_EMAIL`, `LOAD_TEST_PASSWORD`, `LOAD_TEST_VERSION`), sends nothing |
 | Load test login fails | 401 on the first login | script exits 2 "Login failed", sends no load |
 | `ErrorState` | `status === 404` | not-found message, **no** Try again |
-| | any other status or network error (`status 0`) | message + Try again |
+| | `status === 403` or any other 4xx | message, **no** Try again |
+| | network error (`status 0`) or `status >= 500` | message + Try again |
 
 Known risk: `POST /api/auth/login` runs bcrypt (cost 12 in the seed, NFR-01 requires ≥ 10) and may be the slowest endpoint under 20 concurrent
 logins on one Cloud Run instance. If it fails, the result is recorded as a defect with its numbers; NFR-01 (cost) is not
@@ -116,7 +120,7 @@ No new endpoint and no change to any response. Failure contract (existing, now t
 ## UI definition (English only)
 
 - `web/src/components/page-states.tsx` `ErrorState` gains optional `onRetry?: () => void`. When given and
-  `error.status !== 404`, it shows button **Try again** under the message.
+  `error.status === 0 || error.status >= 500`, it shows button **Try again** under the message.
 - Every page passes `onRetry={state.reload}` for its data GETs (home, team, team milestones, milestone, board, report).
 - No other visual change.
 
@@ -135,7 +139,7 @@ No new endpoint and no change to any response. Failure contract (existing, now t
 |---|---|
 | AC-63 | Given the deployed candidate with the seed dataset, when `npm run load-test` runs 20 connections on each listed endpoint, then every endpoint has p97.5 < 500 ms with 0 non-2xx and 0 errors, and the output file names the deployed version and revision; missing env vars or a failed login stop the script before any load. |
 | AC-64 | Every data screen in the inventory (home, team, milestone, board, report) shows a loading state, its empty state, and an error state when its GET fails, and every form shows server field errors next to the field. |
-| AC-65 | An unexpected server error returns exactly `500 { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } }` with no stack or internal message; on a failed data GET the page shows **Try again** (not for 404), and clicking it reloads and shows the data when the API recovers. |
+| AC-65 | An unexpected server error returns exactly `500 { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } }` with no stack or internal message; on a failed data GET the page shows **Try again** (only for a network error or 5xx, not for 403/404), and clicking it reloads and shows the data when the API recovers. |
 | AC-66 | The CI job `test-and-docker` runs a secret scan on every PR to `staging`/`main`; it passes on the repository and fails on a commit containing a planted fake secret. |
 | AC-67 | On the final candidate commit, the full automated suite (unit, API/DB, E2E) passes with 0 failed tests and every skipped test disclosed, and the Sprint 1, Sprint 2 and Sprint 3 journeys pass; the deployed version matches the tag, commit and CI run. |
 
@@ -149,7 +153,7 @@ No new endpoint and no change to any response. Failure contract (existing, now t
 | TEST-69 | AC-65 | API | minimal Express app with the real `errorHandler` and a route that throws `new Error('relation "Secret" password=x')` | GET the route | status 500; body deep-equals `{ error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } }`; body text contains no `stack`, `relation`, `password` |
 | TEST-70 | AC-65 | E2E | seed; board GET intercepted: first call 500, then pass-through; separate case 404 | open board; click **Try again**; open an unknown milestone id | error + **Try again**; after click the board renders; 404 page shows not-found message and no **Try again** |
 | TEST-SEC-01 | AC-66 | CI check | PR CI run; scratch branch (never merged) with a fake key in a file | open PR / run workflow on scratch branch | secret scan step green on the PR; red on the scratch branch (run link saved); scratch branch deleted |
-| TEST-REG-01 | AC-67 | Regression (record) | final candidate commit | `npm test`, `npm run test:e2e`, CI run, deploy run, post-deploy checks | counts recorded in `docs/evidence/release-<final>/regression.txt`: 0 failed, skipped listed with reason; journeys TEST-E2E-06/07 (Sprint 1), Sprint 2 journey, TEST-E2E-09 (+ F-10 E2E) pass |
+| TEST-REG-01 | AC-67 | Regression (record) | final candidate commit | `npm test`, `npm run test:e2e`, CI run, deploy run, post-deploy checks | counts recorded in `docs/evidence/release-<final>/regression.txt`: 0 failed, skipped listed with reason; journeys TEST-E2E-01/02 (Sprint 1), TEST-E2E-06/07 (Sprint 2), TEST-E2E-08 (Lab 7), TEST-E2E-09/10 (Sprint 3) pass |
 
 Coverage: AC-63..AC-67 each have at least one test or measurement; every row points to an AC in this range.
 
