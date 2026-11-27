@@ -45,8 +45,8 @@ in `docs/traceability.md` v2.0 ("Coverage gaps": NFR-06 not measured, NFR-07 par
 | Home `/` (teams) | `TeamCardsSkeleton` | `EmptyState` | `ErrorState` | n/a | **missing** | empty only (`teams.spec.ts`) |
 | Team `/teams/:id` | `TeamPageSkeleton`, `MilestonesSkeleton` | "No members yet", "No milestones yet" | `ErrorState` | milestone form | **missing** | **missing** |
 | Milestone `/milestones/:id` | `MilestonePageSkeleton` | "No submission yet", history empty | `ErrorState` | submission, feedback, revision request, grade, milestone edit | **missing** | history only (`revision-history.spec.ts`) |
-| Board `/teams/:id/board` (F-09) | per F-09 contract | "No milestones yet." | `ErrorState` | n/a (read-only) | add | TEST-E2E-08 (500 → error) |
-| Report `/reports` (F-10) | per F-10 contract | per F-10 contract | `ErrorState` | n/a (read-only) | add | TEST-E2E-09 |
+| Board `/teams/:id/board` (F-09) | per F-09 contract | "No milestones yet." | `ErrorState` | n/a (read-only) | add | TEST-E2E-09 (500 → error) |
+| Report `/reports` (F-10) | per F-10 contract | per F-10 contract | `ErrorState` | n/a (read-only) | add | TEST-E2E-10 |
 
 Gaps to close in S3-03: Try again on every `ErrorState` except 404; E2E state checks for Home error, Team (loading,
 error), Milestone (loading, error). S3-03 re-checks this table against the code and updates it in the evidence file.
@@ -141,7 +141,7 @@ No new endpoint and no change to any response. Failure contract (existing, now t
 | TEST-69 | AC-65 | API | minimal Express app with the real `errorHandler` and a route that throws `new Error('relation "Secret" password=x')` | GET the route | status 500; body deep-equals `{ error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } }`; body text contains no `stack`, `relation`, `password` |
 | TEST-70 | AC-65 | E2E | seed; board GET intercepted: first call 500, then pass-through; separate case 404 | open board; click **Try again**; open an unknown milestone id | error + **Try again**; after click the board renders; 404 page shows not-found message and no **Try again** |
 | TEST-SEC-01 | AC-66 | CI check | PR CI run; scratch branch (never merged) with a fake key in a file | open PR / run workflow on scratch branch | secret scan step green on the PR; red on the scratch branch (run link saved); scratch branch deleted |
-| TEST-REG-01 | AC-67 | Regression (record) | final candidate commit | `npm test`, `npm run test:e2e`, CI run, deploy run, post-deploy checks | counts recorded in `docs/evidence/release-<final>/regression.txt`: 0 failed, skipped listed with reason; journeys TEST-E2E-06/07 (Sprint 1), Sprint 2 journey, TEST-E2E-08 (+ F-10 E2E) pass |
+| TEST-REG-01 | AC-67 | Regression (record) | final candidate commit | `npm test`, `npm run test:e2e`, CI run, deploy run, post-deploy checks | counts recorded in `docs/evidence/release-<final>/regression.txt`: 0 failed, skipped listed with reason; journeys TEST-E2E-06/07 (Sprint 1), Sprint 2 journey, TEST-E2E-09 (+ F-10 E2E) pass |
 
 Coverage: AC-63..AC-67 each have at least one test or measurement; every row points to an AC in this range.
 
