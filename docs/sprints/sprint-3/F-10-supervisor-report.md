@@ -5,6 +5,7 @@ Version history
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-27 | Initial contract: supervisor summary report across assigned teams (FR-18). Written before any F-10 code (D2 Part C). |
+| 0.2 | 2026-11-27 | PR #113 review (KanPhacharawat): fix 403 message to match `require-role.ts`; state clean-slate milestone reset in STS fixtures and TEST-63; add F-07 due-date extension step to TEST-64 and note grace boundary covered by Lab 7 TEST-U08; clarify AC-60 wording, TEST-64 milestone 2 sequencing (`RevisionRequest.dueAt`), page-level back link beside `ErrorState`, and `localeCompare` team sorting. Still before any F-10 code. |
 
 Linked requirements: FR-18, BR-02, BR-03, BR-06 (v2, read only), NFR-02, NFR-03, NFR-05, NFR-07.
 Depends on: F-03 (milestones), F-04 (submission), F-05 (feedback), F-06 (versions, revision requests), F-07 (`closedAt`), F-08 (grades), F-09 (`BoardCard`, `summarizeProgress()`).
@@ -73,7 +74,7 @@ No path parameters, no request body, and no query parameters (unknown query para
 | Input | Rule | Result |
 |---|---|---|
 | session | required | `401 UNAUTHENTICATED` |
-| role | must be `SUPERVISOR` (`requireRole(Role.SUPERVISOR)`) | `403 FORBIDDEN` (`"You do not have permission to perform this action"`) |
+| role | must be `SUPERVISOR` (`requireRole(Role.SUPERVISOR)`) | `403 FORBIDDEN` (`"You do not have permission to do this"`) |
 
 Boundaries:
 - Supervisor with **0 assigned teams**: 200, `teams: []`, `overall.teamCount: 0`, all counts `0`, `averageScore: null`.
@@ -83,7 +84,7 @@ Boundaries:
 - **Late persistence**: a submission with `lateAt` set stays counted in `late` after feedback, revision, resubmission, grading, or a due-date extension (BR-06 v2).
 - **Feedback pending vs. submitted**: a milestone with a v1 submission or v2 resubmission without feedback is counted in both `submitted` and `feedbackPending`; once feedback is recorded, `feedbackPending` decreases by 1 while `submitted` remains unchanged.
 - **Expired revision request**: status reverts to `FEEDBACK_GIVEN` (F-06 rule), so it is not counted in `revisionRequested`, remains counted in `submitted`, and does not increment `feedbackPending`.
-- **Grace window boundary**: at `now = dueAt + 24 h` without submission, status is `MISSED` (`missing` increments); 1 ms earlier, status is `OPEN` (not counted in `missing` or `submitted`).
+- **Grace window boundary**: at `now = dueAt + 24 h` without submission, status is `MISSED` (`missing` increments); 1 ms earlier, status is `OPEN` (not counted in `missing` or `submitted`). (Covered by the existing Lab 7 `TEST-U08` tests on `computeMilestoneStatus()`; F-10 reuses that function directly.)
 
 Error codes: no new codes. Existing `UNAUTHENTICATED` (401) and `FORBIDDEN` (403) keep their messages.
 
@@ -130,7 +131,7 @@ export type SupervisorSummaryReport = {
 ```
 
 - `buildTeamReportRow(team: { id: string; name: string }, cards: BoardCard[]): TeamReportRow`: calls `summarizeProgress(cards)` from `server/src/domain/board.ts`, derives `submitted` (`cards.filter((c) => c.versionNumber !== null).length`) and `late` (`cards.filter((c) => c.lateAt !== null).length`), and maps `byStatus` / `closed` / `graded` / `averageScore`.
-- `buildSupervisorReport(teamsWithCards: { id: string; name: string; cards: BoardCard[] }[]): SupervisorSummaryReport`: sorts teams by `name` ascending, builds each `TeamReportRow`, and builds `overall` by passing the flattened `allCards` through `summarizeProgress(allCards)` (so `overall.averageScore` is weighted across all graded milestones).
+- `buildSupervisorReport(teamsWithCards: { id: string; name: string; cards: BoardCard[] }[]): SupervisorSummaryReport`: sorts teams by `a.name.localeCompare(b.name)` ascending, builds each `TeamReportRow`, and builds `overall` by passing the flattened `allCards` through `summarizeProgress(allCards)` (so `overall.averageScore` is weighted across all graded milestones).
 
 Service: `getSupervisorSummaryReport(supervisorId: string, now?: Date)` in `server/src/services/report-service.ts` queries assigned teams (`where: { supervisorId }`, `orderBy: { name: 'asc' }`) with the same milestone/submission/current-version/grade selection as F-09, maps rows to `BoardCard[]` using `computeMilestoneStatus(m, state, now)` with one shared `now`, and returns `buildSupervisorReport(...)`.
 
@@ -212,7 +213,7 @@ The endpoint never accepts a `supervisorId` parameter; identity is always read f
 - States (NFR-07):
   - Loading skeleton while fetching.
   - Supervisor with `teams.length === 0` → `EmptyState` with message **No assigned teams yet.** (table hidden).
-  - API error (including 403 when a student visits `/reports` directly, or 500) → `ErrorState` with link back to `/`.
+  - API error (including 403 when a student visits `/reports` directly, or 500) → `ErrorState` rendered on the page alongside a **Back to home** link to `/` (same pattern as `TeamPage`; `page-states.tsx` is unchanged).
 
 ## Acceptance criteria
 
@@ -220,20 +221,20 @@ The endpoint never accepts a `supervisorId` parameter; identity is always read f
 |---|---|
 | AC-58 | Given Sup1 assigned to Team Alpha and Team Beta (and Sup2 assigned to Gamma with milestones), when Sup1 GETs `/api/reports/supervisor-summary`, then 200 is returned with rows for Alpha and Beta only (sorted by `teamName` ascending, never Gamma), and every per-team count (`milestonesTotal`, `submitted`, `late`, `missing`, `feedbackPending`, `revisionRequested`, `closed`, `graded`, `averageScore`) matches the stored data and `computeMilestoneStatus` / `summarizeProgress`. |
 | AC-59 | The `overall` summary reports `teamCount`, summed counts across assigned teams, and a weighted `averageScore` across all graded milestones rounded half-up to 1 decimal (`null` when none graded); an assigned team with 0 milestones appears with zero counts and `averageScore: null`; a supervisor with 0 assigned teams returns 200 with `teams: []`, `overall.teamCount: 0`, zero counts, and `averageScore: null`. |
-| AC-60 | Report metrics follow stored state changes: `late` counts every submission with `lateAt` set (including after feedback, grading, or a due-date extension); `feedbackPending` counts `SUBMITTED` milestones (v1 and v2 resubmissions without feedback) and drops after feedback; an expired revision request leaves `revisionRequested` while staying in `submitted`; recording/updating a grade updates `graded` and `averageScore`. |
+| AC-60 | Report metrics follow stored state changes: `late` counts every submission with `lateAt` set (including after feedback, grading, or a due-date extension); `feedbackPending` counts `SUBMITTED` milestones (v1 and v2 resubmissions without feedback) and drops after feedback; an expired revision request is not counted in `revisionRequested` while staying in `submitted`; recording/updating a grade updates `graded` and `averageScore`. |
 | AC-61 | Sup1 gets 200 with Alpha and Beta only; Sup2 gets 200 with Gamma only; students S1 and S3 get 403 `FORBIDDEN` with no report data; no session gets 401 `UNAUTHENTICATED`; a GET changes no database rows. |
 | AC-62 | In the UI, a supervisor sees **Reports** in the header, opens `/reports`, and sees the overall summary and assigned-team rows with links to team and board pages; a student does not see **Reports** and visiting `/reports` directly shows the error state (403); zero assigned teams shows **No assigned teams yet.**; a 500 API error shows the error state. |
 
 ## STS (test design)
 
-Fixtures: Sprint 1 seed (`docs/sprints/sprint-1/sts.md`) plus milestones/submissions/grades created per test through Prisma or the API (and a temporary supervisor with 0 assigned teams in TEST-63). No new seed data.
+Fixtures: Sprint 1 seed (`docs/sprints/sprint-1/sts.md`) plus milestones/submissions/grades created per test through Prisma or the API (and a temporary supervisor with 0 assigned teams in TEST-63). Each API/DB test resets milestones of Alpha, Beta, and Gamma first (clean slate, same as F-09's `board.test.ts` `beforeAll`) so exact counts do not depend on earlier test files. No new seed data.
 
 | Test | AC | Level | Precondition / input | Action | Expected result |
 |---|---|---|---|---|---|
 | TEST-U10 | AC-58, AC-59 | Unit | hand-built teams out of alphabetical order: Team B (3 graded: `60, 60, 60`), Team A (5 cards covering all statuses, 1 `lateAt`, 1 `closedAt`, 1 graded `100`), Team C (empty `[]`); second call with tie scores `80, 81, 80, 80` and single score `0`; third call with empty teams `[]` | `buildTeamReportRow`, `buildSupervisorReport` | teams sorted `[Team A, Team B, Team C]`; Team A counts match (`submitted 3`, `late 1`, `missing 1`, `feedbackPending 1`, `revisionRequested 1`, `closed 1`, `graded 1`, `averageScore 100`); Team C all zeros + `null`; `overall.averageScore` is `70` (weighted across 4 grades, not `80`); tie rounds to `80.3`; single `0` → `0`; empty teams → `teams: []`, `overall.teamCount: 0`, all zeros, `averageScore: null` |
 | TEST-62 | AC-58 | API/DB | Alpha: (a) open +7d; (b) submitted; (c) feedback + open revision request +3d; (d) feedback + closed + graded 85; (e) due −2d (past grace) no submission. Beta: 1 late submitted milestone (`lateAt` set). Gamma (Sup2): 2 milestones | Sup1 GET `/api/reports/supervisor-summary` | 200; `teams` has `[Alpha, Beta]` only (no Gamma); Alpha `milestonesTotal 5, submitted 3, late 0, missing 1, feedbackPending 1, revisionRequested 1, closed 1, graded 1, averageScore 85`; Beta `milestonesTotal 1, submitted 1, late 1, missing 0, feedbackPending 1, revisionRequested 0, closed 0, graded 0, averageScore null` |
-| TEST-63 | AC-59 | API/DB | (1) Alpha with 1 graded milestone (100), Beta with 3 graded milestones (60, 60, 60); (2) Beta with 0 milestones; (3) temporary supervisor `Sup3` created in test with 0 assigned teams | Sup1 GET report for (1) and (2); Sup3 GET report for (3) | (1) `overall.teamCount 2`, `overall.graded 4`, `overall.averageScore 70`; (2) Beta row present with all zeros and `averageScore null`; (3) 200 `teams: []`, `overall.teamCount 0`, all counts `0`, `averageScore null` |
-| TEST-64 | AC-60 | API/DB | Alpha milestone 1: S1 submits late (`lateAt` set) → Sup1 feedback → Sup1 revision request → S2 resubmits v2 → Sup1 feedback → Sup1 PUT grade 88; Alpha milestone 2: feedback + revision request whose `dueAt` is moved to past via Prisma | Sup1 GET report after each transition | after late submit: `submitted 1, late 1, feedbackPending 1`; after feedback: `feedbackPending 0, late 1`; after revision request: `revisionRequested 1`; after v2 resubmit: `revisionRequested 0, feedbackPending 1, late 1`; after v2 feedback + grade 88: `feedbackPending 0, graded 1, averageScore 88`; milestone 2 expired request not counted in `revisionRequested` or `feedbackPending`, counted in `submitted` |
+| TEST-63 | AC-59 | API/DB | (1) Alpha with 1 graded milestone (100), Beta with 3 graded milestones (60, 60, 60); (2) delete Beta's milestones so Beta has 0 milestones; (3) temporary supervisor `Sup3` created in test with 0 assigned teams | Sup1 GET report for (1) and (2); Sup3 GET report for (3) | (1) `overall.teamCount 2`, `overall.graded 4`, `overall.averageScore 70`; (2) Beta row present with all zeros and `averageScore null`; (3) 200 `teams: []`, `overall.teamCount 0`, all counts `0`, `averageScore null` |
+| TEST-64 | AC-60 | API/DB | Clean Alpha. Step 1 (milestone 1 only): S1 submits late (`lateAt` set) → Sup1 feedback → Sup1 extends milestone 1 `dueAt` by +7 d via F-07 `PATCH /api/milestones/:id` → Sup1 revision request → S2 resubmits v2 → Sup1 feedback → Sup1 PUT grade 88. Step 2 (after step 1): create Alpha milestone 2 with submission, feedback, and a revision request whose `RevisionRequest.dueAt` is moved to the past via Prisma | Sup1 GET report after each transition | step 1: after late submit `submitted 1, late 1, feedbackPending 1`; after feedback `feedbackPending 0, late 1`; after due-date extension `late 1` (still counted); after revision request `revisionRequested 1`; after v2 resubmit `revisionRequested 0, feedbackPending 1, late 1`; after v2 feedback + grade 88 `feedbackPending 0, graded 1, averageScore 88`. Step 2: `submitted 2`, `revisionRequested 0`, `feedbackPending 0` (expired request not counted in `revisionRequested` or `feedbackPending`) |
 | TEST-65 | AC-61 | API | TEST-62 fixture | GET `/api/reports/supervisor-summary` as Sup1, Sup2, S1, S3, no cookie | Sup1 200 (Alpha + Beta only); Sup2 200 (Gamma only); S1 403 `FORBIDDEN` (no team/report data); S3 403 `FORBIDDEN`; no cookie 401 `UNAUTHENTICATED` |
 | TEST-66 | AC-61 | API/DB | TEST-62 fixture | count rows of `Team`, `Milestone`, `Submission`, `SubmissionVersion`, `Feedback`, `RevisionRequest`, `Grade`; GET report 3 times as Sup1 and Sup2; count again | counts identical before and after |
 | TEST-E2E-10 | AC-62 | E2E | seed + Alpha milestone submitted in test | Sup1: header **Reports** → `/reports` → sees overall summary and Alpha/Beta rows → clicks Alpha link to `/teams/:alphaId`; S1: checks **Reports** absent in header, visits `/reports` directly; route interception returns `{ overall: zeroed, teams: [] }` then 500 | Sup1 sees overall cards and Alpha/Beta counts and navigates to Alpha; S1 does not see **Reports** and gets error state on `/reports`; empty payload shows **No assigned teams yet.**; 500 shows error state |
