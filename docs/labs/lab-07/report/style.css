@@ -1,0 +1,68 @@
+@page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+:root { --ink:#18181b; --muted:#52525b; --line:#d4d4d8; --soft:#f4f4f5; --accent:#1d4ed8; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: Inter, "DejaVu Sans", sans-serif; font-size: 9.6pt; line-height: 1.45; color: var(--ink); background:#fff; margin:0; }
+h1,h2,h3,h4,h5,h6 { line-height:1.25; break-after: avoid; page-break-after: avoid; }
+.parth { font-size: 20pt; border-bottom: 3px solid var(--ink); padding-bottom: 6px; margin: 0 0 10px; }
+.part { break-before: page; }
+.part h2 { font-size: 14pt; margin: 18px 0 6px; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+.part h3 { font-size: 11.5pt; margin: 14px 0 4px; }
+.part h4 { font-size: 10.2pt; margin: 10px 0 4px; }
+.part h5, .part h6 { font-size: 9.8pt; margin: 8px 0 3px; }
+.ebreak { break-before: page; }
+.src { font-size: 7.5pt; color: var(--muted); margin: 10px 0 2px; text-transform: uppercase; letter-spacing: .04em; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 8.4pt; }
+th, td { border: 1px solid var(--line); padding: 3px 5px; vertical-align: top; text-align: left; overflow-wrap: anywhere; }
+th { background: var(--soft); font-weight: 600; }
+tr { break-inside: avoid; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; background: var(--soft); padding: 0 2px; border-radius: 2px; }
+pre { background: #fafafa; border: 1px solid var(--line); padding: 6px 8px; font-size: 7.4pt; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 4px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--accent); background: #f8fafc; color: #27272a; }
+.mermaid { text-align: center; margin: 8px 0; break-inside: avoid; }
+.mermaid svg { max-width: 100%; height: auto; }
+.figrow { display: flex; gap: 10px; margin: 6px 0 10px; break-inside: avoid; align-items: flex-start; }
+.figrow figure { flex: 1 1 0; margin: 0; max-width: 50%; }
+.figrow img { width: 100%; border: 1px solid var(--line); border-radius: 3px; max-height: 118mm; object-fit: contain; object-position: top; background:#fff; }
+figcaption { font-size: 7.8pt; color: var(--muted); margin-top: 2px; }
+.endmark { font-size: 6.5pt; color: #a1a1aa; text-align: right; margin-top: 8px; letter-spacing: .1em; }
+.cover .kicker { font-size: 8.5pt; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4mm; }
+.cover .title { font-size: 24pt; margin: 6px 0 12px; }
+.cover .title span { font-size: 14pt; font-weight: 500; color: var(--muted); }
+.cover .meta th { width: 30mm; }
+.cover .meta { font-size: 9pt; }
+.navh { font-size: 13pt; margin: 14px 0 4px; }
+.nav td.num { white-space: nowrap; text-align: center; font-weight: 600; width: 16mm; }
+.note { font-size: 8.4pt; color: var(--muted); }
+.toc { break-before: page; }
+.toc .cols { display: flex; gap: 12px; }
+.toc .cols table { width: 50%; }
+td:first-child, th:first-child { white-space: nowrap; }
+.cover .meta th, .nav td:first-child { white-space: nowrap; }
+.mermaid svg { max-height: 150mm; }
+.figrow { flex-direction: column; gap: 8px; }
+.figrow figure { max-width: 100%; width: 100%; break-inside: avoid; }
+.figrow img { max-height: 150mm; width: auto; max-width: 100%; display: block; margin: 0 auto; }
+
+.figrow img[src$='board-done.png'] { max-height: 120mm; }
+
+.figrow img[src*='/gh-'] { max-height: 215mm; }
+
+/* Lab 7 additions */
+pre.diff { font-family: "DejaVu Sans Mono", monospace; font-size: 6.9pt; }
+pre.diff .da { background: #dcfce7; display: block; }
+pre.diff .dd { background: #fee2e2; display: block; }
+pre.diff .dh { font-weight: 700; color: #1e3a8a; display: block; }
+pre.diff .ds { color: #6b21a8; display: block; }
+figure.fig { margin: 8px 0 12px; break-inside: avoid; }
+figure.fig img { display: block; max-width: 100%; max-height: 110mm; margin: 0 auto; border: 1px solid var(--line); border-radius: 3px; }
+.doc h3 { font-size: 12pt; }
+.part td:first-child, .part th:first-child { white-space: normal; }
+.part td code { overflow-wrap: anywhere; }
+.part table { font-size: 7.8pt; }
+pre.diff span { display: block; min-height: 1em; }
+.toc .navh { margin: 8px 0 3px; }
+.toc table { margin: 3px 0 6px; }
+.toc td, .toc th { padding: 2px 5px; }
+.toc .note { margin: 4px 0 0; }
+.toc .endmark { margin-top: 2px; }
