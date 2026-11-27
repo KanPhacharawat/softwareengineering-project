@@ -61,3 +61,8 @@ figure.fig img { display: block; max-width: 100%; max-height: 110mm; margin: 0 a
 .part td code { overflow-wrap: anywhere; }
 .part table { font-size: 7.8pt; }
 pre.diff span { display: block; min-height: 1em; }
+.toc .navh { margin: 8px 0 3px; }
+.toc table { margin: 3px 0 6px; }
+.toc td, .toc th { padding: 2px 5px; }
+.toc .note { margin: 4px 0 0; }
+.toc .endmark { margin-top: 2px; }

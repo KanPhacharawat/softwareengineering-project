@@ -36,8 +36,6 @@ Both students used AI coding assistants under their own direction:
 
 - **Not delegated:** choosing the change and the five design decisions (Kan, 25 Nov), approving the contract and code
   (James's reviews in A.4 and B.6), merging, the production release, and typing passwords for the live checks.
-- **Not delegated:** choosing the change and the five design decisions (Kan, 25 Nov), approving the contract and code
-  (James's reviews in A.4 and B.6), merging, the production release, and typing passwords for the live checks.
 - **How output was checked:** every AI-produced change went through a pull request with CI and a teammate review; tests
   were run on the recorded commits shown in Part B; the post-deploy checks were observed in the browser by a student.
 - No real personal data, passwords, tokens or secrets were given to either assistant or included in this PDF. All data
