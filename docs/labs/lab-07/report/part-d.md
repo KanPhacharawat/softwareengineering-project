@@ -27,16 +27,20 @@ not used as Sprint 1 maintenance evidence.
 
 ## D.3 AI-use declaration
 
-The team used **Claude Code** (Anthropic), an AI coding assistant, under the students' direction:
+Both students used AI coding assistants under their own direction:
 
-- **Used for:** drafting the change request, impact analysis, contract revisions, readiness checklist and this report;
-  writing the CR-01 tests and implementation; running the test suites and collecting evidence files; drafting review
-  comments that a student then edited and posted.
+| Student | Tool | Used for |
+|---|---|---|
+| Phacharawat (Kan) | **Claude Code** (Anthropic) | drafting the change request, impact analysis, contract revisions, readiness checklist and this report; writing the CR-01 tests and implementation; running the test suites and collecting evidence files; drafting review comments that Kan then edited and posted |
+| Chaiyaphoom (James) | **Antigravity** (Google) | James's Lab 7 work: the metrics (#86) and his reviews of the Lab 7 pull requests |
+
+- **Not delegated:** choosing the change and the five design decisions (Kan, 25 Nov), approving the contract and code
+  (James's reviews in A.4 and B.6), merging, the production release, and typing passwords for the live checks.
 - **Not delegated:** choosing the change and the five design decisions (Kan, 25 Nov), approving the contract and code
   (James's reviews in A.4 and B.6), merging, the production release, and typing passwords for the live checks.
 - **How output was checked:** every AI-produced change went through a pull request with CI and a teammate review; tests
   were run on the recorded commits shown in Part B; the post-deploy checks were observed in the browser by a student.
-- No real personal data, passwords, tokens or secrets were given to the assistant or included in this PDF. All data
+- No real personal data, passwords, tokens or secrets were given to either assistant or included in this PDF. All data
   shown is synthetic (seed users `s1`, `s2`, `s3`, `sup1`; example links).
 
 ## D.4 Known limitations
