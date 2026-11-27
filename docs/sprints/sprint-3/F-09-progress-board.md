@@ -5,6 +5,7 @@ Version history
 | Version | Date | Change |
 |---|---|---|
 | 0.1 | 2026-11-27 | Initial contract: team progress board and team progress summary (FR-17, FR-19). Written before any F-09 code (D2 Part C). |
+| 0.2 | 2026-11-27 | PR #112 review (maneejames): test IDs TEST-U08/TEST-E2E-08 clashed with Lab 7 CR-01, renamed TEST-U09/TEST-E2E-09; response adds `team { id, name }`; column headings are Title Case (badge colours/icons only); TEST-58 `byStatus` spelled out; half-up tie case added to TEST-U09. Still before any F-09 code. |
 
 Linked requirements: FR-17, FR-19, BR-01, BR-02, BR-06 (v2, read only), NFR-02, NFR-03, NFR-05, NFR-07.
 Depends on: F-03 (milestones), F-04 (submission), F-05 (feedback), F-06 (versions, revision requests), F-07 (`closedAt`), F-08 (grades).
@@ -26,7 +27,8 @@ Implementation: S3-01 #106.
    average score of graded milestones (rounded to 1 decimal, `null` when nothing is graded).
 8. Team members (students) and the assigned supervisor see **the same** board and summary (FR-17). There is no
    role-specific content and no 403 case: anyone outside the team scope gets 404 (BR-01, BR-02).
-9. New endpoint `GET /api/teams/:teamId/board` returning `{ summary, columns }`. The grouping and counting are pure
+9. New endpoint `GET /api/teams/:teamId/board` returning `{ team, summary, columns }` (`team` = `{ id, name }` from the
+   scope middleware's `req.team`, no extra query, so the page needs one GET). The grouping and counting are pure
    domain functions so F-10 can reuse them.
 10. New UI route `/teams/:teamId/board`, reached by a **Progress board** link on the team page. The existing team page
     and milestone list are not changed otherwise (keeps Sprint 1/2 regression stable).
@@ -60,7 +62,7 @@ flowchart LR
   C -- no --> E401[401]
   C -- yes --> D{team in scope?}
   D -- no --> E404[404]
-  D -- yes --> F[load milestones + current version + grade] --> G[computeMilestoneStatus per milestone] --> H[buildProgressBoard] --> I[200 summary + columns]
+  D -- yes --> F[load milestones + current version + grade] --> G[computeMilestoneStatus per milestone] --> H[buildProgressBoard] --> I[200 team + summary + columns]
   I -- click card --> J[/milestones/:id/]
 ```
 
@@ -77,10 +79,10 @@ Boundaries:
 - Team with **no milestones**: 200, all five columns present with empty arrays, summary counts `0`, `averageScore: null`.
 - Milestone exactly at the end of the grace window (`now = dueAt + 24 h`) without submission: `MISSED` (BR-06 v2 rule
   `now >= graceEndsAt`); one millisecond earlier: `OPEN`. (Covered by the existing `computeMilestoneStatus` tests;
-  TEST-U08 re-checks the column placement.)
+  TEST-U09 re-checks the column placement.)
 - Revision request whose `dueAt` has passed: status is `FEEDBACK_GIVEN` (F-06 rule), so the card moves out of
   `REVISION_REQUESTED`.
-- Average score: graded scores `85, 90` → `87.5`; `85, 90, 91` → `88.7` (half-up rounding to 1 decimal); one grade `0`
+- Average score: graded scores `85, 90` → `87.5`; `85, 90, 91` → `88.7`; tie `80, 81, 80, 80` → `80.25` → `80.3` (half-up rounding to 1 decimal, `Math.round(x * 10) / 10`); one grade `0`
   → `0` (not `null`).
 
 Error codes: no new codes. Existing `UNAUTHENTICATED` (401) and `NOT_FOUND` (404) keep their messages.
@@ -125,7 +127,7 @@ Service: `getTeamBoard(teamId, now)` in `server/src/services/board-service.ts` r
 
 | Method + path | Role | Body | Success | Errors |
 |---|---|---|---|---|
-| `GET /api/teams/:teamId/board` | Student member of the team, or its assigned supervisor | – | 200 `{ summary, columns }` | 401 `UNAUTHENTICATED`; 404 `NOT_FOUND` |
+| `GET /api/teams/:teamId/board` | Student member of the team, or its assigned supervisor | – | 200 `{ team: { id, name }, summary, columns }` | 401 `UNAUTHENTICATED`; 404 `NOT_FOUND` |
 
 Check order: auth (`401`) → team scope / UUID (`404`, existing `teamsRouter.use('/:teamId')` middleware).
 
@@ -133,6 +135,7 @@ Example response (200):
 
 ```json
 {
+  "team": { "id": "a1…", "name": "Alpha" },
   "summary": {
     "total": 3,
     "byStatus": { "OPEN": 1, "SUBMITTED": 0, "REVISION_REQUESTED": 0, "FEEDBACK_GIVEN": 1, "MISSED": 1 },
@@ -172,11 +175,12 @@ A malformed or unknown `:teamId` returns 404 for every authenticated user. The e
 
 - Route `/teams/:teamId/board` inside `RequireAuth` in `web/src/App.tsx`.
 - Team page: link/button **Progress board** in the page header (both roles).
-- Board page header: title **Progress board**, the team name, link **Back to team**.
+- Board page header: title **Progress board**, the team name (`team.name` from the board response), link **Back to team**.
 - Summary row (cards): **Milestones** `{total}`, **Graded** `{graded} / {total}`, **Average score** `{averageScore}` or
   `–` when `null`, **Closed** `{closed}`.
 - Five columns with headings **Open**, **Submitted**, **Revision requested**, **Feedback given**, **Missed** and the count,
-  e.g. `Open (1)`. Reuse `milestone-status-badge.tsx` labels and colours. Columns stack vertically on small screens.
+  e.g. `Open (1)`. These Title Case headings are fixed text; reuse only the **colours and icons** of
+  `milestone-status-badge.tsx` (its labels are enum strings and stay unchanged). Columns stack vertically on small screens.
 - Card: title (link to `/milestones/:id`), `Due {formatBangkokDateTime(dueAt)}`, `Version {n}` when `versionNumber` is
   not null, `Score {score} / 100` when graded, `closed-badge.tsx` when `closedAt`, `late-badge.tsx` when `lateAt`.
 - Empty column: muted text **None**.
@@ -200,13 +204,13 @@ Prisma (status inputs) or the API (state changes). No new seed data.
 
 | Test | AC | Level | Precondition / input | Action | Expected result |
 |---|---|---|---|---|---|
-| TEST-U08 | AC-53, AC-54 | Unit | hand-built `BoardCard[]`: one per status, two `OPEN` with dues out of order, one closed, graded scores `85, 90` then `85, 90, 91`, one score `0`, empty array | `buildProgressBoard`, `summarizeProgress` | five columns in fixed order; each card in its status column; `OPEN` sorted by `dueAt`; closed card stays in its column and `closed = 1`; `averageScore` `87.5`, `88.7`, `0`; empty → all zero, five empty columns, `averageScore: null` |
+| TEST-U09 | AC-53, AC-54 | Unit | hand-built `BoardCard[]`: one per status, two `OPEN` with dues out of order, one closed, graded scores `85, 90` then `85, 90, 91`, tie `80, 81, 80, 80`, one score `0`, empty array | `buildProgressBoard`, `summarizeProgress` | five columns in fixed order; each card in its status column; `OPEN` sorted by `dueAt`; closed card stays in its column and `closed = 1`; `averageScore` `87.5`, `88.7`, `80.3`, `0`; empty → all zero, five empty columns, `averageScore: null` |
 | TEST-57 | AC-53 | API/DB | Alpha: (a) open +7d no submission; (b) submitted; (c) feedback + open revision request due +3d; (d) feedback given and **closed**; (e) due −2d (past grace) no submission | S1 GET board | 200; (a) `OPEN`, (b) `SUBMITTED`, (c) `REVISION_REQUESTED`, (d) `FEEDBACK_GIVEN` with `closedAt`, (e) `MISSED`; each id appears once; column order fixed |
-| TEST-58 | AC-54 | API/DB | TEST-57 fixture with (d) graded 85 and (b) feedback + graded 90; Beta has no milestones | S1 GET Alpha board; S3 GET Beta board | Alpha `total 5`, `byStatus` matches, `closed 1`, `graded 2`, `averageScore 87.5`; Beta `total 0`, five empty columns, `averageScore null` |
+| TEST-58 | AC-54 | API/DB | TEST-57 fixture with (d) graded 85 and (b) feedback + graded 90; Beta has no milestones | S1 GET Alpha board; S3 GET Beta board | Alpha `total 5`, `byStatus` = `{ OPEN: 1, SUBMITTED: 0, REVISION_REQUESTED: 1, FEEDBACK_GIVEN: 2, MISSED: 1 }` ((b) moves to `FEEDBACK_GIVEN` once it has feedback), `closed 1`, `graded 2`, `averageScore 87.5`; Beta `total 0`, five empty columns, `averageScore null` |
 | TEST-59 | AC-55 | API/DB | Alpha milestone: S1 submits, Sup1 feedback, Sup1 revision request, S2 resubmits (v2), Sup1 feedback, Sup1 PUT grade 88; second milestone with `lateAt` set; third with revision request whose `dueAt` is moved to the past via Prisma | S1 GET board after each step that matters | card 1 `versionNumber 2`, `score 88` in `FEEDBACK_GIVEN`; card 2 `lateAt` equals DB value; card 3 in `FEEDBACK_GIVEN` (expired request), not `REVISION_REQUESTED` |
 | TEST-60 | AC-56 | API | TEST-57 fixture | GET Alpha board as S1, S2, S3, Sup1, Sup2, no cookie; `not-a-uuid` and an unknown uuid as Sup1 | 200, 200, 404, 200, 404, 401; 404, 404; S1, S2 and Sup1 bodies deep-equal (same `now`) |
 | TEST-61 | AC-56 | API/DB | TEST-57 fixture | count rows of `Milestone`, `Submission`, `SubmissionVersion`, `Feedback`, `RevisionRequest`, `Grade`; GET board 3 times as S1 and Sup1; count again | counts identical before and after |
-| TEST-E2E-08 | AC-57 | E2E | seed + one milestone created and submitted in the test; Gamma team with no milestones (Sup2) | S1: team page → **Progress board** → card in **Submitted** → click → milestone page; Sup1 opens the same board; Sup2 opens Gamma board; route interception returns 500 for the board API | S1 and Sup1 see the summary and the card under **Submitted**; click lands on the milestone page; Gamma shows **No milestones yet.**; intercepted 500 shows the error state |
+| TEST-E2E-09 | AC-57 | E2E | seed + one milestone created and submitted in the test; Gamma team with no milestones (Sup2) | S1: team page → **Progress board** → card in **Submitted** → click → milestone page; Sup1 opens the same board; Sup2 opens Gamma board; route interception returns 500 for the board API | S1 and Sup1 see the summary and the card under **Submitted**; click lands on the milestone page; Gamma shows **No milestones yet.**; intercepted 500 shows the error state |
 
 Coverage: AC-53..AC-57 each have at least one test; every test row points to an AC in this range.
 
