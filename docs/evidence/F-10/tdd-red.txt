@@ -1,0 +1,52 @@
+# F-10 TDD red (S3-02 #107), 2026-11-28T00:44:56+07:00
+# cmd: cd server && npx vitest run tests/report.test.ts   (8 new tests, all failing before implementation)
+
+ RUN  v4.0.18 server
+
+Datasource "db": PostgreSQL database "cpms_test", schema "public" at "localhost:5433"
+9 migrations found in prisma/migrations
+No pending migrations to apply.
+
+ ❯ tests/report.test.ts (8 tests | 8 failed) 3628ms
+     × TEST-U10 sorts teams by name, computes row counts and weighted overall averageScore 4ms
+     × TEST-U10 rounds half-up on .x5 tie and keeps single score 0 distinct from null 0ms
+     × TEST-U10 supervisor with 0 assigned teams returns empty teams and zeroed overall 0ms
+     × TEST-62 Sup1 gets Alpha and Beta only with exact counts; Gamma is excluded 397ms
+     × TEST-63 computes weighted overall average, handles empty Beta, and handles supervisor with 0 teams 313ms
+     × TEST-64 tracks late persistence across extension, v2 feedbackPending, grading, and expired revision 47ms
+     × TEST-65 supervisors see only assigned teams; students get 403; anonymous gets 401 48ms
+     × TEST-66 GET report changes no rows 44ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/report.test.ts > TEST-U10 buildTeamReportRow & buildSupervisorReport (AC-58, AC-59) > TEST-U10 sorts teams by name, computes row counts and weighted overall averageScore
+Error: Not implemented
+ ❯ buildSupervisorReport src/domain/report.ts:44:9
+
+ FAIL  tests/report.test.ts > TEST-U10 buildTeamReportRow & buildSupervisorReport (AC-58, AC-59) > TEST-U10 rounds half-up on .x5 tie and keeps single score 0 distinct from null
+Error: Not implemented
+ ❯ buildTeamReportRow src/domain/report.ts:38:9
+
+ FAIL  tests/report.test.ts > TEST-U10 buildTeamReportRow & buildSupervisorReport (AC-58, AC-59) > TEST-U10 supervisor with 0 assigned teams returns empty teams and zeroed overall
+Error: Not implemented
+ ❯ buildSupervisorReport src/domain/report.ts:44:9
+
+ FAIL  tests/report.test.ts > TEST-62 per-team counts and supervisor scoping (AC-58) > TEST-62 Sup1 gets Alpha and Beta only with exact counts; Gamma is excluded
+AssertionError: expected 404 to be 200 // Object.is equality
+
+ FAIL  tests/report.test.ts > TEST-63 weighted overall average, empty team, and 0-team supervisor (AC-59) > TEST-63 computes weighted overall average, handles empty Beta, and handles supervisor with 0 teams
+AssertionError: expected 404 to be 200 // Object.is equality
+
+ FAIL  tests/report.test.ts > TEST-64 report reflects stored state transitions (AC-60) > TEST-64 tracks late persistence across extension, v2 feedbackPending, grading, and expired revision
+AssertionError: expected 404 to be 200 // Object.is equality
+
+ FAIL  tests/report.test.ts > TEST-65 report permissions (AC-61, BR-02, BR-03, NFR-02, NFR-03) > TEST-65 supervisors see only assigned teams; students get 403; anonymous gets 401
+AssertionError: expected [ 404, 404, 404, 404, 401 ] to deeply equal [ 200, 200, 403, 403, 401 ]
+
+ FAIL  tests/report.test.ts > TEST-66 report is read-only (AC-61) > TEST-66 GET report changes no rows
+AssertionError: expected 404 to be 200 // Object.is equality
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  00:44:56
+   Duration  9.36s
