@@ -36,7 +36,7 @@ export function ReportPage() {
       {state.status === 'loading' && <ReportSkeleton />}
       {state.status === 'error' && (
         <div className="space-y-4">
-          <ErrorState error={state.error} />
+          <ErrorState error={state.error} onRetry={state.reload} />
           <Button variant="outline" asChild>
             <Link to="/">
               <ArrowLeft />

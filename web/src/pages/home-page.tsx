@@ -20,7 +20,7 @@ export function HomePage() {
       </div>
 
       {state.status === 'loading' && <TeamCardsSkeleton />}
-      {state.status === 'error' && <ErrorState error={state.error} />}
+      {state.status === 'error' && <ErrorState error={state.error} onRetry={state.reload} />}
       {state.status === 'success' &&
         (state.data.teams.length === 0 ? (
           <EmptyState

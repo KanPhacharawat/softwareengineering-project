@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Version 2.0, 2026-11-26 (Sprint 2 baseline, S2-09 #75: new columns, actual test files, result and release per row). Version 1.7, 2026-11-25 (Lab 7 CR-01: BR-06 v2 grace window, AC-49 to AC-52 planned, #83). Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
+Version 2.1, 2026-11-28 (F-11 hardening, S3-03 #108: NFR-06, NFR-07, NFR-08 rows). Version 2.0, 2026-11-26 (Sprint 2 baseline, S2-09 #75: new columns, actual test files, result and release per row). Version 1.7, 2026-11-25 (Lab 7 CR-01: BR-06 v2 grace window, AC-49 to AC-52 planned, #83). Version 1.6, 2026-11-19 (F-06 part 1, original submitter, #55). Version 1.5, 2026-11-10 (Sprint 1 release v0.1.0: remaining Sprint 1 rows closed after integration test run and MC-00/MC-01). Version 1.4, 2026-11-07 (F-04 rows marked Implemented). Version 1.3, 2026-11-06 (F-03 rows marked Implemented). Version 1.2, 2026-11-06 (F-02 rows updated). Version 1.1, 2026-11-06 (F-01 rows marked Implemented). Version 1.0, 2026-11-05. Requirement to feature to sprint to verification.
 
 Version 2.0 replaces the matrix layout. The 1.x matrix is kept in Git history (`git show 4b4b7e0:docs/traceability.md`).
 Requirement IDs are in [srs.md](srs.md), features in [features.md](features.md). Sprint 1 AC/TEST IDs are in
@@ -66,9 +66,9 @@ v0.1.0 and re-ran unchanged in that regression.
 | NFR-03 | F-02 | 1 | AC-08, AC-09, AC-15, AC-19 | TEST-09, TEST-10, TEST-18, TEST-20, TEST-22, TEST-23 | `server/tests/milestones.test.ts` :: TEST-09, TEST-10<br>`server/tests/submissions.test.ts` :: TEST-18, TEST-20<br>`server/tests/feedback.test.ts` :: TEST-22, TEST-23 | Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`); deployed: r14 student grade 403 (`docs/evidence/release-v0.2.0/`) |
 | NFR-04 | F-01 | 1 | AC-04; Secure cookie by config review | TEST-05 | `server/tests/auth.test.ts` :: TEST-05 | Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`). Secure flag in production: config review only (no automated test) |
 | NFR-05 | F-00, R-01 | 1, 2 (deploy) | AC-11, AC-35; data kept across redeploy | TEST-13, TEST-36; release check r05, r13 | `server/tests/submissions.test.ts` :: TEST-13<br>`server/tests/revision-request.test.ts` :: TEST-36 | Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`); v0.2.0 deploy kept Sprint 1 data as version 1 (r05a/r05b) and after re-login (r13) |
-| NFR-06 | F-11 | 3 | Sprint 3 contract | Load test (autocannon), Sprint 3 | none yet | Planned (Sprint 3) |
-| NFR-07 | F-11 (core screens F-03..F-08) | 1 (core), 3 (all) | AC-21, AC-22, AC-34, AC-41, AC-48 | TEST-E2E-01..TEST-E2E-05 | `web/e2e/feedback.spec.ts` :: TEST-E2E-01<br>`web/e2e/auth.spec.ts` :: TEST-E2E-02<br>`web/e2e/revision-history.spec.ts` :: TEST-E2E-03 (loading/empty/error by route interception)<br>`web/e2e/milestone-management.spec.ts` :: TEST-E2E-04<br>`web/e2e/grading.spec.ts` :: TEST-E2E-05 | Core screens: Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`). All screens: Planned (Sprint 3) |
-| NFR-08 | F-00, R-01 | 1 | DoD review; MC-01 | Secret scan MC-01 | `docs/evidence/sprint-2/mc-01-v0.2.0.txt` (manual grep + web bundle check on `4b4b7e0`) | Accepted v0.2.0 (MC-01 PASS on `4b4b7e0`, 2026-11-26). Not automated in CI yet |
+| NFR-06 | F-11 | 3 | AC-63 | TEST-NFR-06 | `scripts/load-test.mjs` (`npm run load-test`); output `docs/evidence/F-11/load-test-<version>.txt` | Implemented (#108): script done, env/login guards checked locally (exit 2). Local dry run (not evidence, `docs/evidence/F-11/load-test-local-dryrun.txt`): all GETs PASS, login FAIL (p97.5 8.6 s, bcrypt cost 12). Measurement on the deployed candidate: Planned (before 13 Dec) |
+| NFR-07 | F-11 (core screens F-03..F-08) | 1 (core), 3 (all) | AC-21, AC-22, AC-34, AC-41, AC-48, AC-64, AC-65 | TEST-E2E-01..TEST-E2E-05, TEST-67, TEST-68, TEST-69, TEST-70 | `web/e2e/feedback.spec.ts` :: TEST-E2E-01<br>`web/e2e/auth.spec.ts` :: TEST-E2E-02<br>`web/e2e/revision-history.spec.ts` :: TEST-E2E-03 (loading/empty/error by route interception)<br>`web/e2e/milestone-management.spec.ts` :: TEST-E2E-04<br>`web/e2e/grading.spec.ts` :: TEST-E2E-05<br>`web/e2e/screen-states.spec.ts` :: TEST-67, TEST-68, TEST-70<br>`server/tests/errors.test.ts` :: TEST-69 | Core screens: Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`). All screens (home, team, milestone, board, report): Tested on `feature/108-hardening`: server 149/149, E2E 29/29 (`docs/evidence/F-11/tdd-green*.txt`) |
+| NFR-08 | F-00, R-01, F-11 | 1, 3 (CI) | DoD review; MC-01; AC-66 | Secret scan MC-01; TEST-SEC-01 | `docs/evidence/sprint-2/mc-01-v0.2.0.txt` (manual grep + web bundle check on `4b4b7e0`)<br>`.github/workflows/ci-docker.yml` step "Secret scan (gitleaks)"<br>`docs/evidence/F-11/secret-scan-local.txt` | Accepted v0.2.0 (MC-01 PASS on `4b4b7e0`, 2026-11-26). CI gate: Implemented (#108); local gitleaks 8.28.0 PASS on repo history, FAIL on a planted token. CI run links: added when the PR runs |
 | NFR-09 | F-04 | 1 | AC-12 | TEST-15 | `server/tests/submissions.test.ts` :: TEST-15 | Accepted v0.2.0 (pass on `c066576` + CI `ebb177c`); same pattern for versions/grades in TEST-30, TEST-34, TEST-48 |
 
 Numbers in brackets, such as "TEST-U04 (3 tests)", count separate `it` blocks that share one ID.
@@ -79,10 +79,8 @@ Numbers in brackets, such as "TEST-U04 (3 tests)", count separate `it` blocks th
 |---|---|---|---|
 | No code or test | FR-17, FR-19 (F-09 board) | Sprint 3 scope | F-09 contract and tests in Sprint 3 |
 | No code or test | FR-18 (F-10 report) | Sprint 3 scope | F-10 contract; reads `lateAt` and grades |
-| Not measured | NFR-06 (20 users, p95 < 500 ms) | Load test needs the deployed instance and F-11 | autocannon script in Sprint 3 (F-11) |
-| Partial | NFR-07 | Core screens covered by E2E; not every screen state on every page | F-11 in Sprint 3 |
+| Not measured | NFR-06 (20 users, p95 < 500 ms) | Load test needs the deployed candidate | `npm run load-test` (#108) on the deployed candidate before 13 Dec |
 | Manual only | NFR-04 Secure cookie in production | Config review, no automated test | Keep in release checklist |
-| Manual only | NFR-08 secret scan | Manual MC-01 per release, not a CI step | Consider a CI secret scan in F-11 |
 | Superseded | AC-13 (BR-06 v1) | Replaced by AC-49 in Lab 7 CR-01; TEST-16 now checks the v2 rule | none |
 
 Not passed: none. No test failed or was skipped in the S2-07 regression or the release CI.
@@ -176,6 +174,10 @@ Generated with `grep -rnoE "(it|test)\('TEST-[^']*'" server/tests web/e2e`. Test
 | `server/tests/milestone-management.test.ts` | TEST-U06 validates partial title, description, and dueAt boundaries |
 | `server/tests/grading.test.ts` | TEST-U07 canGrade checks FEEDBACK_REQUIRED first and blocks only OPEN + unclosed milestone |
 | `server/tests/grading.test.ts` | TEST-U07 validates score boundaries and rejects non-integer / non-number / out-of-range values |
+| `server/tests/errors.test.ts` | TEST-69 returns the fixed 500 body with no stack or internal message |
+| `web/e2e/screen-states.spec.ts` | TEST-67 (AC-64) every data screen shows loading, empty and error states |
+| `web/e2e/screen-states.spec.ts` | TEST-68 (AC-64) server field errors show under each input and are linked with aria-describedby |
+| `web/e2e/screen-states.spec.ts` | TEST-70 (AC-65) Try again reloads after a 500; a 404 shows no Try again |
 
 ## Approved changes
 
@@ -194,3 +196,4 @@ Generated with `grep -rnoE "(it|test)\('TEST-[^']*'" server/tests web/e2e`. Test
 | 2026-11-26 | Sprint 2 regression TEST-51, TEST-E2E-06, TEST-E2E-07 added (#73, PR #94) | all Sprint 1 and 2 rows |
 | 2026-11-26 | Release v0.2.0 (`4b4b7e0`, PR #96, #74) deployed as `cpms-00007-7sf` | all Sprint 2 rows, BR-06 v2 |
 | 2026-11-26 | SRS v1.2: BR-07, BR-08, BR-10..BR-13 reworded to the contracts; matrix v2.0 (S2-09 #75) | BR-07, BR-08, BR-10, BR-11, BR-12, BR-13 |
+| 2026-11-28 | F-11 hardening implemented (#108): load-test script, Try again, screen-state E2E, linked field errors, CI secret scan | NFR-06, NFR-07, NFR-08 |
