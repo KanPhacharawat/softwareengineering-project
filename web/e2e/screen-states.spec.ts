@@ -20,11 +20,11 @@ function futureLocal(days = 7) {
 }
 
 // The input is marked invalid and its aria-describedby points at a visible error message.
-async function expectLinkedError(page: Page, label: string, message: string) {
+async function expectLinkedError(page: Page, label: string | RegExp, message: string) {
   const input = page.getByLabel(label, { exact: true });
   await expect(input).toHaveAttribute('aria-invalid', 'true');
   const id = await input.getAttribute('aria-describedby');
-  expect(id, `${label} has aria-describedby`).toBeTruthy();
+  expect(id, `${String(label)} has aria-describedby`).toBeTruthy();
   await expect(page.locator(`[id="${id}"]`)).toHaveText(message);
 }
 
@@ -135,7 +135,7 @@ test('TEST-68 (AC-64) server field errors show under each input and are linked w
   await page.getByRole('button', { name: 'Create milestone' }).click();
   await expectLinkedError(page, 'Title', 'Bad title');
   await expectLinkedError(page, 'Description', 'Bad description');
-  await expectLinkedError(page, 'Due date', 'Bad due date');
+  await expectLinkedError(page, /^Due date/, 'Bad due date');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.getByRole('button', { name: 'Create milestone' }).click();
   await page.getByRole('link', { name: title }).first().click();
@@ -167,26 +167,26 @@ test('TEST-68 (AC-64) server field errors show under each input and are linked w
   await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page.getByText('Not graded yet')).toBeVisible();
 
-  // Feedback and grade forms (supervisor)
+  // Feedback form (supervisor)
   await page.getByRole('button', { name: 'Log out' }).click();
   await login(page, 'sup1@cpms.test');
   await page.goto(milestoneUrl);
   await page.getByLabel('Feedback').fill('Looks good');
-  await page.getByLabel('Score (0–100)').fill('80');
-  await failWrites(page, { comment: 'Bad comment', score: 'Bad score' });
+  await failWrites(page, { comment: 'Bad comment' });
   await page.getByRole('button', { name: 'Save feedback' }).click();
   await expectLinkedError(page, 'Feedback', 'Bad comment');
-  await page.getByRole('button', { name: 'Save grade' }).click();
-  await expectLinkedError(page, 'Score (0–100)', 'Bad score');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.getByRole('button', { name: 'Save feedback' }).click();
 
-  // Revision request form (shown after feedback)
+  // Revision request and grade forms (shown after feedback)
   await page.getByLabel('Reason').fill('Add tests');
-  await failWrites(page, { reason: 'Bad reason', dueAt: 'Bad revision due' });
+  await page.getByLabel('Score (0–100)').fill('80');
+  await failWrites(page, { reason: 'Bad reason', dueAt: 'Bad revision due', score: 'Bad score' });
   await page.getByRole('button', { name: 'Request revision' }).click();
   await expectLinkedError(page, 'Reason', 'Bad reason');
   await expectLinkedError(page, 'Revision due', 'Bad revision due');
+  await page.getByRole('button', { name: 'Save grade' }).click();
+  await expectLinkedError(page, 'Score (0–100)', 'Bad score');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
 });
 

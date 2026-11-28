@@ -45,7 +45,7 @@ export function TeamPage() {
       {state.status === 'loading' && <TeamPageSkeleton />}
       {state.status === 'error' && (
         <div className="space-y-4">
-          <ErrorState error={state.error} />
+          <ErrorState error={state.error} onRetry={state.reload} />
           <Button variant="outline" asChild>
             <Link to="/">
               <ArrowLeft />
@@ -109,7 +109,7 @@ function TeamDetail({ team }: { team: Team }) {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Milestones</h2>
         {milestonesState.status === 'loading' && <MilestonesSkeleton />}
-        {milestonesState.status === 'error' && <ErrorState error={milestonesState.error} />}
+        {milestonesState.status === 'error' && <ErrorState error={milestonesState.error} onRetry={milestonesState.reload} />}
         {milestonesState.status === 'success' &&
           (milestonesState.data.milestones.length === 0 ? (
             <EmptyState icon={Flag} message="No milestones yet" />
@@ -289,8 +289,9 @@ function NewMilestoneForm({ teamId, onCreated }: { teamId: string; onCreated: ()
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Milestone 1: Requirements"
               aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'milestone-title-error' : undefined}
             />
-            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+            {errors.title && <p id="milestone-title-error" className="text-sm text-destructive">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -301,8 +302,9 @@ function NewMilestoneForm({ teamId, onCreated }: { teamId: string; onCreated: ()
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional instructions or notes (max 2000 characters)"
               aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'milestone-desc-error' : undefined}
             />
-            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+            {errors.description && <p id="milestone-desc-error" className="text-sm text-destructive">{errors.description}</p>}
           </div>
 
           <div className="space-y-2">
@@ -316,9 +318,10 @@ function NewMilestoneForm({ teamId, onCreated }: { teamId: string; onCreated: ()
               value={dueAt}
               onChange={(e) => setDueAt(e.target.value)}
               aria-invalid={!!errors.dueAt}
+              aria-describedby={errors.dueAt ? 'milestone-due-error' : undefined}
             />
             <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
-            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+            {errors.dueAt && <p id="milestone-due-error" className="text-sm text-destructive">{errors.dueAt}</p>}
           </div>
 
           <Button type="submit" disabled={isSubmitting}>
@@ -333,7 +336,7 @@ function NewMilestoneForm({ teamId, onCreated }: { teamId: string; onCreated: ()
 
 function MilestonesSkeleton() {
   return (
-    <Card className="gap-0 py-0">
+    <Card className="gap-0 py-0" aria-busy="true" aria-label="Loading milestones">
       <CardContent className="p-6 space-y-4">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
