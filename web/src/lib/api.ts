@@ -86,6 +86,39 @@ export type ProgressBoard = {
   columns: { status: MilestoneStatus; cards: BoardCard[] }[];
 };
 
+// F-10 GET /api/reports/supervisor-summary
+export type TeamReportRow = {
+  teamId: string;
+  teamName: string;
+  milestonesTotal: number;
+  submitted: number;
+  late: number;
+  missing: number;
+  feedbackPending: number;
+  revisionRequested: number;
+  closed: number;
+  graded: number;
+  averageScore: number | null;
+};
+
+export type OverallReportSummary = {
+  teamCount: number;
+  milestonesTotal: number;
+  submitted: number;
+  late: number;
+  missing: number;
+  feedbackPending: number;
+  revisionRequested: number;
+  closed: number;
+  graded: number;
+  averageScore: number | null;
+};
+
+export type SupervisorSummaryReport = {
+  overall: OverallReportSummary;
+  teams: TeamReportRow[];
+};
+
 export type Milestone = {
   id: string;
   title: string;

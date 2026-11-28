@@ -1,0 +1,28 @@
+# F-10 TDD red E2E (S3-02 #107), 2026-11-28T00:59:45+07:00
+# cmd: cd web && npx playwright test e2e/supervisor-report.spec.ts --trace off
+
+Running 1 test using 1 worker
+
+  x  1 [chromium] › e2e\supervisor-report.spec.ts:25:1 › TEST-E2E-10 (AC-62) supervisor views summary report; student gets 403; empty and error states (16.3s)
+
+
+  1) [chromium] › e2e\supervisor-report.spec.ts:25:1 › TEST-E2E-10 (AC-62) supervisor views summary report; student gets 403; empty and error states 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('You do not have permission to do this')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('You do not have permission to do this') with timeout 5000ms
+      - waiting for getByText('You do not have permission to do this')
+
+      46 |   await expect(page.getByRole('link', { name: 'Reports' })).toHaveCount(0);
+      47 |   await page.goto('/reports');
+    > 48 |   await expect(page.getByText('You do not have permission to do this')).toBeVisible();
+         |                                                                         ^
+
+  1 failed
+    [chromium] › e2e\supervisor-report.spec.ts:25:1 › TEST-E2E-10 (AC-62) supervisor views summary report; student gets 403; empty and error states

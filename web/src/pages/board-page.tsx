@@ -41,7 +41,7 @@ export function BoardPage() {
       </div>
 
       {state.status === 'loading' && <BoardSkeleton />}
-      {state.status === 'error' && <ErrorState error={state.error} />}
+      {state.status === 'error' && <ErrorState error={state.error} onRetry={state.reload} />}
       {state.status === 'success' && <Board board={state.data} />}
     </div>
   );

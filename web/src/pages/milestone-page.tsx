@@ -57,7 +57,7 @@ export function MilestonePage() {
       {state.status === 'loading' && <MilestonePageSkeleton />}
       {state.status === 'error' && (
         <div className="space-y-4">
-          <ErrorState error={state.error} />
+          <ErrorState error={state.error} onRetry={state.reload} />
           <Button variant="outline" asChild>
             <Link to="/">
               <ArrowLeft />
@@ -525,8 +525,9 @@ function GradeForm({
               value={scoreInput}
               onChange={(e) => setScoreInput(e.target.value)}
               aria-invalid={!!errors.score}
+              aria-describedby={errors.score ? 'grade-score-error' : undefined}
             />
-            {errors.score && <p className="text-sm text-destructive">{errors.score}</p>}
+            {errors.score && <p id="grade-score-error" className="text-sm text-destructive">{errors.score}</p>}
           </div>
 
           {errors.form && (
@@ -633,8 +634,9 @@ function EditMilestoneForm({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'edit-milestone-title-error' : undefined}
             />
-            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+            {errors.title && <p id="edit-milestone-title-error" className="text-sm text-destructive">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -644,8 +646,9 @@ function EditMilestoneForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'edit-milestone-description-error' : undefined}
             />
-            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+            {errors.description && <p id="edit-milestone-description-error" className="text-sm text-destructive">{errors.description}</p>}
           </div>
 
           <div className="space-y-2">
@@ -656,9 +659,10 @@ function EditMilestoneForm({
               value={dueAt}
               onChange={(e) => setDueAt(e.target.value)}
               aria-invalid={!!errors.dueAt}
+              aria-describedby={errors.dueAt ? 'edit-milestone-due-error' : undefined}
             />
             <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
-            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+            {errors.dueAt && <p id="edit-milestone-due-error" className="text-sm text-destructive">{errors.dueAt}</p>}
           </div>
 
           {errors.form && (
@@ -757,8 +761,9 @@ function FeedbackForm({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write feedback for the team (max 2000 characters)"
               aria-invalid={!!errors.comment}
+              aria-describedby={errors.comment ? 'feedback-comment-error' : undefined}
             />
-            {errors.comment && <p className="text-sm text-destructive">{errors.comment}</p>}
+            {errors.comment && <p id="feedback-comment-error" className="text-sm text-destructive">{errors.comment}</p>}
           </div>
 
           <Button type="submit" disabled={isSubmitting}>
@@ -849,9 +854,10 @@ function RevisionRequestForm({ submissionId, onSaved }: { submissionId: string; 
               onChange={(e) => setReason(e.target.value)}
               placeholder="What should the team change?"
               aria-invalid={!!errors.reason}
+              aria-describedby={errors.reason ? 'revision-reason-error' : undefined}
             />
             <p className="text-xs text-muted-foreground">{reason.length} / 1000</p>
-            {errors.reason && <p className="text-sm text-destructive">{errors.reason}</p>}
+            {errors.reason && <p id="revision-reason-error" className="text-sm text-destructive">{errors.reason}</p>}
           </div>
 
           <div className="space-y-2">
@@ -862,9 +868,10 @@ function RevisionRequestForm({ submissionId, onSaved }: { submissionId: string; 
               value={dueAt}
               onChange={(e) => setDueAt(e.target.value)}
               aria-invalid={!!errors.dueAt}
+              aria-describedby={errors.dueAt ? 'revision-due-error' : undefined}
             />
             <p className="text-xs text-muted-foreground">Asia/Bangkok (UTC+7)</p>
-            {errors.dueAt && <p className="text-sm text-destructive">{errors.dueAt}</p>}
+            {errors.dueAt && <p id="revision-due-error" className="text-sm text-destructive">{errors.dueAt}</p>}
           </div>
 
           {errors.form && (
@@ -994,8 +1001,9 @@ function SubmissionForm({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Final Report & Source Code"
               aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'submission-title-error' : undefined}
             />
-            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+            {errors.title && <p id="submission-title-error" className="text-sm text-destructive">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -1007,8 +1015,9 @@ function SubmissionForm({
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://github.com/..."
               aria-invalid={!!errors.link}
+              aria-describedby={errors.link ? 'submission-link-error' : undefined}
             />
-            {errors.link && <p className="text-sm text-destructive">{errors.link}</p>}
+            {errors.link && <p id="submission-link-error" className="text-sm text-destructive">{errors.link}</p>}
           </div>
 
           <div className="space-y-2">
@@ -1019,8 +1028,9 @@ function SubmissionForm({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional notes or instructions for your supervisor (max 2000 characters)"
               aria-invalid={!!errors.description}
+              aria-describedby={errors.description ? 'submission-desc-error' : undefined}
             />
-            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+            {errors.description && <p id="submission-desc-error" className="text-sm text-destructive">{errors.description}</p>}
           </div>
 
           <div className="flex items-center gap-3">

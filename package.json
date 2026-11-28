@@ -20,9 +20,11 @@
     "db:reset": "npm run db:reset -w server",
     "test": "npm test -w server",
     "test:e2e": "npm run test:e2e -w web",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web",
+    "load-test": "node scripts/load-test.mjs"
   },
   "devDependencies": {
+    "autocannon": "9.0.0",
     "concurrently": "^9.2.5"
   },
   "optionalDependencies": {

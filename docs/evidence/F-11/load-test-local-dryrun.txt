@@ -1,0 +1,17 @@
+# TEST-NFR-06 load test (F-11 #108), 2026-11-28T09:51:18.053Z
+# NOTE: local dry run in the dev container (tsx dev server, shared CPU), NOT NFR-06 evidence. Shows the script works; login result is an early warning (bcrypt cost 12 under 20 concurrent logins).
+# target: http://localhost:3000
+# version: local-dryrun
+# 20 connections; GET endpoints 30 s each; login capped at 200 requests
+# pass rule: p97.5 < 500 ms, 0 non-2xx, 0 errors/timeouts
+
+endpoint | requests | p50 ms | p97.5 ms | p99 ms | non-2xx | errors | result
+GET /api/auth/me | 43035 | 13 | 23 | 27 | 0 | 0 | PASS
+GET /api/teams | 30209 | 19 | 32 | 35 | 0 | 0 | PASS
+GET /api/teams/:teamId/milestones | 16806 | 34 | 51 | 54 | 0 | 0 | PASS
+GET /api/milestones/:id | 23664 | 24 | 39 | 42 | 0 | 0 | PASS
+GET /api/teams/:teamId/board | 17223 | 33 | 50 | 53 | 0 | 0 | PASS
+GET /api/reports/supervisor-summary | 21829 | 26 | 41 | 45 | 0 | 0 | PASS
+POST /api/auth/login | 174 | 6280 | 8618 | 9695 | 0 | 40 | FAIL
+
+Overall: FAIL

@@ -1,0 +1,73 @@
+# F-11 TDD red E2E (S3-03 #108), 2026-11-28T09:37:46Z
+# cmd: cd web && npx playwright test screen-states --trace off   (new TEST-67, TEST-68, TEST-70 before implementation)
+
+
+Running 3 tests using 1 worker
+
+  ✘  1 [chromium] › e2e/screen-states.spec.ts:40:1 › TEST-67 (AC-64) every data screen shows loading, empty and error states (7.7s)
+  ✘  2 [chromium] › e2e/screen-states.spec.ts:116:1 › TEST-68 (AC-64) server field errors show under each input and are linked with aria-describedby (2.0s)
+  ✘  3 [chromium] › e2e/screen-states.spec.ts:193:1 › TEST-70 (AC-65) Try again reloads after a 500; a 404 shows no Try again (30.0s)
+
+
+  1) [chromium] › e2e/screen-states.spec.ts:40:1 › TEST-67 (AC-64) every data screen shows loading, empty and error states › team milestones: loading 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[aria-busy="true"][aria-label="Loading milestones"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[aria-busy="true"][aria-label="Loading milestones"]') with timeout 5000ms
+      - waiting for locator('[aria-busy="true"][aria-label="Loading milestones"]')
+
+
+      92 |       });
+      93 |       await page.goto(s.url);
+    > 94 |       await expect(page.locator(`[aria-busy="true"][aria-label="${s.busy}"]`)).toBeVisible();
+         |                                                                                ^
+      95 |       await page.unrouteAll({ behavior: 'ignoreErrors' });
+      96 |     });
+      97 |     if (s.name !== 'team') {
+
+
+  2) [chromium] › e2e/screen-states.spec.ts:116:1 › TEST-68 (AC-64) server field errors show under each input and are linked with aria-describedby 
+
+    Error: Title has aria-describedby
+
+    expect(received).toBeTruthy()
+
+    Received: null
+
+      25 |   await expect(input).toHaveAttribute('aria-invalid', 'true');
+      26 |   const id = await input.getAttribute('aria-describedby');
+    > 27 |   expect(id, `${label} has aria-describedby`).toBeTruthy();
+         |                                               ^
+      28 |   await expect(page.locator(`[id="${id}"]`)).toHaveText(message);
+      29 | }
+      30 |
+
+
+  3) [chromium] › e2e/screen-states.spec.ts:193:1 › TEST-70 (AC-65) Try again reloads after a 500; a 404 shows no Try again 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Try again' })
+
+
+      199 |   await expect(page.getByText('Something went wrong')).toBeVisible();
+      200 |   fail = false;
+    > 201 |   await page.getByRole('button', { name: 'Try again' }).click();
+          |                                                         ^
+      202 |   await expect(page.getByText('No milestones yet.')).toBeVisible();
+      203 |   await expect(page.getByText('Something went wrong')).toHaveCount(0);
+      204 |
+
+
+  3 failed
+    [chromium] › e2e/screen-states.spec.ts:40:1 › TEST-67 (AC-64) every data screen shows loading, empty and error states 
+    [chromium] › e2e/screen-states.spec.ts:116:1 › TEST-68 (AC-64) server field errors show under each input and are linked with aria-describedby 
+    [chromium] › e2e/screen-states.spec.ts:193:1 › TEST-70 (AC-65) Try again reloads after a 500; a 404 shows no Try again 

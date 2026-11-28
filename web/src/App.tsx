@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/login-page';
 import { MilestonePage } from '@/pages/milestone-page';
 import { TeamPage } from '@/pages/team-page';
 import { BoardPage } from '@/pages/board-page';
+import { ReportPage } from '@/pages/report-page';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="teams/:teamId" element={<TeamPage />} />
             <Route path="teams/:teamId/board" element={<BoardPage />} />
             <Route path="milestones/:milestoneId" element={<MilestonePage />} />
+            <Route path="reports" element={<ReportPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
