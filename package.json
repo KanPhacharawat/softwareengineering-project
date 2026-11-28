@@ -1,6 +1,6 @@
 {
   "name": "cpms",
-  "version": "0.2.0",
+  "version": "0.3.0-rc.1",
   "private": true,
   "description": "Course Project Management System (CPE 334 Theme 6)",
   "workspaces": [
