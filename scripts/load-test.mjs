@@ -35,13 +35,14 @@ if (!milestones?.length) {
 }
 
 const runs = [
-  { name: 'POST /api/auth/login', path: '/api/auth/login', method: 'POST', headers: json, body: loginBody, amount: 200 },
   { name: 'GET /api/auth/me', path: '/api/auth/me' },
   { name: 'GET /api/teams', path: '/api/teams' },
   { name: 'GET /api/teams/:teamId/milestones', path: `/api/teams/${teamId}/milestones` },
   { name: 'GET /api/milestones/:id', path: `/api/milestones/${milestones[0].id}` },
   { name: 'GET /api/teams/:teamId/board', path: `/api/teams/${teamId}/board` },
   { name: 'GET /api/reports/supervisor-summary', path: '/api/reports/supervisor-summary' },
+  // Last and without our cookie: each login regenerates the session, which would log the GET runs out.
+  { name: 'POST /api/auth/login', path: '/api/auth/login', method: 'POST', headers: json, body: loginBody, amount: 200 },
 ];
 
 // Pass rule (contract decision 2): p97.5 < 500 ms, 0 non-2xx, 0 errors/timeouts.
@@ -56,7 +57,7 @@ for (const run of runs) {
     url: `${base}${path}`,
     connections: 20,
     ...(amount ? { amount } : { duration: 30 }),
-    headers: { cookie, ...opts.headers },
+    headers: opts.method ? opts.headers : { cookie },
     method: opts.method ?? 'GET',
     body: opts.body,
   });
