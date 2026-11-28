@@ -393,6 +393,11 @@ describe('TEST-65 report permissions (AC-61, BR-02, BR-03, NFR-02, NFR-03)', () 
 
 describe('TEST-66 report is read-only (AC-61)', () => {
   it('TEST-66 GET report changes no rows', async () => {
+    // Ensure Submission, SubmissionVersion, Feedback, RevisionRequest, and Grade tables are all non-empty.
+    const gradedFx = await createRevisionRequestedSubmission(app, { sup1, s1 }, { withRequest: false });
+    await grade(gradedFx.submissionId, sup1, 90);
+    await createRevisionRequestedSubmission(app, { sup1, s1 });
+
     const counts = () =>
       Promise.all([
         prisma.team.count(),
@@ -404,6 +409,7 @@ describe('TEST-66 report is read-only (AC-61)', () => {
         prisma.grade.count(),
       ]);
     const before = await counts();
+    for (const c of before) expect(c).toBeGreaterThan(0);
     for (const cookie of [sup1, sup2, sup1, sup2, sup1, sup2]) {
       expect((await get(REPORT_URL, cookie)).status).toBe(200);
     }

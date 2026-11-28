@@ -67,16 +67,16 @@ function ReportContent({ report }: { report: SupervisorSummaryReport }) {
 
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div data-testid="overall-summary" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {tiles.map((t) => (
           <Card key={t.label} className="py-4">
             <CardContent className="px-4">
-              <dt className="text-sm text-muted-foreground">{t.label}</dt>
-              <dd className="mt-1 text-2xl font-semibold">{t.value}</dd>
+              <p className="text-sm text-muted-foreground">{t.label}</p>
+              <p className="mt-1 text-2xl font-semibold">{t.value}</p>
             </CardContent>
           </Card>
         ))}
-      </dl>
+      </div>
 
       <Card className="gap-0 py-0">
         <CardContent className="px-0">
@@ -157,7 +157,7 @@ function MobileTeamRow({ row }: { row: TeamReportRow }) {
           </Link>
         </Button>
       </div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <div>Milestones: {row.milestonesTotal}</div>
         <div>Submitted: {row.submitted}</div>
         <div>Feedback pending: {row.feedbackPending}</div>
@@ -168,7 +168,7 @@ function MobileTeamRow({ row }: { row: TeamReportRow }) {
           Graded: {row.graded} / {row.milestonesTotal}
         </div>
         <div>Average score: {row.averageScore === null ? '–' : row.averageScore}</div>
-      </dl>
+      </div>
     </div>
   );
 }

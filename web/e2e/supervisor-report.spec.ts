@@ -47,16 +47,40 @@ test('TEST-E2E-10 (AC-62) supervisor views summary report; student gets 403; emp
   await page.goto('/reports');
   await expect(page.getByText('You do not have permission to do this')).toBeVisible();
 
-  // Sup1 sees Reports in header -> opens /reports -> sees overall summary and Alpha/Beta rows -> clicks Alpha link.
+  // Sup1 sees Reports in header -> opens /reports -> verifies overall tiles, Alpha count, Board & Team links, and mobile width.
   await switchUser(page, 'sup1@cpms.test');
   await expect(page.getByRole('link', { name: 'Reports' })).toBeVisible();
   await page.getByRole('link', { name: 'Reports' }).click();
   await expect(page).toHaveURL(/\/reports$/);
   await expect(page.getByRole('heading', { name: 'Supervisor summary report' })).toBeVisible();
   await expect(page.getByText('2 assigned teams')).toBeVisible();
+
+  const summary = page.getByTestId('overall-summary');
+  for (const label of ['Teams', 'Milestones', 'Submitted', 'Feedback pending', 'Late', 'Missing', 'Graded', 'Average score']) {
+    await expect(summary.getByText(label, { exact: true })).toBeVisible();
+  }
+
   await expect(page.getByRole('link', { name: 'Alpha' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Beta' }).first()).toBeVisible();
 
+  // Alpha row shows Feedback pending >= 1 after S1's submission.
+  const alphaRow = page.locator('tbody tr', { hasText: 'Alpha' });
+  const feedbackPendingText = await alphaRow.locator('td').nth(3).textContent();
+  expect(Number(feedbackPendingText)).toBeGreaterThanOrEqual(1);
+
+  // Mobile 375px header has no horizontal overflow and Log out remains visible.
+  await page.setViewportSize({ width: 375, height: 812 });
+  const overflow = await page.evaluate<number>('document.documentElement.scrollWidth - document.documentElement.clientWidth');
+  expect(overflow).toBeLessThanOrEqual(0);
+  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 720 });
+
+  // Alpha's Board link opens /teams/:alphaId/board.
+  await alphaRow.getByRole('link', { name: 'Board' }).click();
+  await expect(page).toHaveURL(new RegExp(`/teams/${ALPHA_ID}/board$`));
+
+  // Back to /reports -> Alpha's team link opens /teams/:alphaId.
+  await page.goto('/reports');
   await page.getByRole('link', { name: 'Alpha' }).first().click();
   await expect(page).toHaveURL(new RegExp(`/teams/${ALPHA_ID}$`));
 

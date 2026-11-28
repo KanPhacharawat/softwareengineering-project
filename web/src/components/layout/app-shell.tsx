@@ -26,16 +26,16 @@ export function AppShell({ user, children }: { user: User; children: ReactNode }
     <div className="min-h-svh">
       <header className="sticky top-0 z-10 h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-full max-w-5xl items-center justify-between gap-4 px-4 md:px-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="size-5" />
               <span className="font-semibold">CPMS</span>
             </div>
             {user.role === 'SUPERVISOR' && (
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/reports">
+                <Link to="/reports" aria-label="Reports">
                   <BarChart3 />
-                  Reports
+                  <span className="hidden sm:inline">Reports</span>
                 </Link>
               </Button>
             )}
